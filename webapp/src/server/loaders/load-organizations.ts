@@ -7,24 +7,24 @@ import type { OrganizationsResponse } from "../../types/organization";
 export const loadOrganizations = unstable_cache(
   async (): Promise<OrganizationsResponse> => {
     // 全ての有効な組織データを取得
-    const organizations = await prisma.politicalOrganization.findMany({
+    const organizations = await prisma.organization.findMany({
       select: {
         slug: true,
-        orgName: true,
+        name: true,
         displayName: true,
       },
-      orderBy: { id: "asc" },
+      orderBy: { createdAt: "asc" },
     });
 
     if (organizations.length === 0) {
-      throw new Error("No political organizations found");
+      throw new Error("No organizations found");
     }
 
     return {
       default: organizations[0].slug,
       organizations: organizations.map((org) => ({
         slug: org.slug,
-        orgName: org.orgName,
+        orgName: org.name,
         displayName: org.displayName,
       })),
     };

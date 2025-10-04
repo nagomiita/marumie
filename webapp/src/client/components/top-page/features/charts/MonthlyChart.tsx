@@ -27,8 +27,11 @@ interface MonthlyChartProps {
 }
 
 export default function MonthlyChart({ data }: MonthlyChartProps) {
+  console.log("MonthlyChart received data:", data);
+
   // データが空の場合
   if (!data || data.length === 0) {
+    console.log("MonthlyChart: No data available");
     return (
       <div className="bg-gray-50 rounded-lg flex items-center justify-center h-[462px]">
         <div className="text-center text-gray-500">
@@ -50,22 +53,37 @@ export default function MonthlyChart({ data }: MonthlyChartProps) {
   const expenseData = data.map((item) => -item.expense); // 負の値で表現
   const balanceData = data.map((item) => item.income - item.expense);
 
+  console.log("MonthlyChart processed data:", {
+    months,
+    incomeData,
+    expenseData,
+    balanceData,
+  });
+
   // データの最大絶対値を取得してY軸の範囲を動的に設定
   const allValues = [...incomeData, ...expenseData, ...balanceData];
   const maxAbsValue = Math.max(...allValues.map((val) => Math.abs(val)));
   const maxWithMargin = maxAbsValue * 1.2; // 20%のマージンを追加
 
+  // 最低表示範囲を100万円に設定
+  const minDisplayRange = 1000000;
+  const displayMax = Math.max(maxWithMargin, minDisplayRange);
+
   // maxAbsValueに応じて刻み幅を決定し、四捨五入
   let yAxisMax: number;
   let tickInterval: number;
-  if (maxAbsValue > 500000000) {
+  if (displayMax > 500000000) {
     // 5億円より大きい場合は1億円刻み
     tickInterval = 100000000;
-    yAxisMax = Math.round(maxWithMargin / tickInterval) * tickInterval;
-  } else {
-    // 5億円以下の場合は1000万円刻み
+    yAxisMax = Math.round(displayMax / tickInterval) * tickInterval;
+  } else if (displayMax > 50000000) {
+    // 5000万円より大きい場合は1000万円刻み
     tickInterval = 10000000;
-    yAxisMax = Math.round(maxWithMargin / tickInterval) * tickInterval;
+    yAxisMax = Math.round(displayMax / tickInterval) * tickInterval;
+  } else {
+    // 5000万円以下の場合は100万円刻み
+    tickInterval = 1000000;
+    yAxisMax = Math.round(displayMax / tickInterval) * tickInterval;
   }
   const yAxisMin = -yAxisMax;
 

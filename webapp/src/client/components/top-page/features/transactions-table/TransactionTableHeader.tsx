@@ -101,11 +101,20 @@ export default function TransactionTableHeader({
           />
         </th>
 
-        {/* 項目項目 - flexible width to match row */}
-        <th className="text-left h-12 font-normal" scope="col">
+        {/* 項目項目 - 200px width to match row */}
+        <th className="text-left h-12 font-normal w-[200px]" scope="col">
           <div className="flex items-center h-5">
             <span className="text-gray-800 text-sm font-bold leading-[1.286] tracking-[0.071em]">
               項目
+            </span>
+          </div>
+        </th>
+
+        {/* 摘要 - flexible width to match row */}
+        <th className="text-left h-12 font-normal" scope="col">
+          <div className="flex items-center h-5">
+            <span className="text-gray-800 text-sm font-bold leading-[1.286] tracking-[0.071em]">
+              摘要
             </span>
           </div>
         </th>

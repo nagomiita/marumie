@@ -18,7 +18,17 @@ import type {
 } from "./interfaces/transaction-repository.interface";
 
 export class PrismaTransactionRepository implements ITransactionRepository {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient) {
+    // Log database connection status on initialization
+    console.log(
+      "[PrismaTransactionRepository] Initialized with Prisma client",
+      {
+        env: process.env.NODE_ENV,
+        databaseUrl: process.env.DATABASE_URL ? "SET" : "NOT_SET",
+        timestamp: new Date().toISOString(),
+      },
+    );
+  }
 
   async findById(id: string): Promise<Transaction | null> {
     const transaction = await this.prisma.transaction.findUnique({
@@ -43,7 +53,15 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     filters?: TransactionFilters,
     pagination?: PaginationOptions,
   ): Promise<PaginatedResult<Transaction>> {
+    console.log("[PrismaTransactionRepository] findWithPagination called", {
+      filters,
+      pagination,
+      timestamp: new Date().toISOString(),
+      env: process.env.NODE_ENV,
+    });
+
     const where = this.buildWhereClause(filters);
+    console.log("[PrismaTransactionRepository] Built where clause:", where);
 
     const page = pagination?.page || 1;
     const perPage = pagination?.perPage || 50;
@@ -55,25 +73,59 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       pagination?.order,
     );
 
-    const [transactions, total] = await Promise.all([
-      this.prisma.transaction.findMany({
+    console.log("[PrismaTransactionRepository] Query parameters:", {
+      skip,
+      take: perPage,
+      orderBy,
+      whereClause: where,
+    });
+
+    try {
+      // Check database connection before query in production
+      if (process.env.NODE_ENV === "production") {
+        await this.checkDatabaseConnection();
+      }
+
+      const [transactions, total] = await Promise.all([
+        this.prisma.transaction.findMany({
+          where,
+          orderBy,
+          skip,
+          take: perPage,
+        }),
+        this.prisma.transaction.count({ where }),
+      ]);
+
+      console.log("[PrismaTransactionRepository] Query results:", {
+        transactionCount: transactions.length,
+        total,
+        page,
+        perPage,
+        hasTransactions: transactions.length > 0,
+        firstTransactionId: transactions[0]?.id?.toString(),
+        lastTransactionId:
+          transactions[transactions.length - 1]?.id?.toString(),
+      });
+
+      const totalPages = Math.ceil(total / perPage);
+
+      return {
+        items: transactions.map(this.mapToTransaction),
+        total,
+        page,
+        perPage,
+        totalPages,
+      };
+    } catch (error) {
+      console.error("[PrismaTransactionRepository] Database query failed:", {
+        error: error instanceof Error ? error.message : error,
         where,
         orderBy,
         skip,
         take: perPage,
-      }),
-      this.prisma.transaction.count({ where }),
-    ]);
-
-    const totalPages = Math.ceil(total / perPage);
-
-    return {
-      items: transactions.map(this.mapToTransaction),
-      total,
-      page,
-      perPage,
-      totalPages,
-    };
+      });
+      throw error;
+    }
   }
 
   async getCategoryAggregationForSankey(
@@ -583,6 +635,29 @@ export class PrismaTransactionRepository implements ITransactionRepository {
 
     // Default to sorting by date
     return { transactionDate: sortOrder };
+  }
+
+  private async checkDatabaseConnection(): Promise<void> {
+    try {
+      console.log(
+        "[PrismaTransactionRepository] Checking database connection...",
+      );
+      await this.prisma.$queryRaw`SELECT 1`;
+      console.log(
+        "[PrismaTransactionRepository] Database connection successful",
+      );
+    } catch (error) {
+      console.error(
+        "[PrismaTransactionRepository] Database connection failed:",
+        {
+          error: error instanceof Error ? error.message : error,
+          timestamp: new Date().toISOString(),
+        },
+      );
+      throw new Error(
+        `Database connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
   }
 
   private mapToTransaction(prismaTransaction: PrismaTransaction): Transaction {

@@ -1,14 +1,8 @@
-# みらいまる見え政治資金
+# みらいまる見え家計簿
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
-
-> 政治資金の透明性向上を目指すオープンソースダッシュボード
-
-政治家・政治団体が会計データを透明に公開し、市民が政治資金の流れを理解しやすくするためのWebアプリケーションです。クラウド会計ソフト（MFクラウド・freee等）から取得したデータを可視化し、政治資金報告書の作成も支援します。
-
-チームみらい永田町エンジニアチームが開発しています。
 
 ## プロジェクト構成
 
@@ -55,11 +49,11 @@ marumie/
 
 ### 各ディレクトリの役割
 
-- **webapp/**: 一般ユーザー向けのフロントエンドアプリケーション（政治資金データの可視化）
+- **webapp/**: 一般ユーザー向けのフロントエンドアプリケーション（家計簿データの可視化）
 - **admin/**: 管理者向けの管理画面（データ登録・管理機能）
 - **shared/**: webapp と admin で共通して使用するモデル、型定義、ユーティリティ関数
 - **data/**: サンプルデータファイル
-- **supabase/**: Supabaseローカル開発環境の設定ファイルとテンプレート
+- **supabase/**: Supabase ローカル開発環境の設定ファイルとテンプレート
 - **prisma/**: データベーススキーマ定義、マイグレーションファイル、シードデータ
 - **logs/**: ログファイルやデバッグ用データ
 - **docs/**: プロジェクトの設計ドキュメント
@@ -80,20 +74,22 @@ marumie/
 
 ※ 表示されている値は実際の値ではありません。
 
-
 ## ローカル開発手順
 
-このプロジェクトはSupabaseローカル開発環境を使用してローカル開発を行います。
+このプロジェクトは Supabase ローカル開発環境を使用してローカル開発を行います。
 
 ### 開発環境セットアップ
 
 1. **初回セットアップ（推奨）**
+
 ```bash
 pnpm run dev:setup
 ```
+
 このコマンドで依存関係のインストール、データベースのリセット・マイグレーション・シードデータの投入を一括実行します。
 
 2. **開発サーバーの起動**
+
 ```bash
 pnpm run dev  # Webapp + 管理画面を同時起動（Supabase自動起動）
 ```
@@ -101,6 +97,7 @@ pnpm run dev  # Webapp + 管理画面を同時起動（Supabase自動起動）
 ### よく使うコマンド
 
 #### 開発関連
+
 ```bash
 pnpm run dev           # Webapp + 管理画面を同時起動（推奨）
 pnpm run dev:webapp    # Webappのみ起動
@@ -108,6 +105,7 @@ pnpm run dev:admin     # 管理画面のみ起動
 ```
 
 #### データベース管理
+
 ```bash
 pnpm run db:reset      # データベース完全リセット（データ削除 + マイグレーション + シード）
 pnpm run db:migrate    # マイグレーション実行
@@ -116,6 +114,7 @@ pnpm run db:studio     # Prisma Studio起動
 ```
 
 #### コード品質チェック
+
 ```bash
 pnpm run lint          # 全体のLint実行
 pnpm run format        # コードフォーマット実行
@@ -123,7 +122,8 @@ pnpm run typecheck     # 型チェック実行
 pnpm run test          # テスト実行
 ```
 
-#### Supabase管理
+#### Supabase 管理
+
 ```bash
 pnpm run supabase:start   # Supabaseローカル環境起動
 pnpm run supabase:stop    # Supabaseローカル環境停止
@@ -131,6 +131,7 @@ pnpm run supabase:status  # Supabase状態確認
 ```
 
 #### ユーティリティ
+
 ```bash
 pnpm run clean         # 全てのnode_modulesとSupabaseを停止
 pnpm run fresh         # クリーンインストール + セットアップ
@@ -139,15 +140,22 @@ pnpm run fresh         # クリーンインストール + セットアップ
 ## データベースのマイグレーション
 
 ### 本番環境・開発環境
-- Vercelで行われるwebappのbuild過程で自動的にマイグレーションが実行されます
+
+- Vercel で行われる webapp の build 過程で自動的にマイグレーションが実行されます
 
 ### ローカル開発環境
+
 - 以下のコマンドでマイグレーションを実行してください：
+
 ```bash
 pnpm run db:migrate
 ```
 
 ### ブラウザからの確認方法
+
+- **メインアプリ**: [https://marumie-kakeibo-hrn0327.netlify.app/o/team-mirai](https://marumie-kakeibo-hrn0327.netlify.app/o/team-mirai)
+- **管理画面**: [https://marumie-kakeibo-hrn0327-admin.netlify.app/users](https://marumie-kakeibo-hrn0327-admin.netlify.app/users)
+- **Supabase Studio**: [https://supabase.com/dashboard/org/wxvunoocumzfosnxunct](https://supabase.com/dashboard/org/wxvunoocumzfosnxunct)
 
 - **メインアプリ**: [http://localhost:3000](http://localhost:3000)
 - **管理画面**: [http://localhost:3001](http://localhost:3001)
@@ -156,15 +164,74 @@ pnpm run db:migrate
 ### モックデータの使用
 
 `webapp/.env.local` に以下を追加してモックデータを有効化：
+
 ```
 USE_MOCK_DATA=true
 ```
 
 設定後、トランザクションページのバックエンドがモックデータを返すようになります。
 
-## サンプルデータ
+## サンプルデータ (まる見え家計簿用 CSV データの作成方法)
 
-`data/sampledata.csv` に政治資金の取引データのサンプルが含まれています。管理画面（ http://localhost:3001 ）の「CSVアップロード」機能からこのファイルをアップロードして確認できます。
+### 銀行・クレジットカード明細 CSV の変換
+
+各金融機関から取得した CSV を「まる見え家計簿」で利用可能な統一フォーマットに変換できます。
+
+#### ディレクトリ構成
+
+```
+data/
+├── config.yaml          # 変換設定ファイル
+├── convert_csv.sh       # 変換スクリプト
+├── input/              # 変換元CSVファイルの配置先
+│   ├── 2025-01/        # 年月ごとにディレクトリを作成
+│   ├── 2025-02/
+│   └── ...
+└── output/             # 変換後CSVファイルの出力先
+    ├── 2025-01/
+    ├── 2025-02/
+    └── ...
+```
+
+#### 使い方
+
+1. **入力ファイルの配置**
+
+   `data/input/` 以下に年月ディレクトリ（`YYYY-MM`形式）を作成し、各金融機関から取得した CSV ファイルを配置します。
+
+   ```bash
+   mkdir -p data/input/2025-01
+   # CSVファイルをdata/input/2025-01/にコピー
+   ```
+
+2. **設定ファイルの編集（必要に応じて）**
+
+   `data/config.yaml` で以下を設定できます：
+
+   - 銀行・カードごとの列マッピング（日付、摘要、金額など）
+   - ファイル名パターン（例: `UFJ_sample_*.csv`）
+   - カテゴリ分類ルール（キーワードによる自動分類）
+
+3. **変換スクリプトの実行**
+
+   ```bash
+   cd data
+   bash convert_csv.sh
+   ```
+
+   変換された CSV ファイルは `data/output/YYYY-MM/unified_YYYY-MM.csv` に出力されます。
+
+4. **変換結果のアップロード**
+
+   管理画面（ http://localhost:3001 ）の「CSV アップロード」機能から、`data/output/` 内の統一 CSV ファイルをアップロードします。
+
+#### サポートされている形式
+
+現在、以下の金融機関に対応しています：
+
+- UFJ 銀行（`UFJ_sample_*.csv`）
+
+新しい金融機関を追加する場合は、`data/config.yaml` の `banks` セクションに設定を追加してください。
 
 ## ライセンス
 

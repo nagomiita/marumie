@@ -1,8 +1,2 @@
-// Types
-export * from "@/shared/models/political-organization";
-
-// Repository
-export * from "./repositories/prisma-political-organization.repository";
-
-// Usecase
-export * from "./usecases/create-political-organization-usecase";
+// Admin server exports - political organization concepts removed
+// TODO: Add organization and personal transaction exports when ready

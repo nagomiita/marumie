@@ -1,7 +1,8 @@
 "use client";
 import "client-only";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { useState } from "react";
 import CardHeader from "@/client/components/layout/CardHeader";
 import MainColumnCard from "@/client/components/layout/MainColumnCard";
 import SankeyChart from "@/client/components/top-page/features/charts/SankeyChart";
@@ -9,24 +10,98 @@ import FinancialSummarySection from "@/client/components/top-page/features/finan
 
 import type { SankeyData } from "@/types/sankey";
 
-interface CashFlowSectionProps {
-  political?: SankeyData | null;
-  friendly?: SankeyData | null;
-  updatedAt: string;
-  organizationName?: string;
+// 個人家計簿用のサマリーデータ型
+interface PersonalFinancialSummary {
+  totalIncome: number;
+  totalExpense: number;
+  netAmount: number;
+  categories: {
+    income: Array<{ category: string; amount: number }>;
+    expense: Array<{ category: string; amount: number }>;
+  };
 }
 
+interface CashFlowSectionProps {
+  sankeyData?: SankeyData | null;
+  summary?: PersonalFinancialSummary | null;
+  updatedAt: string;
+  organizationName?: string;
+  slug?: string;
+}
+
+const MONTHS = [
+  { value: 0, label: "年間" },
+  { value: 1, label: "1月" },
+  { value: 2, label: "2月" },
+  { value: 3, label: "3月" },
+  { value: 4, label: "4月" },
+  { value: 5, label: "5月" },
+  { value: 6, label: "6月" },
+  { value: 7, label: "7月" },
+  { value: 8, label: "8月" },
+  { value: 9, label: "9月" },
+  { value: 10, label: "10月" },
+  { value: 11, label: "11月" },
+  { value: 12, label: "12月" },
+];
+
 export default function CashFlowSection({
-  political,
-  friendly,
+  sankeyData: initialSankeyData,
+  summary: initialSummary,
   updatedAt,
   organizationName,
+  slug,
 }: CashFlowSectionProps) {
-  const [activeTab, setActiveTab] = useState<"political" | "friendly">(
-    "friendly",
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const monthParam = searchParams.get("month");
+  const [selectedMonth, setSelectedMonth] = useState(
+    monthParam ? parseInt(monthParam, 10) : 0,
   );
+  const [sankeyData, setSankeyData] = useState(initialSankeyData);
+  const [summary, setSummary] = useState(initialSummary);
+  const [loading, setLoading] = useState(false);
 
-  const currentData = activeTab === "political" ? political : friendly;
+  const handleMonthChange = (month: number) => {
+    setSelectedMonth(month);
+    const params = new URLSearchParams(searchParams.toString());
+    if (month === 0) {
+      params.delete("month");
+    } else {
+      params.set("month", month.toString());
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    if (!slug || selectedMonth === 0) {
+      // 年間表示の場合は初期データを使用
+      setSankeyData(initialSankeyData);
+      setSummary(initialSummary);
+      return;
+    }
+
+    // 月が選択されたらAPIから取得
+    const fetchMonthlyData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/sankey/${slug}?year=${new Date().getFullYear()}&month=${selectedMonth}`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setSankeyData(data);
+          // TODO: 月別のsummaryも計算する必要がある
+        }
+      } catch (error) {
+        console.error("Failed to fetch monthly sankey data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMonthlyData();
+  }, [selectedMonth, slug, initialSankeyData, initialSummary]);
 
   return (
     <MainColumnCard id="cash-flow">
@@ -46,38 +121,41 @@ export default function CashFlowSection({
       />
 
       {/* 財務サマリー */}
-      <FinancialSummarySection sankeyData={friendly ?? null} />
+      <FinancialSummarySection
+        sankeyData={sankeyData ?? null}
+        summary={summary}
+      />
 
-      {/* タブ */}
-      <div className="flex gap-7 border-b border-gray-300 mb-4">
-        <button
-          type="button"
-          onClick={() => setActiveTab("friendly")}
-          className={`pb-2 font-bold text-base border-b-2 transition-colors leading-tight cursor-pointer ${
-            activeTab === "friendly"
-              ? "border-[#238778] text-[#238778]"
-              : "border-transparent text-[#9CA3AF] hover:text-gray-600"
-          }`}
+      {/* 月選択 */}
+      <div className="flex items-center gap-2 mt-4 mb-4">
+        <label
+          htmlFor="month-select"
+          className="text-sm font-medium text-gray-700"
         >
-          詳細の区分
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("political")}
-          className={`pb-2 font-bold text-base border-b-2 transition-colors leading-tight cursor-pointer ${
-            activeTab === "political"
-              ? "border-[#238778] text-[#238778]"
-              : "border-transparent text-[#9CA3AF] hover:text-gray-600"
-          }`}
+          表示期間：
+        </label>
+        <select
+          id="month-select"
+          value={selectedMonth}
+          onChange={(e) => handleMonthChange(Number(e.target.value))}
+          className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
         >
-          法律上の区分
-        </button>
+          {MONTHS.map((month) => (
+            <option key={month.value} value={month.value}>
+              {month.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* サンキー図 */}
       <div className="md:mx-0 -mx-3 mb-0">
-        {currentData ? (
-          <SankeyChart data={currentData} />
+        {loading ? (
+          <div className="text-gray-500 mx-4 text-center py-8">
+            データを読み込み中...
+          </div>
+        ) : sankeyData ? (
+          <SankeyChart data={sankeyData} />
         ) : (
           <div className="text-gray-500 mx-4">
             サンキー図データが取得できませんでした

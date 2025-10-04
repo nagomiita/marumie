@@ -28,46 +28,32 @@ export default function TransactionTableRow({
 
   const getCategoryLabel = (transaction: DisplayTransaction) => {
     // Use shortLabel from Figma design
-    return transaction.shortLabel;
+    return transaction.category;
   };
 
   const getDisplayTitle = (transaction: DisplayTransaction) => {
-    const baseTitle = transaction.friendly_category || transaction.category;
-    return transaction.label
-      ? `${baseTitle} - ${transaction.label}`
-      : baseTitle;
+    return transaction.label;
   };
 
   const getCategoryColors = (transaction: DisplayTransaction) => {
-    const isIncome = transaction.amount > 0;
-
     // Find mapping based on account (original account name)
     const mapping = PL_CATEGORIES[transaction.account];
     const color = mapping?.color;
 
     if (color) {
-      if (isIncome) {
-        // 収入: 色で塗りつぶして文字色は固定
-        return {
-          fontColor: "#47474C",
-          borderColor: color,
-          bgColor: color,
-        };
-      } else {
-        // 支出: 白抜きで文字と線が色
-        return {
-          fontColor: color,
-          borderColor: color,
-          bgColor: "#FFFFFF",
-        };
-      }
+      // 収入・支出共に白抜きで文字と線が色
+      return {
+        fontColor: color,
+        borderColor: color,
+        bgColor: "#FFFFFF",
+      };
     }
 
     // フォールバック: マッピングが見つからない場合
     return {
       fontColor: "#47474C",
       borderColor: "#99F6E4",
-      bgColor: isIncome ? "#99F6E4" : "#FFFFFF",
+      bgColor: "#FFFFFF",
     };
   };
 
@@ -77,7 +63,7 @@ export default function TransactionTableRow({
   return (
     <tr className="w-full border-b border-[#D5DBE1]">
       {/* SP Layout - Mobile Card Layout */}
-      <td colSpan={4} className="md:hidden p-0">
+      <td colSpan={5} className="md:hidden p-0">
         <div className="flex flex-col bg-white gap-1 px-0 py-2">
           {/* Date section */}
           <div className="flex">
@@ -121,6 +107,15 @@ export default function TransactionTableRow({
               </span>
             </div>
           </div>
+
+          {/* Description section */}
+          {transaction.description && (
+            <div className="flex">
+              <span className="text-xs font-bold font-normal leading-[1.33em]">
+                {transaction.description}
+              </span>
+            </div>
+          )}
         </div>
       </td>
 
@@ -154,10 +149,17 @@ export default function TransactionTableRow({
         </div>
       </td>
 
-      {/* Title column - flexible width */}
-      <td className="hidden md:table-cell h-16">
+      {/* Title column - 200px width */}
+      <td className="hidden md:table-cell h-16 w-[200px]">
         <span className="leading-7 font-bold text-base text-gray-800">
           {getDisplayTitle(transaction)}
+        </span>
+      </td>
+
+      {/* Description column - flexible width */}
+      <td className="hidden md:table-cell h-16 px-2">
+        <span className="leading-6 text-sm font-bold ">
+          {transaction.description || ""}
         </span>
       </td>
 

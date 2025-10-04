@@ -1,72 +1,68 @@
 "use client";
 import "client-only";
 
-import { useId, useState, useEffect } from "react";
-import type { PoliticalOrganization } from "@/shared/models/political-organization";
-import { Selector } from "@/client/components/ui";
-import CsvPreview from "@/client/components/csv-import/CsvPreview";
-import type { PreviewMfCsvResult } from "@/server/usecases/preview-mf-csv-usecase";
+import { useId, useState, useCallback } from "react";
+import PersonalCsvPreview from "@/client/components/csv-import/PersonalCsvPreview";
+import type { PreviewPersonalCsvResult } from "@/server/usecases/preview-personal-csv-usecase";
 import type {
-  UploadCsvRequest,
-  UploadCsvResponse,
-} from "@/server/actions/upload-csv";
-import type { PreviewCsvRequest } from "@/server/actions/preview-csv";
+  UploadPersonalCsvRequest,
+  UploadPersonalCsvResponse,
+} from "@/server/actions/upload-personal-csv";
+import type { PreviewPersonalCsvRequest } from "@/server/actions/preview-personal-csv";
+import type { Organization } from "@/shared/models/organization";
 
 interface CsvUploadClientProps {
-  organizations: PoliticalOrganization[];
-  uploadAction: (data: UploadCsvRequest) => Promise<UploadCsvResponse>;
-  previewAction: (data: PreviewCsvRequest) => Promise<PreviewMfCsvResult>;
+  uploadPersonalAction: (
+    data: UploadPersonalCsvRequest,
+  ) => Promise<UploadPersonalCsvResponse>;
+  previewPersonalAction: (
+    data: PreviewPersonalCsvRequest,
+  ) => Promise<PreviewPersonalCsvResult>;
+  organizations: Organization[];
 }
 
 export default function CsvUploadClient({
+  uploadPersonalAction,
+  previewPersonalAction,
   organizations,
-  uploadAction,
-  previewAction,
 }: CsvUploadClientProps) {
   const csvFileInputId = useId();
+  const organizationSelectId = useId();
   const [file, setFile] = useState<File | null>(null);
-  const [politicalOrganizationId, setPoliticalOrganizationId] =
+  const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [errors, setErrors] = useState<string[]>([]);
   const [hasError, setHasError] = useState<boolean>(false);
   const [uploading, setUploading] = useState(false);
-  const [previewResult, setPreviewResult] = useState<PreviewMfCsvResult | null>(
-    null,
+  const [personalPreviewResult, setPersonalPreviewResult] =
+    useState<PreviewPersonalCsvResult | null>(null);
+
+  const handlePersonalPreviewComplete = useCallback(
+    (result: PreviewPersonalCsvResult) => {
+      setPersonalPreviewResult(result);
+    },
+    [],
   );
-
-  const organizationOptions = organizations.map((org) => ({
-    value: org.id,
-    label: org.displayName,
-  }));
-
-  // 最初の組織を自動選択
-  useEffect(() => {
-    if (organizations.length > 0 && !politicalOrganizationId) {
-      setPoliticalOrganizationId(organizations[0].id);
-    }
-  }, [organizations, politicalOrganizationId]);
-
-  const handlePreviewComplete = (result: PreviewMfCsvResult) => {
-    setPreviewResult(result);
-  };
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!file || !politicalOrganizationId) return;
+    if (!file) return;
+
     setUploading(true);
     setMessage("");
     setErrors([]);
     setHasError(false);
 
     try {
-      if (!previewResult) {
+      // Handle personal transaction CSV
+      if (!personalPreviewResult) {
         setMessage("Preview data not available");
         setHasError(true);
         return;
       }
 
-      const validTransactions = previewResult.transactions.filter(
+      const validTransactions = personalPreviewResult.transactions.filter(
         (t) => t.status === "insert" || t.status === "update",
       );
       if (validTransactions.length === 0) {
@@ -75,9 +71,9 @@ export default function CsvUploadClient({
         return;
       }
 
-      const result = await uploadAction({
+      const result = await uploadPersonalAction({
         validTransactions,
-        politicalOrganizationId,
+        organizationId: selectedOrganizationId || undefined,
       });
 
       if (!result.ok && result.errors && result.errors.length > 0) {
@@ -92,9 +88,9 @@ export default function CsvUploadClient({
           `Successfully processed ${result.processedCount} records and saved ${result.savedCount} transactions`,
       );
 
-      setFile(null);
-      setPreviewResult(null);
+      setPersonalPreviewResult(null);
 
+      setFile(null);
       const fileInput = document.getElementById(
         csvFileInputId,
       ) as HTMLInputElement;
@@ -117,16 +113,6 @@ export default function CsvUploadClient({
   return (
     <form onSubmit={onSubmit} className="space-y-3">
       <div>
-        <Selector
-          options={organizationOptions}
-          value={politicalOrganizationId}
-          onChange={setPoliticalOrganizationId}
-          label="Political Organization"
-          placeholder="-- 政治団体を選択してください --"
-          required={true}
-        />
-      </div>
-      <div>
         <label
           htmlFor={csvFileInputId}
           className="block text-sm font-medium text-white mb-2"
@@ -143,37 +129,61 @@ export default function CsvUploadClient({
         />
       </div>
 
-      <CsvPreview
+      <div>
+        <label
+          htmlFor={organizationSelectId}
+          className="block text-sm font-medium text-white mb-2"
+        >
+          組織を選択:
+        </label>
+        <select
+          id={organizationSelectId}
+          value={selectedOrganizationId}
+          onChange={(e) => setSelectedOrganizationId(e.target.value)}
+          className="bg-primary-input text-white border border-primary-border rounded-lg px-3 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-primary-accent focus:border-primary-accent"
+          required
+        >
+          <option value="">組織を選択してください</option>
+          {organizations.map((org) => (
+            <option key={org.id} value={org.id}>
+              {org.displayName || org.name} ({org.type})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <PersonalCsvPreview
         file={file}
-        politicalOrganizationId={politicalOrganizationId}
-        onPreviewComplete={handlePreviewComplete}
-        previewAction={previewAction}
+        organizationId={selectedOrganizationId}
+        onPreviewComplete={handlePersonalPreviewComplete}
+        previewAction={previewPersonalAction}
       />
 
-      {(() => {
-        const isDisabled =
+      <button
+        disabled={
           !file ||
-          !politicalOrganizationId ||
-          !previewResult ||
-          previewResult.summary.insertCount +
-            previewResult.summary.updateCount ===
-            0 ||
-          uploading;
-
-        return (
-          <button
-            disabled={isDisabled}
-            type="submit"
-            className={`bg-primary-accent text-white border-0 rounded-lg px-4 py-2.5 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-accent ${
-              isDisabled
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-blue-600 cursor-pointer"
-            }`}
-          >
-            {uploading ? "Processing…" : "このデータを保存する"}
-          </button>
-        );
-      })()}
+          !selectedOrganizationId ||
+          uploading ||
+          !personalPreviewResult ||
+          personalPreviewResult.summary.insertCount +
+            personalPreviewResult.summary.updateCount ===
+            0
+        }
+        type="submit"
+        className={`bg-primary-accent text-white border-0 rounded-lg px-4 py-2.5 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-accent ${
+          !file ||
+          !selectedOrganizationId ||
+          uploading ||
+          !personalPreviewResult ||
+          personalPreviewResult.summary.insertCount +
+            personalPreviewResult.summary.updateCount ===
+            0
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-blue-600 cursor-pointer"
+        }`}
+      >
+        {uploading ? "Processing…" : "このデータを保存する"}
+      </button>
 
       {message && (
         <div

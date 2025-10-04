@@ -1,4 +1,5 @@
-import "server-only";
+"use client";
+import "client-only";
 import Image from "next/image";
 import CardHeader from "@/client/components/layout/CardHeader";
 import MainColumnCard from "@/client/components/layout/MainColumnCard";
@@ -21,6 +22,8 @@ export default function MonthlyTrendsSection({
   updatedAt,
   organizationName,
 }: MonthlyTrendsSectionProps) {
+  console.log("MonthlyTrendsSection received data:", monthlyData);
+
   return (
     <MainColumnCard id="monthly-trends">
       <CardHeader

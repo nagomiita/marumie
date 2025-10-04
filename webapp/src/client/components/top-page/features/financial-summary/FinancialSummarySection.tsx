@@ -3,8 +3,20 @@ import type { SankeyData } from "@/types/sankey";
 import FinancialSummaryCard from "./FinancialSummaryCard";
 import BalanceDetailCard from "./BalanceDetailCard";
 
+// 個人家計簿用のサマリーデータ型
+interface PersonalFinancialSummary {
+  totalIncome: number;
+  totalExpense: number;
+  netAmount: number;
+  categories: {
+    income: Array<{ category: string; amount: number }>;
+    expense: Array<{ category: string; amount: number }>;
+  };
+}
+
 interface FinancialSummarySectionProps {
   sankeyData: SankeyData | null;
+  summary?: PersonalFinancialSummary | null;
 }
 
 // sankeyDataからノード名で金額を取得するヘルパー関数群
@@ -120,10 +132,29 @@ function calculateBalanceDetailData(sankeyData: SankeyData | null) {
 
 export default function FinancialSummarySection({
   sankeyData,
+  summary,
 }: FinancialSummarySectionProps) {
-  // 財務データを計算
-  const financialData = calculateFinancialData(sankeyData);
-  const balanceDetailData = calculateBalanceDetailData(sankeyData);
+  console.log("FinancialSummarySection received summary:", summary);
+
+  // 個人家計簿データがある場合はそれを使用、なければsankeyDataから計算
+  const financialData = summary
+    ? {
+        income: summary.totalIncome,
+        expense: summary.totalExpense,
+        balance: summary.netAmount,
+      }
+    : calculateFinancialData(sankeyData);
+
+  console.log("FinancialSummarySection using data:", financialData);
+
+  // 個人家計簿では詳細収支は簡素化
+  const balanceDetailData = summary
+    ? {
+        balance: summary.netAmount,
+        cashBalance: summary.netAmount, // 簡素化: 純資産を現金残高として表示
+        unpaidExpense: 0, // 個人家計簿では未払費用は計算しない
+      }
+    : calculateBalanceDetailData(sankeyData);
 
   return (
     <div className="flex flex-col md:flex-row gap-2 items-center">

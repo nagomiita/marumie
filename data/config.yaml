@@ -1,0 +1,285 @@
+# 銀行・クレジットカード明細CSV変換設定ファイル
+
+# 銀行別設定
+banks:
+  # UFJ銀行 (UFJ_sample_*.csv)
+  ufj:
+    name: "UFJ銀行"
+    encoding: "shift_jis"
+    columns:
+      date: "日付"
+      description: "摘要"
+      description_detail: "摘要内容"
+      debit: "支払い金額"
+      credit: "預かり金額"
+      balance: "差引残高"
+    file_patterns:
+      - "UFJ_sample_*.csv"
+    account_name: "UFJ銀行"
+
+# 出力フォーマット設定
+output:
+  encoding: "utf-8-sig" # Excel対応
+  # 出力列の定義（個人家計簿用にシンプル化）
+  columns:
+    - "日付"
+    - "カテゴリ"
+    - "サブカテゴリ"
+    - "金額"
+    - "収支区分"
+    - "支払方法"
+    - "摘要"
+    - "メモ"
+
+# カテゴリ分類設定（摘要から勘定科目を推定）
+categories:
+  # 収入系
+  salary:
+    account: "給与収入"
+    keywords:
+      - "給与"
+      - "給料"
+
+  bonus:
+    account: "賞与"
+    keywords:
+      - "賞与"
+      - "ボーナス"
+
+  misc_income:
+    account: "雑収入"
+    keywords:
+      - "振込"
+      - "利息"
+      - "返金"
+      - "還付"
+
+  # 支出系 - 固定費
+  rent:
+    account: "家賃"
+    keywords:
+      - "家賃"
+      - "賃料"
+      - "管理費"
+
+  utilities:
+    account: "水道光熱費"
+    keywords:
+      - "電気"
+      - "ガス"
+      - "水道"
+      - "電力"
+      - "東京電力"
+      - "東京ガス"
+
+  communication:
+    account: "通信費"
+    keywords:
+      - "携帯"
+      - "電話"
+      - "インターネット"
+      - "KDDI"
+      - "ドコモ"
+      - "ソフトバンク"
+      - "NTT"
+      - "IIJ"
+      - "楽天モバイル"
+
+  insurance:
+    account: "保険料"
+    keywords:
+      - "保険"
+      - "生命保険"
+      - "医療保険"
+      - "損害保険"
+
+  subscription:
+    account: "サブスクリプション"
+    keywords:
+      - "Netflix"
+      - "Amazon"
+      - "Spotify"
+      - "Apple"
+      - "Google"
+      - "Microsoft"
+      - "Adobe"
+
+  # 支出系 - 変動費
+  food:
+    account: "食費"
+    keywords:
+      - "スーパー"
+      - "イオン"
+      - "西友"
+      - "ライフ"
+      - "マルエツ"
+      - "成城石井"
+      - "食品"
+      - "野菜"
+      - "肉"
+      - "魚"
+
+  dining:
+    account: "外食費"
+    keywords:
+      - "レストラン"
+      - "カフェ"
+      - "ファミレス"
+      - "マクドナルド"
+      - "スターバックス"
+      - "吉野家"
+      - "すき家"
+      - "ランチ"
+      - "ディナー"
+
+  daily_necessities:
+    account: "日用品"
+    keywords:
+      - "コンビニ"
+      - "ファミマ"
+      - "セブン"
+      - "ローソン"
+      - "ドラッグストア"
+      - "マツキヨ"
+      - "ウエルシア"
+
+  transport:
+    account: "交通費"
+    keywords:
+      - "JR"
+      - "電車"
+      - "地下鉄"
+      - "バス"
+      - "タクシー"
+      - "交通"
+      - "PASMO"
+      - "SUICA"
+      - "チャージ"
+      - "定期"
+      - "切符"
+
+  travel:
+    account: "旅費交通費"
+    keywords:
+      - "新幹線"
+      - "飛行機"
+      - "ホテル"
+      - "宿泊"
+      - "旅行"
+      - "出張"
+      - "スマートEX"
+
+  medical:
+    account: "医療費"
+    keywords:
+      - "病院"
+      - "クリニック"
+      - "薬局"
+      - "薬"
+      - "診療"
+      - "治療"
+      - "歯科"
+      - "眼科"
+
+  clothing:
+    account: "衣服費"
+    keywords:
+      - "ユニクロ"
+      - "ZARA"
+      - "GU"
+      - "服"
+      - "衣料"
+      - "ファッション"
+
+  beauty:
+    account: "美容費"
+    keywords:
+      - "美容"
+      - "化粧"
+      - "コスメ"
+      - "ヘアサロン"
+      - "美容院"
+      - "理容"
+
+  education:
+    account: "教育費"
+    keywords:
+      - "学校"
+      - "塾"
+      - "習い事"
+      - "教材"
+      - "書籍"
+      - "本"
+      - "参考書"
+
+  entertainment:
+    account: "娯楽費"
+    keywords:
+      - "映画"
+      - "ゲーム"
+      - "遊園地"
+      - "カラオケ"
+      - "ボーリング"
+      - "スポーツ"
+      - "ジム"
+      - "アミューズメント"
+
+  social:
+    account: "交際費"
+    keywords:
+      - "プレゼント"
+      - "お祝い"
+      - "飲み会"
+      - "会食"
+      - "接待"
+
+  # 支出系 - その他
+  credit_card:
+    account: "クレジットカード"
+    keywords:
+      - "カード"
+      - "クレジット"
+      - "VISA"
+      - "Master"
+      - "JCB"
+      - "AMEX"
+      - "セゾン"
+      - "ニコス"
+
+  cash:
+    account: "現金"
+    keywords:
+      - "ATM"
+      - "引出"
+      - "出金"
+      - "現金"
+
+  savings:
+    account: "貯金"
+    keywords:
+      - "積立"
+      - "定期"
+      - "貯蓄"
+      - "貯金"
+
+  investment:
+    account: "投資"
+    keywords:
+      - "証券"
+      - "株式"
+      - "投資"
+      - "運用"
+      - "マネックス"
+      - "SBI"
+      - "楽天証券"
+      - "コインチェック"
+
+  fees:
+    account: "その他の経費"
+    keywords:
+      - "手数料"
+      - "振込手数料"
+      - "為替手数料"
+
+  default:
+    account: "その他の経費"

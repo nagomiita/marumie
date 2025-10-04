@@ -79,6 +79,7 @@ export function convertToDisplayTransaction(
     label: transaction.label || "",
     shortLabel: categoryMapping.shortLabel,
     friendly_category: transaction.friendly_category,
+    description: transaction.description || "",
     absAmount,
     amount,
   };

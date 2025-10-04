@@ -1,18 +1,11 @@
 import "server-only";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import AboutSection from "@/client/components/common/AboutSection";
-import LinkCardsSection from "@/client/components/common/LinkCardsSection";
-import AnotherPageLinkSection from "@/client/components/common/AnotherPageLinkSection";
-import ExplanationSection from "@/client/components/common/ExplanationSection";
-import TransparencySection from "@/client/components/common/TransparencySection";
 import MainColumn from "@/client/components/layout/MainColumn";
-import BalanceSheetSection from "@/client/components/top-page/BalanceSheetSection";
 import CashFlowSection from "@/client/components/top-page/CashFlowSection";
 import MonthlyTrendsSection from "@/client/components/top-page/MonthlyTrendsSection";
-import ProgressSection from "@/client/components/top-page/ProgressSection";
 import TransactionsSection from "@/client/components/top-page/TransactionsSection";
-import { loadTopPageData } from "@/server/loaders/load-top-page-data";
+import { loadPersonalTopPageData } from "@/server/loaders/load-personal-top-page-data";
 import { loadOrganizations } from "@/server/loaders/load-organizations";
 import { formatUpdatedAt } from "@/server/utils/format-date";
 
@@ -33,8 +26,8 @@ export async function generateMetadata({
   const currentOrganization = organizations.find((org) => org.slug === slug);
 
   const title = currentOrganization?.displayName
-    ? `${currentOrganization.displayName} - みらいまる見え政治資金`
-    : "みらいまる見え政治資金";
+    ? `${currentOrganization.displayName} - まる見え家計簿`
+    : "まる見え家計簿";
 
   return {
     title,
@@ -56,13 +49,13 @@ export default async function OrgPage({ params }: OrgPageProps) {
   const currentOrganization = organizations.find((org) => org.slug === slug);
 
   // 統合アクションで全データを取得
-  const data = await loadTopPageData({
+  const data = await loadPersonalTopPageData({
     slugs,
     page: 1,
-    perPage: 6, // 表示用に6件のみ取得
+    perPage: 1000, // 全データを取得してクライアント側でページネーション
     financialYear: 2025, // デフォルト値
   }).catch((error) => {
-    console.error("loadTopPageData error:", error);
+    console.error("loadPersonalTopPageData error:", error);
     return null;
   });
 
@@ -72,22 +65,17 @@ export default async function OrgPage({ params }: OrgPageProps) {
 
   return (
     <MainColumn>
-      <CashFlowSection
-        political={data?.political ?? null}
-        friendly={data?.friendly ?? null}
-        updatedAt={updatedAt}
-        organizationName={currentOrganization?.displayName}
-      />
       <MonthlyTrendsSection
         monthlyData={data?.monthlyData}
         updatedAt={updatedAt}
         organizationName={currentOrganization?.displayName}
       />
-      <TransparencySection title="党首も毎日これを見て、お金をやりくりしています👀" />
-      <BalanceSheetSection
-        data={data?.balanceSheetData}
+      <CashFlowSection
+        sankeyData={data?.sankeyData ?? null}
+        summary={data?.summary ?? null}
         updatedAt={updatedAt}
         organizationName={currentOrganization?.displayName}
+        slug={slug}
       />
       <TransactionsSection
         transactionData={data?.transactionData ?? null}
@@ -95,11 +83,6 @@ export default async function OrgPage({ params }: OrgPageProps) {
         slug={slug}
         organizationName={currentOrganization?.displayName}
       />
-      <AnotherPageLinkSection currentSlug={slug} />
-      <ProgressSection />
-      <ExplanationSection />
-      <AboutSection />
-      <LinkCardsSection />
     </MainColumn>
   );
 }

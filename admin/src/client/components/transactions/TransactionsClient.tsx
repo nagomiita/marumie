@@ -1,205 +1,139 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { TransactionRow } from "./TransactionRow";
-import { StaticPagination } from "@/client/components/ui/StaticPagination";
-import { DeleteAllButton } from "./DeleteAllButton";
-import { Selector } from "@/client/components/ui";
-import type { GetTransactionsResult } from "@/server/usecases/get-transactions-usecase";
-import type { PoliticalOrganization } from "@/shared/models/political-organization";
+import { useEffect, useState } from "react";
+import type { PersonalTransaction } from "@/shared/models/personal-transaction";
 
 interface TransactionsClientProps {
-  organizations: PoliticalOrganization[];
+  loadTransactions: () => Promise<PersonalTransaction[]>;
 }
 
-export function TransactionsClient({ organizations }: TransactionsClientProps) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [data, setData] = useState<GetTransactionsResult | null>(null);
+export function TransactionsClient({
+  loadTransactions,
+}: TransactionsClientProps) {
+  const [transactions, setTransactions] = useState<PersonalTransaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedOrgId, setSelectedOrgId] = useState<string>("");
-  const isInitialLoad = useRef(true);
-
-  const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const perPage = 50;
-
-  const organizationOptions = [
-    { value: "", label: "全件" },
-    ...organizations.map((org) => ({
-      value: org.id,
-      label: org.displayName,
-    })),
-  ];
 
   useEffect(() => {
-    const fetchTransactions = async (orgId: string = "") => {
+    const fetchTransactions = async () => {
       try {
-        // 初回ロードはloading、以降はfetching
-        if (isInitialLoad.current) {
-          setLoading(true);
-          isInitialLoad.current = false;
-        } else {
-          setFetching(true);
-        }
-
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          perPage: perPage.toString(),
-        });
-
-        if (orgId) {
-          params.set("orgIds", orgId);
-        }
-
-        const response = await fetch(`/api/transactions?${params}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch transactions");
-        }
-
-        const result: GetTransactionsResult = await response.json();
-        setData(result);
-        setError(null);
+        setLoading(true);
+        const data = await loadTransactions();
+        setTransactions(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError(
+          err instanceof Error ? err.message : "データの読み込みに失敗しました",
+        );
       } finally {
         setLoading(false);
-        setFetching(false);
       }
     };
 
-    fetchTransactions(selectedOrgId);
-  }, [currentPage, selectedOrgId]);
+    fetchTransactions();
+  }, [loadTransactions]);
 
-  const handleOrgFilterChange = (orgId: string) => {
-    setSelectedOrgId(orgId);
-    // Reset to first page when filter changes
-    if (currentPage > 1) {
-      router.push("/transactions?page=1");
-    }
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-400">エラー: {error}</p>
+      </div>
+    );
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">取引データがありません</p>
+        <p className="text-gray-500 text-sm mt-2">
+          CSVアップロードから取引データを追加してください
+        </p>
+      </div>
+    );
+  }
+
+  const formatAmount = (amount: number) => {
+    return amount.toLocaleString("ja-JP");
+  };
+
+  const getTypeLabel = (type: string) => {
+    return type === "income" ? "収入" : "支出";
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(date));
   };
 
   return (
-    <div className="bg-primary-panel rounded-xl p-4">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-white mb-4">取引一覧</h1>
-
-        {/* Organization Filter */}
-        <div className="mb-4">
-          <div className="flex-1">
-            <Selector
-              options={organizationOptions}
-              value={selectedOrgId}
-              onChange={handleOrgFilterChange}
-              label="政治団体でフィルタ"
-              placeholder=""
-            />
-          </div>
-        </div>
+    <div className="space-y-4">
+      <div className="bg-gray-800 rounded border border-gray-700 p-4">
+        <h3 className="text-white font-semibold mb-3">
+          取引一覧 ({transactions.length}件)
+        </h3>
       </div>
 
-      {!loading && data && (
-        <div className="flex justify-between items-center mt-5 mb-4">
-          <p className="text-primary-muted">
-            全 {data.total} 件中 {(data.page - 1) * data.perPage + 1} -{" "}
-            {Math.min(data.page * data.perPage, data.total)} 件を表示
-          </p>
-          <DeleteAllButton
-            disabled={data.total === 0}
-            organizationId={selectedOrgId || undefined}
-            onDeleted={() => {
-              // データを再取得
-              window.location.reload();
-            }}
-          />
-        </div>
-      )}
-
-      {fetching && (
-        <div className="text-center py-2 mb-4">
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-4 h-4 border-2 border-primary-muted border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-primary-muted text-sm">取得中...</p>
-          </div>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="text-center py-10">
-          <p className="text-primary-muted">読み込み中...</p>
-        </div>
-      ) : error ? (
-        <div className="text-center py-10">
-          <p className="text-red-500">エラー: {error}</p>
-        </div>
-      ) : !data ? (
-        <div className="text-center py-10">
-          <p className="text-primary-muted">データがありません</p>
-        </div>
-      ) : data.transactions.length === 0 ? (
-        <div className="text-center py-10">
-          <p className="text-primary-muted">
-            トランザクションが登録されていません
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-primary-border">
-                  <th className="px-2 py-3 text-left text-sm font-semibold text-white">
-                    取引日
-                  </th>
-                  <th className="px-2 py-3 text-left text-sm font-semibold text-white">
-                    政治団体
-                  </th>
-                  <th className="px-2 py-3 text-left text-sm font-semibold text-white">
-                    借方勘定科目
-                  </th>
-                  <th className="px-2 py-3 text-right text-sm font-semibold text-white">
-                    借方金額
-                  </th>
-                  <th className="px-2 py-3 text-left text-sm font-semibold text-white">
-                    貸方勘定科目
-                  </th>
-                  <th className="px-2 py-3 text-right text-sm font-semibold text-white">
-                    貸方金額
-                  </th>
-                  <th className="px-2 py-3 text-left text-sm font-semibold text-white">
-                    種別
-                  </th>
-                  <th className="px-2 py-3 text-left text-sm font-semibold text-white">
-                    カテゴリ
-                  </th>
-                  <th className="px-2 py-3 text-left text-sm font-semibold text-white">
-                    摘要{" "}
-                    <span className="text-xs font-normal">
-                      ※サービスには表示されません
-                    </span>
-                  </th>
+      <div className="bg-gray-800 rounded border border-gray-700">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-700">
+              <tr>
+                <th className="px-3 py-2 text-left text-gray-300">日付</th>
+                <th className="px-3 py-2 text-left text-gray-300">カテゴリ</th>
+                <th className="px-3 py-2 text-left text-gray-300">金額</th>
+                <th className="px-3 py-2 text-left text-gray-300">区分</th>
+                <th className="px-3 py-2 text-left text-gray-300">支払方法</th>
+                <th className="px-3 py-2 text-left text-gray-300">摘要</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.map((transaction) => (
+                <tr
+                  key={transaction.id}
+                  className="border-b border-gray-700 hover:bg-gray-750"
+                >
+                  <td className="px-3 py-2 text-gray-300">
+                    {formatDate(transaction.date)}
+                  </td>
+                  <td className="px-3 py-2 text-gray-300">
+                    {transaction.category}
+                    {transaction.subcategory && (
+                      <div className="text-xs text-gray-400">
+                        {transaction.subcategory}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-gray-300 text-right font-mono">
+                    ¥{formatAmount(transaction.amount)}
+                  </td>
+                  <td className="px-3 py-2 text-gray-300">
+                    {getTypeLabel(transaction.type)}
+                  </td>
+                  <td className="px-3 py-2 text-gray-300">
+                    {transaction.payment_method}
+                  </td>
+                  <td
+                    className="px-3 py-2 text-gray-300 max-w-xs truncate"
+                    title={transaction.description}
+                  >
+                    {transaction.description}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {data.transactions.map((transaction) => (
-                  <TransactionRow
-                    key={transaction.id}
-                    transaction={transaction}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <StaticPagination
-            currentPage={data.page}
-            totalPages={data.totalPages}
-            basePath="/transactions"
-          />
-        </>
-      )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

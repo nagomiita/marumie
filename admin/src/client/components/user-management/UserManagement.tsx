@@ -84,7 +84,7 @@ export default function UserManagement({
             <Input
               type="email"
               value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
+              onChange={(value) => setInviteEmail(value)}
               placeholder="メールアドレスを入力"
               disabled={isInviting}
               required

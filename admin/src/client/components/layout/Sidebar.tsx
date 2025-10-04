@@ -24,10 +24,10 @@ export default function Sidebar({
 
   const navItems = [
     { href: "/user-info", label: "ユーザー情報" },
-    { href: "/political-organizations", label: "政治団体" },
-    { href: "/transactions", label: "取引一覧" },
-    { href: "/balance-snapshots", label: "残高登録" },
+    { href: "/organizations", label: "組織管理" },
     { href: "/upload-csv", label: "CSVアップロード" },
+    { href: "/balance-snapshots", label: "残高登録" },
+    { href: "/transactions", label: "取引一覧" },
     { href: "/users", label: "ユーザー管理", adminOnly: true },
   ];
 

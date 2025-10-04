@@ -1,15 +1,48 @@
 "use client";
 import "client-only";
 
-import { forwardRef, type InputHTMLAttributes } from "react";
+import {
+  forwardRef,
+  type InputHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from "react";
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface BaseInputProps {
   error?: string;
   label?: string;
+  multiline?: boolean;
+  rows?: number;
+  onChange?: (value: string) => void;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className = "", error, label, id, ...props }, ref) => {
+interface SingleLineInputProps
+  extends BaseInputProps,
+    Omit<InputHTMLAttributes<HTMLInputElement>, "onChange"> {
+  multiline?: false;
+}
+
+interface MultiLineInputProps
+  extends BaseInputProps,
+    Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "onChange"> {
+  multiline: true;
+}
+
+type InputProps = SingleLineInputProps | MultiLineInputProps;
+
+const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(
+  (
+    {
+      className = "",
+      error,
+      label,
+      id,
+      multiline = false,
+      rows = 3,
+      onChange,
+      ...props
+    },
+    ref,
+  ) => {
     const baseClasses =
       "bg-primary-input text-white border border-primary-border rounded-lg px-3 py-2.5 w-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-accent focus:border-primary-accent";
     const errorClasses = error
@@ -18,6 +51,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
     const classes = `${baseClasses} ${errorClasses} ${className}`.trim();
 
+    const handleChange = (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+      if (onChange) {
+        onChange(e.target.value);
+      }
+    };
+
     return (
       <div className="space-y-1">
         {label && (
@@ -25,7 +66,32 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input ref={ref} id={id} className={classes} {...props} />
+        {multiline ? (
+          <textarea
+            ref={ref as React.ForwardedRef<HTMLTextAreaElement>}
+            id={id}
+            className={classes}
+            rows={rows}
+            onChange={handleChange}
+            {...Object.fromEntries(
+              Object.entries(props as MultiLineInputProps).filter(
+                ([key]) => key !== "onChange",
+              ),
+            )}
+          />
+        ) : (
+          <input
+            ref={ref as React.ForwardedRef<HTMLInputElement>}
+            id={id}
+            className={classes}
+            onChange={handleChange}
+            {...Object.fromEntries(
+              Object.entries(props as SingleLineInputProps).filter(
+                ([key]) => key !== "onChange",
+              ),
+            )}
+          />
+        )}
         {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
     );

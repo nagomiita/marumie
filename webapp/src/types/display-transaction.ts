@@ -19,6 +19,7 @@ export interface DisplayTransaction {
   label: string; // テーブルのlabelカラム (string default "")
   shortLabel: string; // 表示用短縮ラベル（Figmaデザイン準拠）
   friendly_category: string; // フレンドリーカテゴリ情報をそのまま保持
+  description: string; // 摘要（取引の詳細説明）
   absAmount: number; // 金額（絶対値）
   amount: number; // 金額（支出時はマイナス値）
 }

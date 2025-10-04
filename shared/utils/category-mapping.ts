@@ -12,186 +12,242 @@ export interface CategoryMapping {
  */
 export const PL_CATEGORIES: Record<string, CategoryMapping> = {
   // 収入項目
-  "個人の負担する党費又は会費": {
-    key: "membership-fees",
-    category: "機関紙誌+その他事業収入",
-    subcategory: "党費・会費",
-    color: "#FED7AA",
-    shortLabel: "党費・会費",
+  "給与収入": {
+    key: "salary",
+    category: "収入",
+    subcategory: "給与",
+    color: "#059669",
+    shortLabel: "給与",
     type: "income"
   },
-  "個人からの寄附": {
-    key: "individual-donations",
-    category: "寄附",
-    subcategory: "個人からの寄附",
-    color: "#BBF7D0",
-    shortLabel: "個人寄附",
+  "賞与": {
+    key: "bonus",
+    category: "収入",
+    subcategory: "賞与",
+    color: "#0891B2",
+    shortLabel: "賞与",
     type: "income"
   },
-  "個人からの寄附（特定寄附）": {
-    key: "specific-individual-donations",
-    category: "寄附",
-    subcategory: "個人からの寄附",
-    color: "#BBF7D0",
-    shortLabel: "個人寄附（特定）",
+  "副業収入": {
+    key: "side-income",
+    category: "収入",
+    subcategory: "副業",
+    color: "#EA580C",
+    shortLabel: "副業",
     type: "income"
   },
-  "法人その他の団体からの寄附": {
-    key: "corporate-donations",
-    category: "寄附",
-    subcategory: "法人その他の団体からの寄附",
-    color: "#FECACA",
-    shortLabel: "法人寄附",
+  "投資収益": {
+    key: "investment-income",
+    category: "収入",
+    subcategory: "投資収益",
+    color: "#DC2626",
+    shortLabel: "投資収益",
     type: "income"
   },
-  "政治団体からの寄附": {
-    key: "political-donations",
-    category: "寄附",
-    subcategory: "政治団体からの寄附",
-    color: "#A5F3FC",
-    shortLabel: "政党寄附",
+  "臨時収入": {
+    key: "extra-income",
+    category: "収入",
+    subcategory: "臨時収入",
+    color: "#65A30D",
+    shortLabel: "臨時収入",
     type: "income"
   },
-  "政党匿名寄附": {
-    key: "anonymous-donations",
-    category: "寄附",
-    subcategory: "政党匿名寄附",
-    color: "#E0F6C9",
-    shortLabel: "政党匿名寄附",
-    type: "income"
-  },
-  "機関紙誌の発行その他の事業による収入": {
-    key: "publication-income",
-    category: "機関紙誌+その他事業収入",
-    color: "#FDE68A",
-    shortLabel: "機関紙誌",
-    type: "income"
-  },
-  "借入金": {
-    key: "loans",
-    category: "借入金",
-    color: "#FECDD3",
-    shortLabel: "借入金",
-    type: "income"
-  },
-  "本部又は支部から供与された交付金に係る収入": {
-    key: "grants",
-    category: "交付金",
-    color: "#99F6E4",
-    shortLabel: "交付金",
+  "雑収入": {
+    key: "misc-income",
+    category: "収入",
+    subcategory: "その他",
+    color: "#D97706",
+    shortLabel: "その他収入",
     type: "income"
   },
   "その他の収入": {
     key: "other-income",
-    category: "その他",
-    color: "#E2E8F0",
+    category: "収入",
+    subcategory: "その他",
+    color: "#6B7280",
     shortLabel: "その他",
     type: "income"
   },
 
-  // 支出項目
-  "人件費": {
-    key: "personnel-costs",
-    category: "経常経費",
-    subcategory: "人件費",
+  // 支出項目 - 固定費
+  "家賃": {
+    key: "rent",
+    category: "固定費",
+    subcategory: "住居費",
     color: "#0369A1",
-    shortLabel: "人件費",
+    shortLabel: "家賃",
     type: "expense"
   },
-  "光熱水費": {
+  "住宅ローン": {
+    key: "mortgage",
+    category: "固定費",
+    subcategory: "住居費",
+    color: "#1E40AF",
+    shortLabel: "住宅ローン",
+    type: "expense"
+  },
+  "水道光熱費": {
     key: "utilities",
-    category: "経常経費",
-    subcategory: "光熱水費",
+    category: "固定費",
+    subcategory: "光熱費",
     color: "#126C81",
-    shortLabel: "光熱水費",
+    shortLabel: "光熱費",
     type: "expense"
   },
-  "備品・消耗品費": {
-    key: "equipment-supplies",
-    category: "経常経費",
-    subcategory: "備品・消耗品費",
-    color: "#4D7C0F",
-    shortLabel: "備品消耗品費",
-    type: "expense"
-  },
-  "事務所費": {
-    key: "office-expenses",
-    category: "経常経費",
-    subcategory: "事務所費",
-    color: "#047857",
-    shortLabel: "事務所費",
-    type: "expense"
-  },
-  "組織活動費": {
-    key: "organizational-activities",
-    category: "政治活動費",
-    subcategory: "組織活動費",
-    color: "#C2410C",
-    shortLabel: "組織活動費",
-    type: "expense"
-  },
-  "選挙関係費": {
-    key: "election-expenses",
-    category: "政治活動費",
-    subcategory: "選挙関係費",
-    color: "#DC2626",
-    shortLabel: "選挙関係費",
-    type: "expense"
-  },
-  "機関紙誌の発行事業費": {
-    key: "publication-expenses",
-    category: "政治活動費",
-    subcategory: "機関紙誌の発行事業費",
-    color: "#A16207",
-    shortLabel: "機関紙誌費",
-    type: "expense"
-  },
-  "宣伝事業費": {
-    key: "advertising-expenses",
-    category: "政治活動費",
-    subcategory: "宣伝費",
-    color: "#3856B1",
-    shortLabel: "宣伝事業費",
-    type: "expense"
-  },
-  "政治資金パーティー開催事業費": {
-    key: "fundraising-party-expenses",
-    category: "政治活動費",
-    subcategory: "政治資金パーティー開催費",
+  "通信費": {
+    key: "communication",
+    category: "固定費",
+    subcategory: "通信費",
     color: "#6D28D9",
-    shortLabel: "政治資金パーティ費",
+    shortLabel: "通信費",
     type: "expense"
   },
-  "その他の事業費": {
-    key: "other-business-expenses",
-    category: "政治活動費",
-    subcategory: "その他の事業費",
-    color: "#334155",
-    shortLabel: "その他事業費",
-    type: "expense"
-  },
-  "調査研究費": {
-    key: "research-expenses",
-    category: "政治活動費",
-    subcategory: "調査研究費",
+  "保険料": {
+    key: "insurance",
+    category: "固定費",
+    subcategory: "保険",
     color: "#047857",
-    shortLabel: "調査研究費",
+    shortLabel: "保険",
     type: "expense"
   },
-  "寄附・交付金": {
-    key: "donations-grants-expenses",
-    category: "政治活動費",
-    subcategory: "寄附・交付金",
+  "サブスクリプション": {
+    key: "subscription",
+    category: "固定費",
+    subcategory: "サブスク",
+    color: "#7C3AED",
+    shortLabel: "サブスク",
+    type: "expense"
+  },
+
+  // 支出項目 - 変動費
+  "食費": {
+    key: "food",
+    category: "変動費",
+    subcategory: "食費",
+    color: "#DC2626",
+    shortLabel: "食費",
+    type: "expense"
+  },
+  "外食費": {
+    key: "dining",
+    category: "変動費",
+    subcategory: "外食",
+    color: "#EA580C",
+    shortLabel: "外食",
+    type: "expense"
+  },
+  "日用品": {
+    key: "daily-necessities",
+    category: "変動費",
+    subcategory: "日用品",
+    color: "#4D7C0F",
+    shortLabel: "日用品",
+    type: "expense"
+  },
+  "交通費": {
+    key: "transportation",
+    category: "変動費",
+    subcategory: "交通費",
+    color: "#0891B2",
+    shortLabel: "交通費",
+    type: "expense"
+  },
+  "旅費交通費": {
+    key: "travel",
+    category: "変動費",
+    subcategory: "旅行・交通",
+    color: "#0E7490",
+    shortLabel: "旅費",
+    type: "expense"
+  },
+  "医療費": {
+    key: "medical",
+    category: "変動費",
+    subcategory: "医療・健康",
     color: "#BE185D",
-    shortLabel: "寄附・交付金",
+    shortLabel: "医療",
+    type: "expense"
+  },
+  "衣服費": {
+    key: "clothing",
+    category: "変動費",
+    subcategory: "衣服・美容",
+    color: "#DB2777",
+    shortLabel: "衣服",
+    type: "expense"
+  },
+  "美容費": {
+    key: "beauty",
+    category: "変動費",
+    subcategory: "美容",
+    color: "#EC4899",
+    shortLabel: "美容",
+    type: "expense"
+  },
+  "教育費": {
+    key: "education",
+    category: "変動費",
+    subcategory: "教育",
+    color: "#3856B1",
+    shortLabel: "教育",
+    type: "expense"
+  },
+  "娯楽費": {
+    key: "entertainment",
+    category: "変動費",
+    subcategory: "娯楽",
+    color: "#C2410C",
+    shortLabel: "娯楽",
+    type: "expense"
+  },
+  "交際費": {
+    key: "social",
+    category: "変動費",
+    subcategory: "交際費",
+    color: "#A16207",
+    shortLabel: "交際費",
+    type: "expense"
+  },
+
+  // 支出項目 - その他
+  "クレジットカード": {
+    key: "credit-card",
+    category: "決済",
+    subcategory: "クレジットカード",
+    color: "#059669",
+    shortLabel: "カード",
+    type: "expense"
+  },
+  "現金": {
+    key: "cash",
+    category: "決済",
+    subcategory: "現金",
+    color: "#0D9488",
+    shortLabel: "現金",
+    type: "expense"
+  },
+  "貯金": {
+    key: "savings",
+    category: "貯蓄・投資",
+    subcategory: "貯金",
+    color: "#65A30D",
+    shortLabel: "貯金",
+    type: "expense"
+  },
+  "投資": {
+    key: "investment",
+    category: "貯蓄・投資",
+    subcategory: "投資",
+    color: "#65A30D",
+    shortLabel: "投資",
     type: "expense"
   },
   "その他の経費": {
     key: "other-expenses",
-    category: "政治活動費",
-    subcategory: "その他の経費",
+    category: "その他",
+    subcategory: "その他",
     color: "#334155",
-    shortLabel: "その他経費",
+    shortLabel: "その他",
     type: "expense"
   }
 };

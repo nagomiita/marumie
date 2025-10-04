@@ -33,6 +33,23 @@ model PoliticalOrganization {
   @@map("political_organizations")
 }
 
+model Organization {
+  id                   String                @id @default(uuid())
+  name                 String                @db.VarChar(255)
+  displayName          String                @map("display_name") @db.VarChar(255)
+  description          String?
+  type                 OrganizationType      @map("type")
+  slug                 String                @unique @db.VarChar(255)
+  userId               String?               @map("user_id")
+  settings             Json?                 @map("settings")
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
+  personalTransactions PersonalTransaction[]
+
+  @@index([userId, type])
+  @@map("organizations")
+}
+
 model Transaction {
   id                      BigInt                @id @default(autoincrement())
   politicalOrganizationId BigInt                @map("political_organization_id")
@@ -67,6 +84,27 @@ model Transaction {
   @@map("transactions")
 }
 
+model PersonalTransaction {
+  id             String                  @id @default(uuid())
+  date           DateTime                @db.Date
+  category       String                  @db.VarChar(255)
+  subcategory    String?                 @map("subcategory") @db.VarChar(255)
+  amount         Decimal                 @db.Decimal(15, 2)
+  type           PersonalTransactionType @map("type")
+  paymentMethod  String                  @map("payment_method") @db.VarChar(255)
+  description    String
+  memo           String?
+  hash           String                  @default("") @db.VarChar(255)
+  createdAt      DateTime                @default(now()) @map("created_at")
+  updatedAt      DateTime                @updatedAt @map("updated_at")
+  organizationId String?                 @map("organization_id")
+  organization   Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, date(sort: Desc)])
+  @@index([category, type])
+  @@map("personal_transactions")
+}
+
 model BalanceSnapshot {
   id                      BigInt                @id @default(autoincrement())
   politicalOrganizationId BigInt                @map("political_organization_id")
@@ -88,7 +126,19 @@ enum TransactionType {
   offset_expense
 }
 
+enum PersonalTransactionType {
+  income
+  expense
+}
+
 enum UserRole {
   admin
   user
+}
+
+enum OrganizationType {
+  household
+  business
+  nonprofit
+  other
 }
