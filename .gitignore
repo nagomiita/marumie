@@ -60,3 +60,6 @@ packages/db/node_modules
 logs
 
 .vscode/*
+
+data/input
+data/output

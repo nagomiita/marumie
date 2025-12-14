@@ -1,15 +1,15 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/server/lib/prisma";
 import { PrismaPersonalTransactionRepository } from "@/server/repositories/prisma-personal-transaction.repository";
 import { PrismaOrganizationRepository } from "@/server/repositories/prisma-organization.repository";
+import { withServerCache } from "@/server/utils/cache";
 import { GetPersonalTransactionsBySlugUsecase } from "@/server/usecases/get-personal-transactions-by-slug-usecase";
 import type { GetPersonalTransactionsBySlugParams } from "@/server/usecases/get-personal-transactions-by-slug-usecase";
 
-const CACHE_REVALIDATE_SECONDS = 300; // 5 minutes
+const CACHE_REVALIDATE_SECONDS = 300;
 
-export const loadPersonalTransactionsPageData = unstable_cache(
+export const loadPersonalTransactionsPageData = withServerCache(
   async (params: GetPersonalTransactionsBySlugParams) => {
     const personalTransactionRepository =
       new PrismaPersonalTransactionRepository(prisma);

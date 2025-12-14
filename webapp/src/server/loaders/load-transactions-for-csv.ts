@@ -1,17 +1,15 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/server/lib/prisma";
 import { PrismaPoliticalOrganizationRepository } from "@/server/repositories/prisma-political-organization.repository";
 import { PrismaTransactionRepository } from "@/server/repositories/prisma-transaction.repository";
+import { withServerCache } from "@/server/utils/cache";
 import {
   type GetTransactionsForCsvParams,
   GetTransactionsForCsvUsecase,
 } from "@/server/usecases/get-transactions-for-csv-usecase";
 
-const CACHE_REVALIDATE_SECONDS = 3600;
-
-export const loadTransactionsForCsv = unstable_cache(
+export const loadTransactionsForCsv = withServerCache(
   async (params: GetTransactionsForCsvParams) => {
     const transactionRepository = new PrismaTransactionRepository(prisma);
     const politicalOrganizationRepository =
@@ -24,5 +22,4 @@ export const loadTransactionsForCsv = unstable_cache(
     return await usecase.execute(params);
   },
   ["transactions-for-csv"],
-  { revalidate: CACHE_REVALIDATE_SECONDS },
 );

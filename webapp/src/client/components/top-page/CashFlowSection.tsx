@@ -27,6 +27,7 @@ interface CashFlowSectionProps {
   updatedAt: string;
   organizationName?: string;
   slug?: string;
+  financialYear: number;
 }
 
 const MONTHS = [
@@ -51,6 +52,7 @@ export default function CashFlowSection({
   updatedAt,
   organizationName,
   slug,
+  financialYear,
 }: CashFlowSectionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,6 +76,14 @@ export default function CashFlowSection({
   };
 
   useEffect(() => {
+    if (monthParam) {
+      setSelectedMonth(parseInt(monthParam, 10));
+    } else {
+      setSelectedMonth(0);
+    }
+  }, [monthParam]);
+
+  useEffect(() => {
     if (!slug || selectedMonth === 0) {
       // 年間表示の場合は初期データを使用
       setSankeyData(initialSankeyData);
@@ -86,7 +96,7 @@ export default function CashFlowSection({
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/sankey/${slug}?year=${new Date().getFullYear()}&month=${selectedMonth}`,
+          `/api/sankey/${slug}?year=${financialYear}&month=${selectedMonth}`,
         );
         if (response.ok) {
           const data = await response.json();
@@ -101,7 +111,7 @@ export default function CashFlowSection({
     };
 
     fetchMonthlyData();
-  }, [selectedMonth, slug, initialSankeyData, initialSummary]);
+  }, [selectedMonth, slug, initialSankeyData, initialSummary, financialYear]);
 
   return (
     <MainColumnCard id="cash-flow">

@@ -1,4 +1,7 @@
-import type { PrismaClient } from "@prisma/client";
+import type {
+  Organization as PrismaOrganizationModel,
+  PrismaClient,
+} from "@prisma/client";
 import type {
   Organization,
   OrganizationRepository,
@@ -31,7 +34,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     return record ? this.mapToOrganization(record) : null;
   }
 
-  private mapToOrganization(record: any): Organization {
+  private mapToOrganization(record: PrismaOrganizationModel): Organization {
     return {
       id: record.id,
       name: record.name,
@@ -40,7 +43,8 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
       type: record.type,
       slug: record.slug,
       userId: record.userId || undefined,
-      settings: record.settings || undefined,
+      settings:
+        (record.settings as Record<string, unknown> | null) ?? undefined,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     };

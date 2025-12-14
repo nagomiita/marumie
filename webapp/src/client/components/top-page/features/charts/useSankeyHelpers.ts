@@ -165,10 +165,16 @@ export function useSankeySorting(data: SankeyData) {
       // 入力リンクがある場合はその合計、なければ出力リンクの合計
       const totalValue =
         incomingLinks.length > 0
-          ? incomingLinks.reduce((sum, link) => sum + (link.value || 0), 0)
-          : outgoingLinks.reduce((sum, link) => sum + (link.value || 0), 0);
+          ? incomingLinks.reduce((sum, link) => {
+              const value = link.value ?? 0;
+              return sum + (Number.isFinite(value) ? value : 0);
+            }, 0)
+          : outgoingLinks.reduce((sum, link) => {
+              const value = link.value ?? 0;
+              return sum + (Number.isFinite(value) ? value : 0);
+            }, 0);
 
-      return totalValue;
+      return Number.isFinite(totalValue) ? totalValue : 0;
     },
     [],
   );

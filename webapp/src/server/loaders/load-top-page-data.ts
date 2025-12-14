@@ -1,10 +1,10 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/server/lib/prisma";
 import { PrismaPoliticalOrganizationRepository } from "@/server/repositories/prisma-political-organization.repository";
 import { PrismaTransactionRepository } from "@/server/repositories/prisma-transaction.repository";
 import { PrismaBalanceSnapshotRepository } from "@/server/repositories/prisma-balance-snapshot.repository";
+import { withServerCache } from "@/server/utils/cache";
 import { GetBalanceSheetUsecase } from "@/server/usecases/get-balance-sheet-usecase";
 import { GetMockTransactionPageDataUsecase } from "@/server/usecases/get-mock-transaction-page-data-usecase";
 import { GetMonthlyTransactionAggregationUsecase } from "@/server/usecases/get-monthly-transaction-aggregation-usecase";
@@ -13,6 +13,8 @@ import {
   type GetTransactionsBySlugParams,
   GetTransactionsBySlugUsecase,
 } from "@/server/usecases/get-transactions-by-slug-usecase";
+
+// 開発環境ではキャッシュを無効化、本番環境では1時間
 const CACHE_REVALIDATE_SECONDS = 3600;
 
 export interface TopPageDataParams
@@ -20,7 +22,7 @@ export interface TopPageDataParams
   financialYear: number; // 必須項目として設定
 }
 
-export const loadTopPageData = unstable_cache(
+export const loadTopPageData = withServerCache(
   async (params: TopPageDataParams) => {
     console.log("[loadTopPageData] Called with params:", {
       params,

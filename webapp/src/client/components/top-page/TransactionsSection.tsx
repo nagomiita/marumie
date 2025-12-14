@@ -28,6 +28,7 @@ interface TransactionsSectionProps {
   updatedAt: string;
   slug: string;
   organizationName?: string;
+  financialYear: number;
 }
 
 interface SortConfig {
@@ -68,6 +69,7 @@ export default function TransactionsSection({
   updatedAt,
   slug,
   organizationName,
+  financialYear,
 }: TransactionsSectionProps) {
   const searchParams = useSearchParams();
   const monthParam = searchParams.get("month");
@@ -185,9 +187,9 @@ export default function TransactionsSection({
   const getTitle = () => {
     if (selectedMonth > 0) {
       const monthLabel = MONTHS.find((m) => m.value === selectedMonth)?.label;
-      return `${monthLabel}の出入金`;
+      return `${financialYear}年度 ${monthLabel}の出入金`;
     }
-    return "すべての出入金";
+    return `${financialYear}年度の出入金`;
   };
 
   const getSubtitle = () => {
@@ -274,7 +276,7 @@ export default function TransactionsSection({
 
           {/* CSV Download */}
           <div className="mt-4 flex justify-end">
-            <CsvDownloadLink slug={slug} />
+            <CsvDownloadLink slug={slug} financialYear={financialYear} />
           </div>
         </>
       ) : (

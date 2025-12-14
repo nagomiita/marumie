@@ -1,11 +1,10 @@
 "use client";
 import "client-only";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // テキストリンク集
-const getTextLinks = (currentSlug: string) => [
+const getTextLinks = (_currentSlug: string) => [
   {
     label: "利用規約",
     href: "/terms",

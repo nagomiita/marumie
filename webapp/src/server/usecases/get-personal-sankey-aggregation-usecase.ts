@@ -74,6 +74,20 @@ export class GetPersonalSankeyAggregationUsecase {
     // 全スラグのデータを統合
     const aggregatedData = categoryAggregations.flat();
 
+    // カテゴリ別の合計を計算（サブカテゴリがある場合はカテゴリごとに集計）
+    const categoryTotals: Record<
+      string,
+      { type: "income" | "expense"; total: number }
+    > = {};
+
+    aggregatedData.forEach((item) => {
+      const key = `${item.type}-${item.category}`;
+      if (!categoryTotals[key]) {
+        categoryTotals[key] = { type: item.type, total: 0 };
+      }
+      categoryTotals[key].total += item.totalAmount;
+    });
+
     // 収入と支出の合計を計算
     const totalIncome = aggregatedData
       .filter((item) => item.type === "income")
@@ -85,67 +99,198 @@ export class GetPersonalSankeyAggregationUsecase {
 
     const netAmount = totalIncome - totalExpense;
 
+    // データが実質的に空の場合は空のサンキーデータを返す
+    // （収入も支出もない場合、サンキー図は意味がない）
+    if (totalIncome === 0 && totalExpense === 0) {
+      console.log("No income or expense data, returning empty sankey");
+      return {
+        nodes: [],
+        links: [],
+        totalLatestBalance: 0,
+      };
+    }
+
     // ノードを生成
-    const nodes = [
-      // 収入カテゴリ
-      ...aggregatedData
-        .filter((item) => item.type === "income")
-        .map((item) => ({
-          id: `income-${item.category}`,
-          label: item.category,
-          nodeType: "income" as const,
-        })),
-      // 合計ノード
-      {
-        id: "total",
-        label: "合計",
-        nodeType: "total" as const,
-      },
-      // 現金残高ノード
-      {
+    const nodes: Array<{
+      id: string;
+      label: string;
+      nodeType: "income" | "income-sub" | "total" | "expense" | "expense-sub";
+    }> = [];
+    const links: Array<{
+      source: string;
+      target: string;
+      value: number;
+    }> = [];
+
+    // 収入側のノードとリンクを生成
+    aggregatedData
+      .filter((item) => item.type === "income" && item.totalAmount > 0)
+      .forEach((item) => {
+        if (item.subcategory) {
+          // サブカテゴリノード
+          const subId = `income-sub-${item.category}-${item.subcategory}`;
+          const catId = `income-${item.category}`;
+
+          // サブカテゴリノードを追加
+          if (!nodes.find((n) => n.id === subId)) {
+            nodes.push({
+              id: subId,
+              label: item.subcategory,
+              nodeType: "income-sub" as const,
+            });
+          }
+
+          // カテゴリノードを追加
+          if (!nodes.find((n) => n.id === catId)) {
+            nodes.push({
+              id: catId,
+              label: item.category,
+              nodeType: "income" as const,
+            });
+          }
+
+          // サブカテゴリ → カテゴリへのリンク
+          links.push({
+            source: subId,
+            target: catId,
+            value: item.totalAmount,
+          });
+        } else {
+          // カテゴリのみ（サブカテゴリなし）
+          const catId = `income-${item.category}`;
+          if (!nodes.find((n) => n.id === catId)) {
+            nodes.push({
+              id: catId,
+              label: item.category,
+              nodeType: "income" as const,
+            });
+          }
+        }
+      });
+
+    // 収入カテゴリ → 合計へのリンク
+    Object.entries(categoryTotals)
+      .filter(([, data]) => data.type === "income" && data.total > 0)
+      .forEach(([key, data]) => {
+        const category = key.replace("income-", "");
+        links.push({
+          source: `income-${category}`,
+          target: "total",
+          value: data.total,
+        });
+      });
+
+    // 合計ノード
+    nodes.push({
+      id: "total",
+      label: "合計",
+      nodeType: "total" as const,
+    });
+
+    // 支出側のノードとリンクを生成
+    aggregatedData
+      .filter((item) => item.type === "expense" && item.totalAmount > 0)
+      .forEach((item) => {
+        if (item.subcategory) {
+          // サブカテゴリノード
+          const subId = `expense-sub-${item.category}-${item.subcategory}`;
+          const catId = `expense-${item.category}`;
+
+          // カテゴリノードを追加
+          if (!nodes.find((n) => n.id === catId)) {
+            nodes.push({
+              id: catId,
+              label: item.category,
+              nodeType: "expense" as const,
+            });
+          }
+
+          // サブカテゴリノードを追加
+          if (!nodes.find((n) => n.id === subId)) {
+            nodes.push({
+              id: subId,
+              label: item.subcategory,
+              nodeType: "expense-sub" as const,
+            });
+          }
+
+          // カテゴリ → サブカテゴリへのリンク
+          links.push({
+            source: catId,
+            target: subId,
+            value: item.totalAmount,
+          });
+        } else {
+          // カテゴリのみ（サブカテゴリなし）
+          const catId = `expense-${item.category}`;
+          if (!nodes.find((n) => n.id === catId)) {
+            nodes.push({
+              id: catId,
+              label: item.category,
+              nodeType: "expense" as const,
+            });
+          }
+        }
+      });
+
+    // 合計 → 支出カテゴリへのリンク
+    Object.entries(categoryTotals)
+      .filter(([, data]) => data.type === "expense" && data.total > 0)
+      .forEach(([key, data]) => {
+        const category = key.replace("expense-", "");
+        links.push({
+          source: "total",
+          target: `expense-${category}`,
+          value: data.total,
+        });
+      });
+
+    // 残高がプラスの場合、「現金残高」ノードとリンクを追加
+    const balanceChange = totalIncome - totalExpense;
+    if (balanceChange > 0) {
+      nodes.push({
         id: "cash-balance",
         label: "現金残高",
         nodeType: "expense" as const,
-      },
-      // 支出カテゴリ
-      ...aggregatedData
-        .filter((item) => item.type === "expense")
-        .map((item) => ({
-          id: `expense-${item.category}`,
-          label: item.category,
-          nodeType: "expense-sub" as const,
-        })),
-    ];
-
-    // リンクを生成
-    const links = [
-      // 収入から合計へのリンク
-      ...aggregatedData
-        .filter((item) => item.type === "income")
-        .map((item) => ({
-          source: `income-${item.category}`,
-          target: "total",
-          value: item.totalAmount,
-        })),
-      // 合計から現金残高へのリンク
-      {
+      });
+      links.push({
         source: "total",
         target: "cash-balance",
-        value: totalIncome,
-      },
-      // 現金残高から支出カテゴリへのリンク
-      ...aggregatedData
-        .filter((item) => item.type === "expense")
-        .map((item) => ({
-          source: "cash-balance",
-          target: `expense-${item.category}`,
-          value: item.totalAmount,
-        })),
-    ];
+        value: balanceChange,
+      });
+    }
+
+    // データ検証：すべての値が有効な数値であることを確認
+    const validatedLinks = links.map((link) => ({
+      ...link,
+      value: Number.isFinite(link.value) && link.value > 0 ? link.value : 0,
+    }));
+
+    // 合計ノードへの入力
+    const totalInputs = validatedLinks
+      .filter((link) => link.target === "total")
+      .reduce((sum, link) => sum + link.value, 0);
+
+    // 合計ノードからの出力
+    const totalOutputs = validatedLinks
+      .filter((link) => link.source === "total")
+      .reduce((sum, link) => sum + link.value, 0);
+
+    console.log("Total node inputs:", totalInputs);
+    console.log("Total node outputs:", totalOutputs);
+
+    if (Math.abs(totalInputs - totalOutputs) > 0.01) {
+      console.warn(
+        "Warning: Total node input/output mismatch:",
+        totalInputs,
+        "vs",
+        totalOutputs,
+      );
+    }
 
     return {
       nodes,
-      links,
+      links: validatedLinks,
       totalLatestBalance: netAmount,
     };
   }

@@ -1,4 +1,8 @@
-import type { PrismaClient } from "@prisma/client";
+import type {
+  PersonalTransaction as PrismaPersonalTransactionModel,
+  Prisma,
+  PrismaClient,
+} from "@prisma/client";
 import type {
   PersonalTransaction,
   PersonalTransactionFilters,
@@ -48,9 +52,11 @@ export class PrismaPersonalTransactionRepository
     type: "income" | "expense",
     financialYear?: number,
   ): Promise<number> {
-    const where: any = {
+    const where: Prisma.PersonalTransactionWhereInput = {
       organization: {
-        slug: organizationSlug,
+        is: {
+          slug: organizationSlug,
+        },
       },
       type,
     };
@@ -91,7 +97,9 @@ export class PrismaPersonalTransactionRepository
     const transactions = await this.prisma.personalTransaction.findMany({
       where: {
         organization: {
-          slug: organizationSlug,
+          is: {
+            slug: organizationSlug,
+          },
         },
         date: {
           gte: startDate,
@@ -153,9 +161,11 @@ export class PrismaPersonalTransactionRepository
       count: number;
     }>
   > {
-    const where: any = {
+    const where: Prisma.PersonalTransactionWhereInput = {
       organization: {
-        slug: organizationSlug,
+        is: {
+          slug: organizationSlug,
+        },
       },
     };
 
@@ -219,12 +229,51 @@ export class PrismaPersonalTransactionRepository
     return Object.values(categoryMap);
   }
 
-  private buildWhereClause(filters: PersonalTransactionFilters): any {
-    const where: any = {};
+  async getDateRangeForOrganizations(
+    slugs: string[],
+  ): Promise<{ minDate: Date | null; maxDate: Date | null }> {
+    let minDate: Date | null = null;
+    let maxDate: Date | null = null;
+
+    for (const slug of slugs) {
+      const result = await this.prisma.personalTransaction.aggregate({
+        where: {
+          organization: {
+            is: {
+              slug,
+            },
+          },
+        },
+        _min: { date: true },
+        _max: { date: true },
+      });
+
+      if (result._min.date) {
+        if (!minDate || result._min.date < minDate) {
+          minDate = result._min.date;
+        }
+      }
+
+      if (result._max.date) {
+        if (!maxDate || result._max.date > maxDate) {
+          maxDate = result._max.date;
+        }
+      }
+    }
+
+    return { minDate, maxDate };
+  }
+
+  private buildWhereClause(
+    filters: PersonalTransactionFilters,
+  ): Prisma.PersonalTransactionWhereInput {
+    const where: Prisma.PersonalTransactionWhereInput = {};
 
     if (filters.organizationSlug) {
       where.organization = {
-        slug: filters.organizationSlug,
+        is: {
+          slug: filters.organizationSlug,
+        },
       };
     }
 
@@ -249,7 +298,11 @@ export class PrismaPersonalTransactionRepository
     return where;
   }
 
-  private mapToPersonalTransaction(record: any): PersonalTransaction {
+  private mapToPersonalTransaction(
+    record: PrismaPersonalTransactionModel & {
+      organization: { slug: string } | null;
+    },
+  ): PersonalTransaction {
     return {
       id: record.id,
       date: record.date,

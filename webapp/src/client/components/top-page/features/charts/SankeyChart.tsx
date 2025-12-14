@@ -235,11 +235,20 @@ const CustomNodesLayer = ({
 
 // カスタムラベルレイヤー（プライマリ + セカンダリ）
 const calculatePercentageText = (nodeValue?: number, totalValue?: number) => {
-  if (!nodeValue || !totalValue || totalValue === 0) {
+  if (
+    !nodeValue ||
+    !totalValue ||
+    totalValue === 0 ||
+    !Number.isFinite(nodeValue) ||
+    !Number.isFinite(totalValue)
+  ) {
     return "";
   }
 
   const percentage = (nodeValue / totalValue) * 100;
+  if (!Number.isFinite(percentage)) {
+    return "";
+  }
   return percentage < TEXT_CONFIG.PERCENTAGE_THRESHOLD
     ? TEXT_CONFIG.PERCENTAGE_UNDER_ONE
     : `${Math.round(percentage)}%`;

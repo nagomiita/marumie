@@ -33,6 +33,22 @@ export default function InteractiveRect({
   onMouseLeave,
   onMouseMove,
 }: InteractiveRectProps) {
+  // NaNチェック - 無効な値の場合はレンダリングしない
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height)
+  ) {
+    console.error("Invalid rect values:", { id, x, y, width, height });
+    return null;
+  }
+
+  // 負の値やゼロの高さ/幅もスキップ
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+
   return (
     /* biome-ignore lint/a11y/noStaticElementInteractions: SVG rect element needs mouse events for chart tooltip functionality */
     <rect

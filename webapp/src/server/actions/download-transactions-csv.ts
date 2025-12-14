@@ -2,12 +2,15 @@
 
 import { loadTransactionsForCsv } from "@/server/loaders/load-transactions-for-csv";
 
-export async function downloadTransactionsCsv(slug: string) {
+export async function downloadTransactionsCsv(
+  slug: string,
+  financialYear: number,
+) {
   try {
     // すべてのトランザクションを取得
     const data = await loadTransactionsForCsv({
       slugs: [slug],
-      financialYear: 2025,
+      financialYear,
     });
 
     // CSVヘッダー

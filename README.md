@@ -83,6 +83,7 @@ marumie/
 1. **初回セットアップ（推奨）**
 
 ```bash
+pnpm run supabase:start
 pnpm run dev:setup
 ```
 
@@ -181,15 +182,22 @@ USE_MOCK_DATA=true
 
 ```
 data/
-├── config.yaml          # 変換設定ファイル
+├── config.json          # 変換設定ファイル
 ├── convert_csv.sh       # 変換スクリプト
 ├── input/              # 変換元CSVファイルの配置先
-│   ├── 2025-01/        # 年月ごとにディレクトリを作成
-│   ├── 2025-02/
-│   └── ...
+│   ├── ufj/            # 銀行・カードIDごとにディレクトリを作成
+│   │   ├── 202507.csv  # ファイル名に YYYYMM を含める
+│   │   └── ...
+│   ├── rakuten_card/
+│   │   ├── enavi202405.csv
+│   │   └── ...
+│   └── smbc_card/
+│       └── 202404.csv
 └── output/             # 変換後CSVファイルの出力先
-    ├── 2025-01/
-    ├── 2025-02/
+    ├── 2025/
+    │   ├── 07/
+    │   │   └── unified_2025-07.csv
+    │   └── 08/
     └── ...
 ```
 
@@ -197,20 +205,23 @@ data/
 
 1. **入力ファイルの配置**
 
-   `data/input/` 以下に年月ディレクトリ（`YYYY-MM`形式）を作成し、各金融機関から取得した CSV ファイルを配置します。
+   `data/input/<銀行・カードID>/` に CSV を配置します。ファイル名に `YYYYMM` を含めると、クレジットカードの請求月などのヒントとして利用されますが、最終的な出力先は各行の取引日の年月（`YYYY/MM/DD`）で決まります。
 
    ```bash
-   mkdir -p data/input/2025-01
-   # CSVファイルをdata/input/2025-01/にコピー
+   mkdir -p data/input/rakuten_card
+   cp ~/Downloads/enavi202405(0467).processed.csv data/input/rakuten_card/
+   mkdir -p data/input/smbc_card
+   cp ~/Downloads/202404.csv data/input/smbc_card/
    ```
 
 2. **設定ファイルの編集（必要に応じて）**
 
-   `data/config.yaml` で以下を設定できます：
+   `data/config.json` で以下を設定できます：
 
    - 銀行・カードごとの列マッピング（日付、摘要、金額など）
    - ファイル名パターン（例: `UFJ_sample_*.csv`）
    - カテゴリ分類ルール（キーワードによる自動分類）
+   - 各銀行設定の `exclude_keywords` に指定した文字列をカテゴリ判定時に無視（例: 楽天カードで `"本人"` を除外）
 
 3. **変換スクリプトの実行**
 
@@ -219,7 +230,7 @@ data/
    bash convert_csv.sh
    ```
 
-   変換された CSV ファイルは `data/output/YYYY-MM/unified_YYYY-MM.csv` に出力されます。
+   変換された CSV ファイルは `data/output/YYYY/MM/unified_YYYY-MM.csv` に出力されます。
 
 4. **変換結果のアップロード**
 
@@ -229,9 +240,12 @@ data/
 
 現在、以下の金融機関に対応しています：
 
-- UFJ 銀行（`UFJ_sample_*.csv`）
+- UFJ 銀行（`data/input/ufj/` 内の CSV）
+- 楽天カード（`data/input/rakuten_card/`）
+- 三井住友カード（`data/input/smbc_card/`、ヘッダー無し CSV も `fieldnames`/`skip_rows` 設定で対応）
+- ゆうちょ銀行（`data/input/japan_post_bank/`、郵政の CSV をそのまま配置）
 
-新しい金融機関を追加する場合は、`data/config.yaml` の `banks` セクションに設定を追加してください。
+新しい金融機関を追加する場合は、`data/config.json` の `banks` セクションに設定を追加し、`data/input/<ID>/` に CSV を配置してください。ヘッダーが無い場合は `fieldnames` と `skip_rows` を併せて設定すると安全です。
 
 ## ライセンス
 

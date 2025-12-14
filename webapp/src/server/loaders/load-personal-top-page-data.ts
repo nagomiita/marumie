@@ -1,22 +1,20 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/server/lib/prisma";
 import { PrismaPersonalTransactionRepository } from "@/server/repositories/prisma-personal-transaction.repository";
 import { PrismaOrganizationRepository } from "@/server/repositories/prisma-organization.repository";
+import { withServerCache } from "@/server/utils/cache";
 import { GetPersonalTransactionsBySlugUsecase } from "@/server/usecases/get-personal-transactions-by-slug-usecase";
 import { GetPersonalMonthlyAggregationUsecase } from "@/server/usecases/get-personal-monthly-aggregation-usecase";
 import { GetPersonalSankeyAggregationUsecase } from "@/server/usecases/get-personal-sankey-aggregation-usecase";
 import type { GetPersonalTransactionsBySlugParams } from "@/server/usecases/get-personal-transactions-by-slug-usecase";
-
-const CACHE_REVALIDATE_SECONDS = 3600;
 
 export interface PersonalTopPageDataParams
   extends Omit<GetPersonalTransactionsBySlugParams, "financialYear"> {
   financialYear: number; // 必須項目として設定
 }
 
-export const loadPersonalTopPageData = unstable_cache(
+export const loadPersonalTopPageData = withServerCache(
   async (params: PersonalTopPageDataParams) => {
     // 実データを取得
     const personalTransactionRepository =
@@ -40,7 +38,7 @@ export const loadPersonalTopPageData = unstable_cache(
     );
 
     // 基本的なデータを並列取得
-    const [transactionData, monthlyData, sankeyData, summary] =
+    const [transactionData, monthlyData, sankeyData, summary, dateRange] =
       await Promise.all([
         transactionUsecase.execute(params),
         monthlyUsecase.execute({
@@ -57,17 +55,25 @@ export const loadPersonalTopPageData = unstable_cache(
           params.slugs,
           params.financialYear,
         ),
+        personalTransactionRepository.getDateRangeForOrganizations(
+          params.slugs,
+        ),
       ]);
+
+    const availableFinancialYears = deriveFinancialYears(
+      dateRange.minDate,
+      dateRange.maxDate,
+    );
 
     return {
       transactionData,
       monthlyData: monthlyData.monthlyData,
       summary,
       sankeyData: sankeyData.sankeyData,
+      availableFinancialYears,
     };
   },
   ["personal-top-page-data"],
-  { revalidate: CACHE_REVALIDATE_SECONDS },
 );
 
 // 財務サマリーの計算
@@ -146,4 +152,27 @@ async function calculateFinancialSummary(
   summaryData.categories.expense.sort((a, b) => b.amount - a.amount);
 
   return summaryData;
+}
+
+function deriveFinancialYears(
+  minDate: Date | null,
+  maxDate: Date | null,
+): number[] {
+  if (!minDate || !maxDate) return [];
+
+  const startYear =
+    minDate.getMonth() + 1 >= 4
+      ? minDate.getFullYear()
+      : minDate.getFullYear() - 1;
+  const endYear =
+    maxDate.getMonth() + 1 >= 4
+      ? maxDate.getFullYear()
+      : maxDate.getFullYear() - 1;
+
+  const years: number[] = [];
+  for (let year = endYear; year >= startYear; year--) {
+    years.push(year);
+  }
+
+  return years;
 }

@@ -44,4 +44,8 @@ export interface PersonalTransactionRepository {
       count: number;
     }>
   >;
+
+  getDateRangeForOrganizations(
+    slugs: string[],
+  ): Promise<{ minDate: Date | null; maxDate: Date | null }>;
 }

@@ -6,7 +6,7 @@ export interface Organization {
   type: string;
   slug: string;
   userId?: string;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }

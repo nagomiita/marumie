@@ -1,11 +1,11 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
 import { prisma } from "@/server/lib/prisma";
+import { withServerCache } from "@/server/utils/cache";
 import type { OrganizationsResponse } from "../../types/organization";
 
-export const loadOrganizations = unstable_cache(
-  async (): Promise<OrganizationsResponse> => {
+export const loadOrganizations =
+  withServerCache(async (): Promise<OrganizationsResponse> => {
     // 全ての有効な組織データを取得
     const organizations = await prisma.organization.findMany({
       select: {
@@ -28,9 +28,4 @@ export const loadOrganizations = unstable_cache(
         displayName: org.displayName,
       })),
     };
-  },
-  ["organizations"],
-  {
-    revalidate: 3600, // 1時間キャッシュ
-  },
-);
+  }, ["organizations"]);

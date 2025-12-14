@@ -8,13 +8,36 @@ import TransactionsSection from "@/client/components/top-page/TransactionsSectio
 import { loadPersonalTopPageData } from "@/server/loaders/load-personal-top-page-data";
 import { loadOrganizations } from "@/server/loaders/load-organizations";
 import { formatUpdatedAt } from "@/server/utils/format-date";
+import FinancialYearSelector from "@/client/components/top-page/FinancialYearSelector";
 
-export const revalidate = 300; // 5 minutes
+// 開発環境ではキャッシュを無効化、本番環境では5分
+export const revalidate = process.env.NODE_ENV === "development" ? false : 300;
 
 interface OrgPageProps {
   params: Promise<{
     slug: string;
   }>;
+  searchParams?:
+    | Promise<Record<string, string | string[] | undefined>>
+    | Record<string, string | string[] | undefined>;
+}
+
+function getDefaultFinancialYear(date = new Date()): number {
+  const month = date.getMonth() + 1;
+  return month >= 4 ? date.getFullYear() : date.getFullYear() - 1;
+}
+
+async function resolveSearchParams(
+  searchParams?: OrgPageProps["searchParams"],
+): Promise<Record<string, string | string[] | undefined>> {
+  if (!searchParams) return {};
+  if (typeof (searchParams as Promise<unknown>).then === "function") {
+    return ((await searchParams) || {}) as Record<
+      string,
+      string | string[] | undefined
+    >;
+  }
+  return searchParams as Record<string, string | string[] | undefined>;
 }
 
 export async function generateMetadata({
@@ -34,8 +57,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function OrgPage({ params }: OrgPageProps) {
+export default async function OrgPage({ params, searchParams }: OrgPageProps) {
   const { slug } = await params;
+  const resolvedSearchParams = await resolveSearchParams(searchParams);
+  const yearParam = resolvedSearchParams.year;
+  const parsedYear =
+    typeof yearParam === "string" ? Number.parseInt(yearParam, 10) : undefined;
+  let financialYear = Number.isNaN(parsedYear)
+    ? getDefaultFinancialYear()
+    : (parsedYear ?? getDefaultFinancialYear());
 
   // slugの妥当性をチェックし、必要に応じてリダイレクト
   const { default: defaultSlug, organizations } = await loadOrganizations();
@@ -49,15 +79,38 @@ export default async function OrgPage({ params }: OrgPageProps) {
   const currentOrganization = organizations.find((org) => org.slug === slug);
 
   // 統合アクションで全データを取得
-  const data = await loadPersonalTopPageData({
+  let data = await loadPersonalTopPageData({
     slugs,
     page: 1,
     perPage: 1000, // 全データを取得してクライアント側でページネーション
-    financialYear: 2025, // デフォルト値
+    financialYear,
   }).catch((error) => {
     console.error("loadPersonalTopPageData error:", error);
     return null;
   });
+
+  let availableFinancialYears =
+    data?.availableFinancialYears && data.availableFinancialYears.length > 0
+      ? data.availableFinancialYears
+      : [financialYear];
+
+  if (data && !availableFinancialYears.includes(financialYear)) {
+    financialYear = availableFinancialYears[0] ?? getDefaultFinancialYear();
+    data = await loadPersonalTopPageData({
+      slugs,
+      page: 1,
+      perPage: 1000,
+      financialYear,
+    }).catch((error) => {
+      console.error("loadPersonalTopPageData error:", error);
+      return null;
+    });
+  }
+
+  availableFinancialYears =
+    data?.availableFinancialYears && data.availableFinancialYears.length > 0
+      ? data.availableFinancialYears
+      : [financialYear];
 
   const updatedAt = formatUpdatedAt(
     data?.transactionData?.lastUpdatedAt ?? null,
@@ -65,10 +118,15 @@ export default async function OrgPage({ params }: OrgPageProps) {
 
   return (
     <MainColumn>
+      <FinancialYearSelector
+        years={availableFinancialYears}
+        selectedYear={financialYear}
+      />
       <MonthlyTrendsSection
         monthlyData={data?.monthlyData}
         updatedAt={updatedAt}
         organizationName={currentOrganization?.displayName}
+        financialYear={financialYear}
       />
       <CashFlowSection
         sankeyData={data?.sankeyData ?? null}
@@ -76,12 +134,14 @@ export default async function OrgPage({ params }: OrgPageProps) {
         updatedAt={updatedAt}
         organizationName={currentOrganization?.displayName}
         slug={slug}
+        financialYear={financialYear}
       />
       <TransactionsSection
         transactionData={data?.transactionData ?? null}
         updatedAt={updatedAt}
         slug={slug}
         organizationName={currentOrganization?.displayName}
+        financialYear={financialYear}
       />
     </MainColumn>
   );
