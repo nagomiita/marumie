@@ -111,7 +111,7 @@ export default function CashFlowSection({
             src="/icons/icon-cashflow.svg"
             alt="Cash flow icon"
             width={30}
-            height={31}
+            height={30}
           />
         }
         organizationName={organizationName || "未登録の政治団体"}

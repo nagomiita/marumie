@@ -32,7 +32,7 @@ export default function MonthlyTrendsSection({
             src="/icons/icon-barchart.svg"
             alt="Bar chart icon"
             width={30}
-            height={30}
+            height={31}
           />
         }
         organizationName={organizationName || "未登録の政治団体"}
