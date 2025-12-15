@@ -60,8 +60,8 @@ marumie/
 
 ## 技術スタック
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Backend**: Prisma ORM, Supabase
+- **Frontend**: Next.js 15, React 19, TypeScript（Vite + React への移行を計画中）
+- **Backend**: Prisma ORM, Supabase（FastAPI + SQLAlchemy への移行を開始）
 - **Styling**: Tailwind CSS v4
 - **Charts**: Recharts, ApexCharts, Nivo
 - **Database**: PostgreSQL (via Supabase)
@@ -136,6 +136,12 @@ pnpm run supabase:status  # Supabase状態確認
 pnpm run clean         # 全てのnode_modulesとSupabaseを停止
 pnpm run fresh         # クリーンインストール + セットアップ
 ```
+
+### FastAPI backend (WIP)
+
+- ディレクトリ: `backend/`
+- 起動方法: `cd backend && uvicorn app.main:get_app --reload --factory`
+- 設定: `backend/.env.example` を `.env` にコピーして `DATABASE_URL` などを指定
 
 ## データベースのマイグレーション
 
