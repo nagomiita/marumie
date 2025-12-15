@@ -15,12 +15,14 @@ interface MonthlyTrendsSectionProps {
   monthlyData?: MonthlyData[];
   updatedAt: string;
   organizationName?: string;
+  financialYear: number;
 }
 
 export default function MonthlyTrendsSection({
   monthlyData,
   updatedAt,
   organizationName,
+  financialYear,
 }: MonthlyTrendsSectionProps) {
   console.log("MonthlyTrendsSection received data:", monthlyData);
 
@@ -38,7 +40,7 @@ export default function MonthlyTrendsSection({
         organizationName={organizationName || "未登録の政治団体"}
         title="月ごとの収支の推移"
         updatedAt={updatedAt}
-        subtitle="今年の月ごとの収入と支出"
+        subtitle={`${financialYear}年度の月ごとの収入と支出`}
       />
 
       {/* 月次チャート表示 - モバイルのみ右端まで拡張 */}

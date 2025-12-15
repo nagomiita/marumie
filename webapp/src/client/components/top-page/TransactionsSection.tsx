@@ -28,6 +28,7 @@ interface TransactionsSectionProps {
   updatedAt: string;
   slug: string;
   organizationName?: string;
+  financialYear: number;
 }
 
 interface SortConfig {
@@ -68,6 +69,7 @@ export default function TransactionsSection({
   updatedAt,
   slug,
   organizationName,
+  financialYear,
 }: TransactionsSectionProps) {
   const searchParams = useSearchParams();
   const monthParam = searchParams.get("month");
@@ -182,20 +184,22 @@ export default function TransactionsSection({
   // 月選択はCashFlowSectionで制御されるため、こちらは表示のみ
 
   // タイトルとサブタイトルを動的に生成
+  const yearLabel = `${financialYear}年度`;
+
   const getTitle = () => {
     if (selectedMonth > 0) {
       const monthLabel = MONTHS.find((m) => m.value === selectedMonth)?.label;
-      return `${monthLabel}の出入金`;
+      return `${yearLabel} ${monthLabel}の出入金`;
     }
-    return "すべての出入金";
+    return `${yearLabel}の出入金`;
   };
 
   const getSubtitle = () => {
     if (selectedMonth > 0) {
       const monthLabel = MONTHS.find((m) => m.value === selectedMonth)?.label;
-      return `${monthLabel}にデータ連携された出入金の明細`;
+      return `${yearLabel}の${monthLabel}にデータ連携された出入金の明細`;
     }
-    return "これまでにデータ連携された出入金の明細";
+    return `${yearLabel}にデータ連携された出入金の明細`;
   };
 
   const startItem = paginatedData

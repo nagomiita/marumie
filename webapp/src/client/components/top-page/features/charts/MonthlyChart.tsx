@@ -36,7 +36,7 @@ export default function MonthlyChart({ data }: MonthlyChartProps) {
       <div className="bg-gray-50 rounded-lg flex items-center justify-center h-[462px]">
         <div className="text-center text-gray-500">
           <div className="text-lg font-medium mb-2">月次収支推移グラフ</div>
-          <div className="text-sm">データがありません</div>
+        <div className="text-sm">データが存在しません</div>
         </div>
       </div>
     );

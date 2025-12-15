@@ -9,7 +9,8 @@ import {
   GetTransactionsForCsvUsecase,
 } from "@/server/usecases/get-transactions-for-csv-usecase";
 
-const CACHE_REVALIDATE_SECONDS = 3600;
+const CACHE_REVALIDATE_SECONDS =
+  process.env.NODE_ENV === "development" ? 0 : 3600;
 
 export const loadTransactionsForCsv = unstable_cache(
   async (params: GetTransactionsForCsvParams) => {
@@ -24,5 +25,5 @@ export const loadTransactionsForCsv = unstable_cache(
     return await usecase.execute(params);
   },
   ["transactions-for-csv"],
-  { revalidate: CACHE_REVALIDATE_SECONDS },
+  { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["transactions-for-csv"] },
 );

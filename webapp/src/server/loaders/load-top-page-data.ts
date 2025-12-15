@@ -13,7 +13,8 @@ import {
   type GetTransactionsBySlugParams,
   GetTransactionsBySlugUsecase,
 } from "@/server/usecases/get-transactions-by-slug-usecase";
-const CACHE_REVALIDATE_SECONDS = 3600;
+const CACHE_REVALIDATE_SECONDS =
+  process.env.NODE_ENV === "development" ? 0 : 3600;
 
 export interface TopPageDataParams
   extends Omit<GetTransactionsBySlugParams, "financialYear"> {
@@ -134,5 +135,5 @@ export const loadTopPageData = unstable_cache(
     }
   },
   ["top-page-data"],
-  { revalidate: CACHE_REVALIDATE_SECONDS },
+  { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["top-page-data"] },
 );
