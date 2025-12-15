@@ -142,6 +142,7 @@ pnpm run fresh         # クリーンインストール + セットアップ
 - ディレクトリ: `backend/`
 - 起動方法: `cd backend && uvicorn app.main:get_app --reload --factory`
 - 設定: `backend/.env.example` を `.env` にコピーして `DATABASE_URL` などを指定
+- Prisma スキーマを移植した SQLAlchemy モデルと Alembic の初期マイグレーションを含みます。スキーマを適用するには `cd backend && alembic upgrade head` を実行してください。
 
 ## データベースのマイグレーション
 

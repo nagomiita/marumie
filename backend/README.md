@@ -32,18 +32,29 @@ backend/
 ├── app/
 │   ├── api/          # FastAPI ルーター
 │   ├── core/         # 設定・依存性
-│   ├── models/       # SQLAlchemy モデル (準備中)
+│   ├── models/       # SQLAlchemy モデル/Enum 定義
 │   └── main.py       # エントリポイント
 ├── README.md
-└── pyproject.toml
+├── pyproject.toml
+└── alembic/          # Alembic 設定とマイグレーション
 ```
 
 ## 進捗メモ
 - FastAPI アプリのひな形と設定ロード、DB セッション生成を追加しました。
 - API として `/health` を公開しています。
-- SQLAlchemy モデル定義と既存 Prisma スキーマの移植は今後のステップです。
+- Prisma スキーマを SQLAlchemy モデルへ移植し、初期マイグレーションを Alembic に追加しました。
 
 ## 今後のタスク
-- Prisma スキーマを SQLAlchemy モデルへ変換し、Alembic のマイグレーションを追加
+- Alembic で本番 DB へ適用するための接続設定を確認・調整
 - OpenAPI を基に Orval でクライアント生成するパイプラインを整備
 - 既存 Next.js API のロジックを FastAPI エンドポイントとして移植
+
+## マイグレーションの実行
+
+```bash
+# 初期化後に最新まで適用
+alembic upgrade head
+
+# スキーマ変更時の自動生成例
+alembic revision --autogenerate -m "describe change"
+```
