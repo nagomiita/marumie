@@ -3,15 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "dependencies": {
-    "@next/third-parties": "^15.5.0",
     "@prisma/client": "^6.14.0",
-    "@vercel/speed-insights": "^1.2.0",
     "apexcharts": "^5.3.3",
-    "critters": "^0.0.25",
-    "next": "15.4.6",
     "react": "19.1.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "19.1.0",
+    "react-router-dom": "^7.1.5",
     "recharts": "^3.1.2"
   },
   "devDependencies": {
@@ -20,17 +17,19 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.4",
     "autoprefixer": "^10.4.21",
     "jest": "^29.7.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.12",
     "ts-jest": "^29.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^6.0.5"
   },
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "cd ../ && prisma generate && prisma migrate deploy && cd webapp && next build",
-    "start": "next start",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "lint": "biome check",
     "type-check": "tsc --noEmit",
     "format": "biome check --write .",

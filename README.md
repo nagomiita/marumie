@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 
 ## プロジェクト構成
 
@@ -12,12 +12,12 @@
 
 ```
 marumie/
-├── webapp/           # フロントエンド（一般ユーザー向け）
+├── webapp/           # フロントエンド（Vite + React）
 │   ├── src/
-│   │   ├── app/      # Next.js App Router
-│   │   ├── client/   # クライアントサイドコンポーネント
-│   │   ├── server/   # サーバーサイドロジック
-│   │   └── types/    # 型定義
+│   │   ├── api/      # FastAPI 用のクライアント
+│   │   ├── components/ # UI コンポーネント
+│   │   ├── pages/    # 画面コンポーネント
+│   │   └── styles/   # グローバルスタイル
 │   ├── tests/        # テストファイル
 │   └── package.json
 ├── admin/            # 管理画面
@@ -60,7 +60,7 @@ marumie/
 
 ## 技術スタック
 
-- **Frontend**: Next.js 15, React 19, TypeScript（Vite + React への移行を計画中）
+- **Frontend**: Vite, React 19, TypeScript
 - **Backend**: Prisma ORM, Supabase（FastAPI + SQLAlchemy への移行を開始）
 - **Styling**: Tailwind CSS v4
 - **Charts**: Recharts, ApexCharts, Nivo
