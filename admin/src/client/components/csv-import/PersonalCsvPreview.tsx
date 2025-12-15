@@ -9,17 +9,12 @@ interface PersonalCsvPreviewProps {
   file: File | null;
   organizationId?: string;
   onPreviewComplete: (result: PreviewPersonalCsvResult) => void;
-  previewAction: (data: {
-    file: File;
-    organizationId?: string;
-  }) => Promise<PreviewPersonalCsvResult>;
 }
 
 export default function PersonalCsvPreview({
   file,
   organizationId,
   onPreviewComplete,
-  previewAction,
 }: PersonalCsvPreviewProps) {
   const [previewResult, setPreviewResult] =
     useState<PreviewPersonalCsvResult | null>(null);
@@ -30,11 +25,9 @@ export default function PersonalCsvPreview({
     organizationId?: string;
   }>({ file: null, organizationId: undefined });
   const onPreviewCompleteRef = useRef(onPreviewComplete);
-  const previewActionRef = useRef(previewAction);
 
   // Always update the refs to the latest values
   onPreviewCompleteRef.current = onPreviewComplete;
-  previewActionRef.current = previewAction;
 
   useEffect(() => {
     // Check if file or organizationId actually changed
@@ -58,7 +51,23 @@ export default function PersonalCsvPreview({
       setError(null);
 
       try {
-        const result = await previewActionRef.current({ file, organizationId });
+        const formData = new FormData();
+        formData.append("file", file);
+        if (organizationId) {
+          formData.append("organizationId", organizationId);
+        }
+
+        const response = await fetch("/api/preview-csv", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "プレビュー生成に失敗しました");
+        }
+
+        const result = (await response.json()) as PreviewPersonalCsvResult;
         setPreviewResult(result);
         onPreviewCompleteRef.current?.(result);
       } catch (err) {
@@ -157,8 +166,8 @@ export default function PersonalCsvPreview({
         <div className="bg-red-900/20 rounded border border-red-700 p-4">
           <h4 className="text-red-400 font-semibold mb-2">エラー一覧:</h4>
           <div className="space-y-1 text-sm">
-            {previewResult.errors.map((error, index) => (
-              <div key={index} className="text-red-300 font-mono">
+            {previewResult.errors.map((error) => (
+              <div key={error} className="text-red-300 font-mono">
                 {error}
               </div>
             ))}

@@ -3,27 +3,16 @@ import "client-only";
 
 import { useId, useState, useCallback } from "react";
 import PersonalCsvPreview from "@/client/components/csv-import/PersonalCsvPreview";
-import type { PreviewPersonalCsvResult } from "@/server/usecases/preview-personal-csv-usecase";
-import type {
-  UploadPersonalCsvRequest,
-  UploadPersonalCsvResponse,
-} from "@/server/actions/upload-personal-csv";
-import type { PreviewPersonalCsvRequest } from "@/server/actions/preview-personal-csv";
+import type { UploadPersonalCsvResponse } from "@/server/actions/upload-personal-csv";
 import type { Organization } from "@/shared/models/organization";
+import type { PreviewPersonalCsvResult } from "@/server/usecases/preview-personal-csv-usecase";
+import type { PersonalTransactionPreview } from "@/shared/models/personal-transaction";
 
 interface CsvUploadClientProps {
-  uploadPersonalAction: (
-    data: UploadPersonalCsvRequest,
-  ) => Promise<UploadPersonalCsvResponse>;
-  previewPersonalAction: (
-    data: PreviewPersonalCsvRequest,
-  ) => Promise<PreviewPersonalCsvResult>;
   organizations: Organization[];
 }
 
 export default function CsvUploadClient({
-  uploadPersonalAction,
-  previewPersonalAction,
   organizations,
 }: CsvUploadClientProps) {
   const csvFileInputId = useId();
@@ -71,10 +60,30 @@ export default function CsvUploadClient({
         return;
       }
 
-      const result = await uploadPersonalAction({
-        validTransactions,
-        organizationId: selectedOrganizationId || undefined,
+      const response = await fetch("/api/upload-personal-csv", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          validTransactions,
+          organizationId: selectedOrganizationId || undefined,
+        }),
       });
+
+      const payload = (await response.json()) as UploadPersonalCsvResponse & {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error ||
+            payload.message ||
+            "CSVデータの保存中にエラーが発生しました",
+        );
+      }
+
+      const result = payload as UploadPersonalCsvResponse;
 
       if (!result.ok && result.errors && result.errors.length > 0) {
         setMessage(result.message);
@@ -156,7 +165,6 @@ export default function CsvUploadClient({
         file={file}
         organizationId={selectedOrganizationId}
         onPreviewComplete={handlePersonalPreviewComplete}
-        previewAction={previewPersonalAction}
       />
 
       <button

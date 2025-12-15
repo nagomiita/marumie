@@ -12,6 +12,7 @@ import TransactionTableMobileHeader, {
   type SortOption,
 } from "@/client/components/top-page/features/transactions-table/TransactionTableMobileHeader";
 import CsvDownloadLink from "@/client/components/transactions/CsvDownloadLink";
+import { PL_CATEGORIES } from "@/shared/utils/category-mapping";
 
 import type { DisplayTransaction } from "@/types/display-transaction";
 
@@ -112,9 +113,10 @@ export default function TransactionsSection({
 
     // フィルタリング（カテゴリ）
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter((t) =>
-        selectedCategories.includes(t.category),
-      );
+      filtered = filtered.filter((t) => {
+        const categoryKey = PL_CATEGORIES[t.account]?.key;
+        return categoryKey ? selectedCategories.includes(categoryKey) : false;
+      });
     }
 
     // ソート
@@ -236,6 +238,7 @@ export default function TransactionsSection({
 
           <TransactionTable
             transactions={paginatedData.transactions}
+            allowControl
             total={paginatedData.total}
             page={paginatedData.page}
             perPage={paginatedData.perPage}

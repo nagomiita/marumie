@@ -12,9 +12,7 @@
         "credit": "預かり金額",
         "balance": "差引残高"
       },
-      "file_patterns": [
-        "UFJ_sample_*.csv"
-      ],
+      "file_patterns": ["UFJ_sample_*.csv"],
       "account_name": "UFJ銀行"
     },
     {
@@ -28,47 +26,41 @@
         "debit": "利用金額",
         "credit": "支払総額"
       },
-      "file_patterns": [
-        "enavi*.csv"
-      ],
+      "file_patterns": ["enavi*.csv"],
       "account_name": "楽天カード",
       "is_credit_card": true,
-      "exclude_keywords": [
-        "本人"
-      ]
+      "exclude_keywords": ["本人", "(携帯決済)"]
     },
     {
       "id": "smbc_card",
       "name": "三井住友カード",
       "encoding": "shift_jis",
       "columns": {
-        "date": "date",
-        "description": "description",
-        "description_detail": "description",
-        "debit": "amount",
-        "credit": "billing_amount"
+        "date": "ご利用日",
+        "description": "ご利用店名 ※",
+        "description_detail": "ご利用店名 ※",
+        "debit": "お支払い金額",
+        "credit": "ご利用金額"
       },
       "file_patterns": [],
       "account_name": "三井住友カード",
       "is_credit_card": true,
-      "exclude_keywords": [
-        "本人"
-      ],
+      "exclude_keywords": ["(AppleV)●"],
       "fieldnames": [
-        "date",
-        "description",
-        "amount",
-        "installment_count",
-        "installment_paid",
-        "billing_amount",
-        "note"
+        "ご利用日",
+        "ご利用店名 ※",
+        "ご利用金額",
+        "支払区分",
+        "今回回数",
+        "お支払い金額",
+        "備考"
       ],
       "skip_rows": 1
     },
     {
       "id": "japan_post_bank",
       "name": "ゆうちょ銀行",
-      "encoding": "utf-8-sig",
+      "encoding": "shift_jis",
       "columns": {
         "date": "取引日",
         "description": "詳細１",
@@ -102,37 +94,22 @@
     {
       "id": "salary",
       "account": "給与収入",
-      "keywords": [
-        "給与",
-        "給料"
-      ]
+      "keywords": ["給与", "給料"]
     },
     {
       "id": "bonus",
       "account": "賞与",
-      "keywords": [
-        "賞与",
-        "ボーナス"
-      ]
+      "keywords": ["賞与", "ボーナス"]
     },
     {
       "id": "misc_income",
       "account": "雑収入",
-      "keywords": [
-        "振込",
-        "利息",
-        "返金",
-        "還付"
-      ]
+      "keywords": ["振込", "利息", "返金", "還付"]
     },
     {
       "id": "rent",
       "account": "家賃",
-      "keywords": [
-        "家賃",
-        "賃料",
-        "管理費"
-      ]
+      "keywords": ["家賃", "賃料", "管理費"]
     },
     {
       "id": "utilities",
@@ -141,9 +118,11 @@
         "電気",
         "ガス",
         "水道",
+        "スイドウ",
         "電力",
         "東京電力",
-        "東京ガス"
+        "東京ガス",
+        "トウキヨウデンリヨク"
       ]
     },
     {
@@ -164,12 +143,7 @@
     {
       "id": "insurance",
       "account": "保険料",
-      "keywords": [
-        "保険",
-        "生命保険",
-        "医療保険",
-        "損害保険"
-      ]
+      "keywords": ["保険", "生命保険", "医療保険", "損害保険", "コープ"]
     },
     {
       "id": "subscription",
@@ -181,7 +155,9 @@
         "Apple",
         "Google",
         "Microsoft",
-        "Adobe"
+        "Adobe",
+        "SUBS",
+        "月額"
       ]
     },
     {
@@ -197,7 +173,22 @@
         "食品",
         "野菜",
         "肉",
-        "魚"
+        "魚",
+        "nosh",
+        "ピザ",
+        "ミツボシフアーム",
+        "コンフォートマーケット",
+        "コンビニ",
+        "ファミマ",
+        "フアミリーマート",
+        "セブン",
+        "ローソン",
+        "コカコーラ",
+        "アサヒインリョウ",
+        "ウーバーイーツ",
+        "インリョウ",
+        "スマートマルシェ",
+        "キオスク"
       ]
     },
     {
@@ -212,20 +203,48 @@
         "吉野家",
         "すき家",
         "ランチ",
-        "ディナー"
+        "ディナー",
+        "ラーメン",
+        "リンガーハット",
+        "カレー",
+        "ブランカ",
+        "ココス",
+        "バーガーキング",
+        "ヤヨイケン",
+        "ベローチェ",
+        "ナカウ",
+        "マツヤ",
+        "しゃぶ輝",
+        "ヒダカヤ",
+        "ココイチバンヤ",
+        "ギュウカク",
+        "カツドン",
+        "バーミヤン",
+        "ヤキニク",
+        "コメダコーヒー"
       ]
     },
     {
       "id": "daily_necessities",
       "account": "日用品",
       "keywords": [
-        "コンビニ",
-        "ファミマ",
-        "セブン",
-        "ローソン",
         "ドラッグストア",
+        "ヤッキョク",
         "マツキヨ",
-        "ウエルシア"
+        "ウエルシア",
+        "ヨドバシ",
+        "メガネ",
+        "ドンキホーテ",
+        "ドン キホーテ",
+        "ニトリ",
+        "ダイソー",
+        "ビックカメラ",
+        "楽天市場",
+        "家具",
+        "コジマ",
+        "インテリア",
+        "セリア",
+        "Joshin"
       ]
     },
     {
@@ -242,7 +261,10 @@
         "SUICA",
         "チャージ",
         "定期",
-        "切符"
+        "切符",
+        "モバイルスイカ",
+        "サイクル",
+        "ジェイアール"
       ]
     },
     {
@@ -255,7 +277,8 @@
         "宿泊",
         "旅行",
         "出張",
-        "スマートEX"
+        "スマートEX",
+        "スマートイー"
       ]
     },
     {
@@ -281,20 +304,14 @@
         "GU",
         "服",
         "衣料",
-        "ファッション"
+        "ファッション",
+        "ヨウフク"
       ]
     },
     {
       "id": "beauty",
       "account": "美容費",
-      "keywords": [
-        "美容",
-        "化粧",
-        "コスメ",
-        "ヘアサロン",
-        "美容院",
-        "理容"
-      ]
+      "keywords": ["美容", "化粧", "コスメ", "ヘアサロン", "美容院", "理容"]
     },
     {
       "id": "education",
@@ -306,7 +323,9 @@
         "教材",
         "書籍",
         "本",
-        "参考書"
+        "参考書",
+        "受験",
+        "シービーティー"
       ]
     },
     {
@@ -320,19 +339,14 @@
         "ボーリング",
         "スポーツ",
         "ジム",
-        "アミューズメント"
+        "アミューズメント",
+        "トウホウシネマズ"
       ]
     },
     {
       "id": "social",
       "account": "交際費",
-      "keywords": [
-        "プレゼント",
-        "お祝い",
-        "飲み会",
-        "会食",
-        "接待"
-      ]
+      "keywords": ["プレゼント", "お祝い", "飲み会", "会食", "接待"]
     },
     {
       "id": "credit_card",
@@ -350,22 +364,7 @@
     {
       "id": "cash",
       "account": "現金",
-      "keywords": [
-        "ATM",
-        "引出",
-        "出金",
-        "現金"
-      ]
-    },
-    {
-      "id": "savings",
-      "account": "貯金",
-      "keywords": [
-        "積立",
-        "定期",
-        "貯蓄",
-        "貯金"
-      ]
+      "keywords": ["ATM", "引出", "出金", "現金", "カード"]
     },
     {
       "id": "investment",
@@ -382,13 +381,14 @@
       ]
     },
     {
+      "id": "savings",
+      "account": "貯金",
+      "keywords": ["積立", "定期", "貯蓄", "貯金"]
+    },
+    {
       "id": "fees",
       "account": "その他の経費",
-      "keywords": [
-        "手数料",
-        "振込手数料",
-        "為替手数料"
-      ]
+      "keywords": ["手数料", "振込手数料", "為替手数料"]
     },
     {
       "id": "default",

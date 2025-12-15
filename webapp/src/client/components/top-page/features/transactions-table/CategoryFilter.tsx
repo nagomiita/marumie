@@ -1,7 +1,7 @@
 "use client";
 import "client-only";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   PL_CATEGORIES,
@@ -57,6 +57,21 @@ export default function CategoryFilter({
       checked: selectedCategories.includes(cat.id),
     })),
   );
+
+  useEffect(() => {
+    setIncomeCategories(
+      INCOME_CATEGORIES.map((cat) => ({
+        ...cat,
+        checked: selectedCategories.includes(cat.id),
+      })),
+    );
+    setExpenseCategories(
+      EXPENSE_CATEGORIES.map((cat) => ({
+        ...cat,
+        checked: selectedCategories.includes(cat.id),
+      })),
+    );
+  }, [selectedCategories]);
 
   if (!isOpen) return null;
 

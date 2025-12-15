@@ -89,7 +89,59 @@ def normalize_text(value: str | None) -> str:
     """半角/全角などを正規化"""
     if not value:
         return ""
-    return unicodedata.normalize("NFKC", value)
+    normalized = unicodedata.normalize("NFKC", value)
+    normalized = replace_katakana_hyphen(normalized)
+    return normalize_small_katakana(normalized)
+
+
+def replace_katakana_hyphen(value: str) -> str:
+    """カタカナ語中の '-' を長音記号に置換"""
+    if "-" not in value:
+        return value
+
+    chars = list(value)
+    result: list[str] = []
+    length = len(chars)
+
+    for index, char in enumerate(chars):
+        if char == "-":
+            prev_char = chars[index - 1] if index > 0 else ""
+            next_char = chars[index + 1] if index + 1 < length else ""
+            if is_katakana(prev_char) and (not next_char or is_katakana(next_char)):
+                result.append("ー")
+                continue
+        result.append(char)
+
+    return "".join(result)
+
+
+def is_katakana(char: str) -> bool:
+    if not char:
+        return False
+    code_point = ord(char)
+    # 全角カタカナ + 半角カタカナの範囲
+    return (0x30A0 <= code_point <= 0x30FF) or (0xFF66 <= code_point <= 0xFF9F)
+
+
+def normalize_small_katakana(value: str) -> str:
+    """小書きカタカナを大きいカタカナにそろえる"""
+    small_to_large = {
+        "ァ": "ア",
+        "ィ": "イ",
+        "ゥ": "ウ",
+        "ェ": "エ",
+        "ォ": "オ",
+        "ッ": "ツ",
+        "ャ": "ヤ",
+        "ュ": "ユ",
+        "ョ": "ヨ",
+        "ヮ": "ワ",
+        "ヵ": "カ",
+        "ヶ": "ケ",
+    }
+    if not any(char in value for char in small_to_large):
+        return value
+    return "".join(small_to_large.get(char, char) for char in value)
 
 
 def remove_excluded_terms(text: str | None, exclusions: list[str] | None) -> str:
@@ -608,6 +660,9 @@ def main() -> None:
         print("No transactions found in input directories.")
         return
 
+    # Collect all transactions for consolidated output
+    all_transactions: list[Transaction] = []
+
     for year_month in sorted(transactions_by_month.keys()):
         month_transactions = transactions_by_month[year_month]
         if not month_transactions:
@@ -625,6 +680,20 @@ def main() -> None:
             output_config=output_config,
         )
         print(f"Output: {output_path} ({len(month_transactions)} transactions)")
+        
+        # Add to consolidated list
+        all_transactions.extend(month_transactions)
+
+    # Write consolidated output for all months
+    if all_transactions:
+        all_transactions.sort(key=lambda x: x["date"])
+        consolidated_path = os.path.join(output_dir, "unified_all.csv")
+        write_unified_csv(
+            transactions=all_transactions,
+            output_path=consolidated_path,
+            output_config=output_config,
+        )
+        print(f"\nConsolidated output: {consolidated_path} ({len(all_transactions)} transactions)")
 
     print("\nConversion completed!")
 

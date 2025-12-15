@@ -63,3 +63,5 @@ logs
 
 data/input
 data/output
+
+*.pyc
