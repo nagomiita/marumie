@@ -21,119 +21,106 @@ export interface TopPageDataParams
   financialYear: number; // 必須項目として設定
 }
 
-export const loadTopPageData = unstable_cache(
-  async (params: TopPageDataParams) => {
-    console.log("[loadTopPageData] Called with params:", {
+const loadTopPageDataUncached = async (params: TopPageDataParams) => {
+  // モックデータを使用する場合
+  if (process.env.USE_MOCK_DATA === "true") {
+    const mockUsecase = new GetMockTransactionPageDataUsecase();
+    return await mockUsecase.execute(params);
+  }
+
+  // 実データを取得する場合
+  const transactionRepository = new PrismaTransactionRepository(prisma);
+  const politicalOrganizationRepository =
+    new PrismaPoliticalOrganizationRepository(prisma);
+  const balanceSnapshotRepository = new PrismaBalanceSnapshotRepository(prisma);
+
+  // 5つのUsecaseを初期化
+  const transactionUsecase = new GetTransactionsBySlugUsecase(
+    transactionRepository,
+    politicalOrganizationRepository,
+  );
+
+  const monthlyUsecase = new GetMonthlyTransactionAggregationUsecase(
+    transactionRepository,
+    politicalOrganizationRepository,
+  );
+
+  const sankeyUsecase = new GetSankeyAggregationUsecase(
+    transactionRepository,
+    politicalOrganizationRepository,
+    balanceSnapshotRepository,
+  );
+
+  const balanceSheetUsecase = new GetBalanceSheetUsecase(
+    transactionRepository,
+    balanceSnapshotRepository,
+    politicalOrganizationRepository,
+  );
+
+  try {
+    // 5つのUsecaseを並列実行（sankeyは2回実行）
+    const [
+      transactionData,
+      monthlyData,
+      sankeyPoliticalCategoryData,
+      sankeyFriendlyCategoryData,
+      balanceSheetData,
+    ] = await Promise.all([
+      transactionUsecase.execute(params),
+      monthlyUsecase.execute({
+        slugs: params.slugs,
+        financialYear: params.financialYear,
+      }),
+      sankeyUsecase.execute({
+        slugs: params.slugs,
+        financialYear: params.financialYear,
+        categoryType: "political-category",
+      }),
+      sankeyUsecase.execute({
+        slugs: params.slugs,
+        financialYear: params.financialYear,
+        categoryType: "friendly-category",
+      }),
+      balanceSheetUsecase.execute({
+        slugs: params.slugs,
+        financialYear: params.financialYear,
+      }),
+    ]);
+
+    return {
+      transactionData,
+      monthlyData: monthlyData.monthlyData,
+      political: sankeyPoliticalCategoryData.sankeyData,
+      friendly: sankeyFriendlyCategoryData.sankeyData,
+      balanceSheetData: balanceSheetData.balanceSheetData,
+    };
+  } catch (error) {
+    console.error("[loadTopPageData] Error during usecase execution:", {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
       params,
-      timestamp: new Date().toISOString(),
-      env: process.env.NODE_ENV,
-      useMockData: process.env.USE_MOCK_DATA,
     });
+    throw error;
+  }
+};
 
-    // モックデータを使用する場合
-    if (process.env.USE_MOCK_DATA === "true") {
-      console.log("[loadTopPageData] Using mock data");
-      const mockUsecase = new GetMockTransactionPageDataUsecase();
-      return await mockUsecase.execute(params);
-    }
+const loadTopPageDataCached = (params: TopPageDataParams) =>
+  unstable_cache(
+    async () => loadTopPageDataUncached(params),
+    [
+      "top-page-data",
+      JSON.stringify({
+        ...params,
+        slugs: [...params.slugs].sort(),
+      }),
+    ],
+    { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["top-page-data"] },
+  )();
 
-    console.log(
-      "[loadTopPageData] Using real data, initializing repositories and usecases",
-    );
+export const loadTopPageData = async (params: TopPageDataParams) => {
+  if (process.env.NODE_ENV === "development") {
+    return loadTopPageDataUncached(params);
+  }
 
-    // 実データを取得する場合
-    const transactionRepository = new PrismaTransactionRepository(prisma);
-    const politicalOrganizationRepository =
-      new PrismaPoliticalOrganizationRepository(prisma);
-    const balanceSnapshotRepository = new PrismaBalanceSnapshotRepository(
-      prisma,
-    );
-
-    // 5つのUsecaseを初期化
-    const transactionUsecase = new GetTransactionsBySlugUsecase(
-      transactionRepository,
-      politicalOrganizationRepository,
-    );
-
-    const monthlyUsecase = new GetMonthlyTransactionAggregationUsecase(
-      transactionRepository,
-      politicalOrganizationRepository,
-    );
-
-    const sankeyUsecase = new GetSankeyAggregationUsecase(
-      transactionRepository,
-      politicalOrganizationRepository,
-      balanceSnapshotRepository,
-    );
-
-    const balanceSheetUsecase = new GetBalanceSheetUsecase(
-      transactionRepository,
-      balanceSnapshotRepository,
-      politicalOrganizationRepository,
-    );
-
-    console.log("[loadTopPageData] Starting parallel execution of usecases");
-
-    try {
-      // 5つのUsecaseを並列実行（sankeyは2回実行）
-      const [
-        transactionData,
-        monthlyData,
-        sankeyPoliticalCategoryData,
-        sankeyFriendlyCategoryData,
-        balanceSheetData,
-      ] = await Promise.all([
-        transactionUsecase.execute(params),
-        monthlyUsecase.execute({
-          slugs: params.slugs,
-          financialYear: params.financialYear,
-        }),
-        sankeyUsecase.execute({
-          slugs: params.slugs,
-          financialYear: params.financialYear,
-          categoryType: "political-category",
-        }),
-        sankeyUsecase.execute({
-          slugs: params.slugs,
-          financialYear: params.financialYear,
-          categoryType: "friendly-category",
-        }),
-        balanceSheetUsecase.execute({
-          slugs: params.slugs,
-          financialYear: params.financialYear,
-        }),
-      ]);
-
-      console.log("[loadTopPageData] All usecases completed successfully", {
-        transactionCount: transactionData.transactions.length,
-        monthlyDataPoints: monthlyData.monthlyData.length,
-        politicalSankeyNodes:
-          sankeyPoliticalCategoryData.sankeyData.nodes.length,
-        friendlySankeyNodes: sankeyFriendlyCategoryData.sankeyData.nodes.length,
-        balanceSheetData: {
-          currentAssets: balanceSheetData.balanceSheetData.left.currentAssets,
-          currentLiabilities:
-            balanceSheetData.balanceSheetData.right.currentLiabilities,
-          netAssets: balanceSheetData.balanceSheetData.right.netAssets,
-        },
-      });
-
-      return {
-        transactionData,
-        monthlyData: monthlyData.monthlyData,
-        political: sankeyPoliticalCategoryData.sankeyData,
-        friendly: sankeyFriendlyCategoryData.sankeyData,
-        balanceSheetData: balanceSheetData.balanceSheetData,
-      };
-    } catch (error) {
-      console.error("[loadTopPageData] Error during usecase execution:", {
-        error: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined,
-        params,
-      });
-      throw error;
-    }
-  },
-  ["top-page-data"],
-  { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["top-page-data"] },
-);
+  return loadTopPageDataCached(params);
+};

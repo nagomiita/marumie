@@ -15,18 +15,16 @@ export const revalidate =
   process.env.NODE_ENV === "development" ? 0 : 300; // 5 minutes
 
 interface OrgPageProps {
-  params: Promise<{
+  params: {
     slug: string;
-  }>;
-  searchParams?: Promise<{
+  };
+  searchParams?: {
     year?: string;
-  }>;
+  };
 }
 
-export async function generateMetadata({
-  params,
-}: OrgPageProps): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params }: OrgPageProps): Promise<Metadata> {
+  const { slug } = params;
 
   const { organizations } = await loadOrganizations();
   const currentOrganization = organizations.find((org) => org.slug === slug);
@@ -41,7 +39,8 @@ export async function generateMetadata({
 }
 
 export default async function OrgPage({ params, searchParams }: OrgPageProps) {
-  const [{ slug }, search] = await Promise.all([params, searchParams]);
+  const { slug } = params;
+  const search = searchParams;
 
   // slugの妥当性をチェックし、必要に応じてリダイレクト
   const { default: defaultSlug, organizations } = await loadOrganizations();

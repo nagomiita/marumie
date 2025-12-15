@@ -206,8 +206,8 @@ export default function CashFlowSection({
         ) : sankeyData ? (
           <SankeyChart data={sankeyData} />
         ) : (
-          <div className="text-gray-500 mx-4">
-            サンキー図データが取得できませんでした
+          <div className="text-gray-500 mx-4 text-center py-8">
+            データが存在しません
           </div>
         )}
       </div>

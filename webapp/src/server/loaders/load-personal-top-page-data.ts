@@ -17,59 +17,64 @@ export interface PersonalTopPageDataParams
   financialYear: number; // 必須項目として設定
 }
 
-export const loadPersonalTopPageData = (
+const loadPersonalTopPageDataUncached = async (
+  params: PersonalTopPageDataParams,
+) => {
+  // 実データを取得
+  const personalTransactionRepository = new PrismaPersonalTransactionRepository(
+    prisma,
+  );
+  const organizationRepository = new PrismaOrganizationRepository(prisma);
+
+  // UseCaseを初期化
+  const transactionUsecase = new GetPersonalTransactionsBySlugUsecase(
+    personalTransactionRepository,
+    organizationRepository,
+  );
+
+  const monthlyUsecase = new GetPersonalMonthlyAggregationUsecase(
+    personalTransactionRepository,
+    organizationRepository,
+  );
+
+  const sankeyUsecase = new GetPersonalSankeyAggregationUsecase(
+    personalTransactionRepository,
+    organizationRepository,
+  );
+
+  // 基本的なデータを並列取得
+  const [transactionData, monthlyData, sankeyData, summary] =
+    await Promise.all([
+      transactionUsecase.execute(params),
+      monthlyUsecase.execute({
+        slugs: params.slugs,
+        financialYear: params.financialYear,
+      }),
+      sankeyUsecase.execute({
+        slugs: params.slugs,
+        financialYear: params.financialYear,
+      }),
+      // 個人家計簿では基本的な収支データのみ提供
+      calculateFinancialSummary(
+        personalTransactionRepository,
+        params.slugs,
+        params.financialYear,
+      ),
+    ]);
+
+  return {
+    transactionData,
+    monthlyData: monthlyData.monthlyData,
+    summary,
+    sankeyData: sankeyData.sankeyData,
+  };
+};
+
+const loadPersonalTopPageDataCached = (
   params: PersonalTopPageDataParams,
 ) =>
   unstable_cache(
-    async () => {
-      // 実データを取得
-      const personalTransactionRepository =
-        new PrismaPersonalTransactionRepository(prisma);
-      const organizationRepository = new PrismaOrganizationRepository(prisma);
-
-      // UseCaseを初期化
-      const transactionUsecase = new GetPersonalTransactionsBySlugUsecase(
-        personalTransactionRepository,
-        organizationRepository,
-      );
-
-      const monthlyUsecase = new GetPersonalMonthlyAggregationUsecase(
-        personalTransactionRepository,
-        organizationRepository,
-      );
-
-      const sankeyUsecase = new GetPersonalSankeyAggregationUsecase(
-        personalTransactionRepository,
-        organizationRepository,
-      );
-
-      // 基本的なデータを並列取得
-      const [transactionData, monthlyData, sankeyData, summary] =
-        await Promise.all([
-          transactionUsecase.execute(params),
-          monthlyUsecase.execute({
-            slugs: params.slugs,
-            financialYear: params.financialYear,
-          }),
-          sankeyUsecase.execute({
-            slugs: params.slugs,
-            financialYear: params.financialYear,
-          }),
-          // 個人家計簿では基本的な収支データのみ提供
-          calculateFinancialSummary(
-            personalTransactionRepository,
-            params.slugs,
-            params.financialYear,
-          ),
-        ]);
-
-      return {
-        transactionData,
-        monthlyData: monthlyData.monthlyData,
-        summary,
-        sankeyData: sankeyData.sankeyData,
-      };
-    },
+    async () => loadPersonalTopPageDataUncached(params),
     [
       "personal-top-page-data",
       JSON.stringify({
@@ -82,6 +87,14 @@ export const loadPersonalTopPageData = (
       tags: ["top-page-data"],
     },
   )();
+
+export const loadPersonalTopPageData = (params: PersonalTopPageDataParams) => {
+  if (process.env.NODE_ENV === "development") {
+    return loadPersonalTopPageDataUncached(params);
+  }
+
+  return loadPersonalTopPageDataCached(params);
+};
 
 // 財務サマリーの計算
 async function calculateFinancialSummary(

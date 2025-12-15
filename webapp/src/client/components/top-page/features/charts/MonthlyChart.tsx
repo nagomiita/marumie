@@ -27,11 +27,8 @@ interface MonthlyChartProps {
 }
 
 export default function MonthlyChart({ data }: MonthlyChartProps) {
-  console.log("MonthlyChart received data:", data);
-
   // データが空の場合
   if (!data || data.length === 0) {
-    console.log("MonthlyChart: No data available");
     return (
       <div className="bg-gray-50 rounded-lg flex items-center justify-center h-[462px]">
         <div className="text-center text-gray-500">
@@ -52,13 +49,6 @@ export default function MonthlyChart({ data }: MonthlyChartProps) {
   const incomeData = data.map((item) => item.income);
   const expenseData = data.map((item) => -item.expense); // 負の値で表現
   const balanceData = data.map((item) => item.income - item.expense);
-
-  console.log("MonthlyChart processed data:", {
-    months,
-    incomeData,
-    expenseData,
-    balanceData,
-  });
 
   // データの最大絶対値を取得してY軸の範囲を動的に設定
   const allValues = [...incomeData, ...expenseData, ...balanceData];

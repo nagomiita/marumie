@@ -24,8 +24,6 @@ export default function MonthlyTrendsSection({
   organizationName,
   financialYear,
 }: MonthlyTrendsSectionProps) {
-  console.log("MonthlyTrendsSection received data:", monthlyData);
-
   return (
     <MainColumnCard id="monthly-trends">
       <CardHeader
