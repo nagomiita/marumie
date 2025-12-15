@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
 
     revalidateTag("transactions-page-data");
     revalidateTag("top-page-data");
+    revalidateTag("transactions-for-csv");
+    revalidateTag("organizations");
 
     revalidatePath("/transactions");
     revalidatePath("/");

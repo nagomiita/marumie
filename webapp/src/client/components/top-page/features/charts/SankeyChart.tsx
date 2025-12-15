@@ -549,7 +549,7 @@ export default function SankeyChart({ data }: SankeyChartProps) {
           fontSize: "14px",
         }}
       >
-        データがありません
+        データが存在しません
       </div>
     );
   }

@@ -65,7 +65,7 @@ export default function DonationChart({
           <div className="text-lg font-medium mb-2">
             直近3ヶ月の寄附金額の推移
           </div>
-          <div className="text-sm">データがありません</div>
+        <div className="text-sm">データが存在しません</div>
         </div>
       </div>
     );

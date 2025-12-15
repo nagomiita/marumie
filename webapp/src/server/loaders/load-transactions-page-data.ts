@@ -8,7 +8,8 @@ import {
   type GetTransactionsBySlugParams,
   GetTransactionsBySlugUsecase,
 } from "@/server/usecases/get-transactions-by-slug-usecase";
-const CACHE_REVALIDATE_SECONDS = 3600;
+const CACHE_REVALIDATE_SECONDS =
+  process.env.NODE_ENV === "development" ? 0 : 3600;
 
 export const loadTransactionsPageData = (
   params: GetTransactionsBySlugParams,
@@ -28,6 +29,6 @@ export const loadTransactionsPageData = (
       return await usecase.execute(params);
     },
     cacheKey,
-    { revalidate: CACHE_REVALIDATE_SECONDS },
+    { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["transactions-page-data"] },
   )();
 };

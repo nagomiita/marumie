@@ -80,6 +80,28 @@ export default function BalanceSheetChart({ data }: BalanceSheetChartProps) {
   const leftTotal =
     data.left.currentAssets + data.left.fixedAssets + data.left.debtExcess;
 
+  // 右側（負債・資本）の計算
+  const rightTotal =
+    data.right.currentLiabilities +
+    data.right.fixedLiabilities +
+    data.right.netAssets;
+
+  const hasData =
+    data.left.currentAssets > 0 ||
+    data.left.fixedAssets > 0 ||
+    data.left.debtExcess > 0 ||
+    data.right.currentLiabilities > 0 ||
+    data.right.fixedLiabilities > 0 ||
+    data.right.netAssets > 0;
+
+  if (!hasData || leftTotal <= 0 || rightTotal <= 0) {
+    return (
+      <div className="flex justify-center items-center h-80 text-gray-500">
+        データが存在しません
+      </div>
+    );
+  }
+
   const leftItems: BalanceSheetItem[] = [
     {
       name: BALANCE_SHEET_LABELS.currentAssets,
@@ -101,12 +123,6 @@ export default function BalanceSheetChart({ data }: BalanceSheetChartProps) {
       isDebtExcess: true,
     },
   ].filter((item) => item.value > 0);
-
-  // 右側（負債・資本）の計算
-  const rightTotal =
-    data.right.currentLiabilities +
-    data.right.fixedLiabilities +
-    data.right.netAssets;
 
   const rightItems: BalanceSheetItem[] = [
     {
