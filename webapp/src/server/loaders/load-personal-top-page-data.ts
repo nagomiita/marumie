@@ -9,66 +9,92 @@ import { GetPersonalMonthlyAggregationUsecase } from "@/server/usecases/get-pers
 import { GetPersonalSankeyAggregationUsecase } from "@/server/usecases/get-personal-sankey-aggregation-usecase";
 import type { GetPersonalTransactionsBySlugParams } from "@/server/usecases/get-personal-transactions-by-slug-usecase";
 
-const CACHE_REVALIDATE_SECONDS = 3600;
+const CACHE_REVALIDATE_SECONDS =
+  process.env.NODE_ENV === "development" ? 0 : 3600;
 
 export interface PersonalTopPageDataParams
   extends Omit<GetPersonalTransactionsBySlugParams, "financialYear"> {
   financialYear: number; // 必須項目として設定
 }
 
-export const loadPersonalTopPageData = unstable_cache(
-  async (params: PersonalTopPageDataParams) => {
-    // 実データを取得
-    const personalTransactionRepository =
-      new PrismaPersonalTransactionRepository(prisma);
-    const organizationRepository = new PrismaOrganizationRepository(prisma);
+const loadPersonalTopPageDataUncached = async (
+  params: PersonalTopPageDataParams,
+) => {
+  // 実データを取得
+  const personalTransactionRepository = new PrismaPersonalTransactionRepository(
+    prisma,
+  );
+  const organizationRepository = new PrismaOrganizationRepository(prisma);
 
-    // UseCaseを初期化
-    const transactionUsecase = new GetPersonalTransactionsBySlugUsecase(
-      personalTransactionRepository,
-      organizationRepository,
-    );
+  // UseCaseを初期化
+  const transactionUsecase = new GetPersonalTransactionsBySlugUsecase(
+    personalTransactionRepository,
+    organizationRepository,
+  );
 
-    const monthlyUsecase = new GetPersonalMonthlyAggregationUsecase(
-      personalTransactionRepository,
-      organizationRepository,
-    );
+  const monthlyUsecase = new GetPersonalMonthlyAggregationUsecase(
+    personalTransactionRepository,
+    organizationRepository,
+  );
 
-    const sankeyUsecase = new GetPersonalSankeyAggregationUsecase(
-      personalTransactionRepository,
-      organizationRepository,
-    );
+  const sankeyUsecase = new GetPersonalSankeyAggregationUsecase(
+    personalTransactionRepository,
+    organizationRepository,
+  );
 
-    // 基本的なデータを並列取得
-    const [transactionData, monthlyData, sankeyData, summary] =
-      await Promise.all([
-        transactionUsecase.execute(params),
-        monthlyUsecase.execute({
-          slugs: params.slugs,
-          financialYear: params.financialYear,
-        }),
-        sankeyUsecase.execute({
-          slugs: params.slugs,
-          financialYear: params.financialYear,
-        }),
-        // 個人家計簿では基本的な収支データのみ提供
-        calculateFinancialSummary(
-          personalTransactionRepository,
-          params.slugs,
-          params.financialYear,
-        ),
-      ]);
+  // 基本的なデータを並列取得
+  const [transactionData, monthlyData, sankeyData, summary] =
+    await Promise.all([
+      transactionUsecase.execute(params),
+      monthlyUsecase.execute({
+        slugs: params.slugs,
+        financialYear: params.financialYear,
+      }),
+      sankeyUsecase.execute({
+        slugs: params.slugs,
+        financialYear: params.financialYear,
+      }),
+      // 個人家計簿では基本的な収支データのみ提供
+      calculateFinancialSummary(
+        personalTransactionRepository,
+        params.slugs,
+        params.financialYear,
+      ),
+    ]);
 
-    return {
-      transactionData,
-      monthlyData: monthlyData.monthlyData,
-      summary,
-      sankeyData: sankeyData.sankeyData,
-    };
-  },
-  ["personal-top-page-data"],
-  { revalidate: CACHE_REVALIDATE_SECONDS },
-);
+  return {
+    transactionData,
+    monthlyData: monthlyData.monthlyData,
+    summary,
+    sankeyData: sankeyData.sankeyData,
+  };
+};
+
+const loadPersonalTopPageDataCached = (
+  params: PersonalTopPageDataParams,
+) =>
+  unstable_cache(
+    async () => loadPersonalTopPageDataUncached(params),
+    [
+      "personal-top-page-data",
+      JSON.stringify({
+        ...params,
+        slugs: [...params.slugs].sort(),
+      }),
+    ],
+    {
+      revalidate: CACHE_REVALIDATE_SECONDS,
+      tags: ["top-page-data"],
+    },
+  )();
+
+export const loadPersonalTopPageData = (params: PersonalTopPageDataParams) => {
+  if (process.env.NODE_ENV === "development") {
+    return loadPersonalTopPageDataUncached(params);
+  }
+
+  return loadPersonalTopPageDataCached(params);
+};
 
 // 財務サマリーの計算
 async function calculateFinancialSummary(

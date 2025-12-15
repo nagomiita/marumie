@@ -134,8 +134,6 @@ export default function FinancialSummarySection({
   sankeyData,
   summary,
 }: FinancialSummarySectionProps) {
-  console.log("FinancialSummarySection received summary:", summary);
-
   // 個人家計簿データがある場合はそれを使用、なければsankeyDataから計算
   const financialData = summary
     ? {
@@ -144,8 +142,6 @@ export default function FinancialSummarySection({
         balance: summary.netAmount,
       }
     : calculateFinancialData(sankeyData);
-
-  console.log("FinancialSummarySection using data:", financialData);
 
   // 個人家計簿では詳細収支は簡素化
   const balanceDetailData = summary
