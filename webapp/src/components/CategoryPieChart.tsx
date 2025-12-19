@@ -30,7 +30,7 @@ export default function CategoryPieChart({
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       <Chart
         type="pie"
-        height={350}
+        height={300}
         series={amounts}
         options={{
           labels: categories,

@@ -15,6 +15,7 @@ import SummaryCards from "@/components/SummaryCards";
 import TransactionsTable from "@/components/TransactionsTable";
 import YearMonthSelector from "@/components/YearMonthSelector";
 import CategoryPieChart from "@/components/CategoryPieChart";
+import ExpenseCalendar from "@/components/ExpenseCalendar";
 
 export default function OrganizationPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -183,16 +184,18 @@ export default function OrganizationPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-gray-500">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col gap-1 md:gap-2">
+          <p className="text-xs md:text-sm text-gray-500">
             {organization && "display_name" in organization
               ? String(organization.display_name)
               : organization && "name" in organization
                 ? String(organization.name)
                 : slug}
           </p>
-          <h2 className="text-3xl font-bold text-gray-900">ダッシュボード</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+            ダッシュボード
+          </h2>
         </div>
 
         <YearMonthSelector
@@ -212,10 +215,17 @@ export default function OrganizationPage() {
         ) : (
           <>
             <SummaryCards income={totals.income} expense={totals.expense} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
               <MonthlyTrendChart data={monthlyData} />
               <CategoryPieChart data={categoryData} />
             </div>
+            {financialYear !== 0 && month !== 0 && (
+              <ExpenseCalendar
+                transactions={transactions}
+                year={financialYear}
+                month={month}
+              />
+            )}
             <TransactionsTable
               transactions={transactions}
               selectedMonth={month}

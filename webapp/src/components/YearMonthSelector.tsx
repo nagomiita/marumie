@@ -22,15 +22,15 @@ export default function YearMonthSelector({
   ];
 
   return (
-    <div className="flex flex-wrap gap-3 items-center">
-      <label htmlFor="year-select" className="text-sm font-semibold">
+    <div className="flex flex-wrap gap-2 md:gap-3 items-center">
+      <label htmlFor="year-select" className="text-xs md:text-sm font-semibold">
         対象年度
       </label>
       <select
         id="year-select"
         value={year}
         onChange={(e) => onYearChange(Number(e.target.value))}
-        className="border rounded px-3 py-1.5 text-sm"
+        className="border rounded px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm"
       >
         <option value={0}>全期間</option>
         {years.map((y) => (
@@ -39,14 +39,17 @@ export default function YearMonthSelector({
           </option>
         ))}
       </select>
-      <label htmlFor="month-select" className="text-sm font-semibold">
+      <label
+        htmlFor="month-select"
+        className="text-xs md:text-sm font-semibold"
+      >
         月
       </label>
       <select
         id="month-select"
         value={month}
         onChange={(e) => onMonthChange(Number(e.target.value))}
-        className="border rounded px-3 py-1.5 text-sm"
+        className="border rounded px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm"
       >
         {months.map((m) => (
           <option key={m.value} value={m.value}>

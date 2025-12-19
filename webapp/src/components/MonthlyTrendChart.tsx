@@ -13,7 +13,7 @@ interface MonthlyTrendChartProps {
 export default function MonthlyTrendChart({ data }: MonthlyTrendChartProps) {
   if (!data.length) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6 text-center text-gray-600">
+      <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 text-center text-gray-600">
         データが存在しません
       </div>
     );
@@ -24,11 +24,13 @@ export default function MonthlyTrendChart({ data }: MonthlyTrendChartProps) {
   const expense = data.map((d) => d.expense * -1);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <h3 className="text-lg font-semibold mb-4">月次収支トレンド</h3>
+    <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+      <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
+        月次収支トレンド
+      </h3>
       <Chart
         type="line"
-        height={350}
+        height={300}
         series={[
           { name: "収入", type: "column", data: income },
           { name: "支出", type: "column", data: expense },

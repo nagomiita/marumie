@@ -19,24 +19,24 @@ export default function HomePage() {
       return <p className="text-gray-700">データが存在しません</p>;
 
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">組織一覧</h2>
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <h2 className="text-xl md:text-2xl font-bold">組織一覧</h2>
           <Link
             to="/admin/login"
-            className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition"
+            className="px-3 py-2 md:px-4 text-sm md:text-base bg-gray-800 text-white rounded-md hover:bg-gray-700 transition"
           >
             管理画面
           </Link>
         </div>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {organizations.map((org) => (
             <Link
               key={org.id}
               to={`/o/${org.slug}`}
-              className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition"
+              className="bg-white rounded-xl shadow-sm p-3 md:p-4 hover:shadow-md transition"
             >
-              <p className="text-sm text-gray-500">
+              <p className="text-xs md:text-sm text-gray-500">
                 {org.type === "political_organization"
                   ? "政治団体"
                   : org.type === "household"
@@ -45,11 +45,11 @@ export default function HomePage() {
                       ? "非営利団体"
                       : "組織"}
               </p>
-              <p className="text-xl font-bold text-gray-900">
+              <p className="text-lg md:text-xl font-bold text-gray-900">
                 {org.display_name || org.name}
               </p>
               {org.description && (
-                <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                <p className="text-gray-600 text-xs md:text-sm mt-2 line-clamp-2">
                   {org.description}
                 </p>
               )}

@@ -50,6 +50,10 @@ export default function TransactionsTable({
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [searchText, setSearchText] = useState<string>("");
+  const [sortColumn, setSortColumn] = useState<
+    "date" | "type" | "category" | "amount" | null
+  >(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // 利用可能なカテゴリを抽出
   const availableCategories = useMemo(() => {
@@ -61,6 +65,16 @@ export default function TransactionsTable({
     });
     return Array.from(categories).sort();
   }, [transactions]);
+
+  const handleSort = (column: "date" | "type" | "category" | "amount") => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("desc");
+    }
+    setPage(1);
+  };
 
   const filtered = useMemo(() => {
     let result = transactions;
@@ -92,8 +106,47 @@ export default function TransactionsTable({
       );
     }
 
+    // ソート
+    if (sortColumn) {
+      result = [...result].sort((a, b) => {
+        let comparison = 0;
+
+        switch (sortColumn) {
+          case "date":
+            comparison =
+              new Date(a.date).getTime() - new Date(b.date).getTime();
+            break;
+          case "type":
+            comparison = a.type.localeCompare(b.type);
+            break;
+          case "category":
+            comparison = a.category.localeCompare(b.category);
+            break;
+          case "amount": {
+            // 支出は負の値、収入は正の値として比較
+            const aAmount =
+              a.type === "expense" ? -Number(a.amount) : Number(a.amount);
+            const bAmount =
+              b.type === "expense" ? -Number(b.amount) : Number(b.amount);
+            comparison = aAmount - bAmount;
+            break;
+          }
+        }
+
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
+    }
+
     return result;
-  }, [transactions, selectedMonth, typeFilter, categoryFilter, searchText]);
+  }, [
+    transactions,
+    selectedMonth,
+    typeFilter,
+    categoryFilter,
+    searchText,
+    sortColumn,
+    sortDirection,
+  ]);
 
   const start = (page - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(start, start + PAGE_SIZE);
@@ -105,28 +158,28 @@ export default function TransactionsTable({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
+    <div className="bg-white rounded-xl shadow-sm p-3 md:p-4 space-y-3 md:space-y-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h3 className="text-base md:text-lg font-semibold">
           取引一覧 ({filtered.length}件)
         </h3>
-        <div className="flex gap-2 items-center text-sm">
+        <div className="flex gap-2 items-center text-xs md:text-sm">
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-2 py-1 rounded border border-gray-300 disabled:opacity-50"
+            className="px-2 py-1 text-xs md:text-sm rounded border border-gray-300 disabled:opacity-50"
           >
             前へ
           </button>
-          <span>
+          <span className="text-xs md:text-sm">
             {page}/{totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-2 py-1 rounded border border-gray-300 disabled:opacity-50"
+            className="px-2 py-1 text-xs md:text-sm rounded border border-gray-300 disabled:opacity-50"
           >
             次へ
           </button>
@@ -140,12 +193,34 @@ export default function TransactionsTable({
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-gray-600 border-b">
-                <th className="py-2 pr-4">日付</th>
+                <th className="py-2 pr-4">
+                  <button
+                    type="button"
+                    onClick={() => handleSort("date")}
+                    className="flex items-center gap-1 hover:text-gray-900"
+                  >
+                    日付
+                    {sortColumn === "date" && (
+                      <span className="text-xs">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </button>
+                </th>
                 <th className="py-2 pr-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600 whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleSort("type")}
+                      className="flex items-center gap-1 hover:text-gray-900 whitespace-nowrap"
+                    >
                       種別
-                    </span>
+                      {sortColumn === "type" && (
+                        <span className="text-xs">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </button>
                     <select
                       value={typeFilter}
                       onChange={(e) => {
@@ -162,9 +237,18 @@ export default function TransactionsTable({
                 </th>
                 <th className="py-2 pr-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600 whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleSort("category")}
+                      className="flex items-center gap-1 hover:text-gray-900 whitespace-nowrap"
+                    >
                       カテゴリ
-                    </span>
+                      {sortColumn === "category" && (
+                        <span className="text-xs">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </button>
                     <select
                       value={categoryFilter}
                       onChange={(e) => {
@@ -182,7 +266,20 @@ export default function TransactionsTable({
                     </select>
                   </div>
                 </th>
-                <th className="py-2 pr-4">金額</th>
+                <th className="py-2 pr-4">
+                  <button
+                    type="button"
+                    onClick={() => handleSort("amount")}
+                    className="flex items-center gap-1 hover:text-gray-900"
+                  >
+                    金額
+                    {sortColumn === "amount" && (
+                      <span className="text-xs">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </button>
+                </th>
                 <th className="py-2 pr-4">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-600 whitespace-nowrap">
@@ -214,7 +311,17 @@ export default function TransactionsTable({
                     <td className="py-2 pr-4 whitespace-nowrap">
                       {date.toLocaleDateString("ja-JP")}
                     </td>
-                    <td className="py-2 pr-4 whitespace-nowrap">{tx.type}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap">
+                      <span
+                        className={`font-medium ${
+                          tx.type === "expense"
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}
+                      >
+                        {tx.type === "expense" ? "支出" : "収入"}
+                      </span>
+                    </td>
                     <td className="py-2 pr-4">
                       <span
                         className={`inline-block px-2 py-1 text-xs font-medium rounded-md border ${getCategoryColor(tx.category)}`}
