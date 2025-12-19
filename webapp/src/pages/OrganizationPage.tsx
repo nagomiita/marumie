@@ -17,8 +17,9 @@ export default function OrganizationPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const financialYear =
-    Number(searchParams.get("year")) || new Date().getFullYear();
+  // year=0は全期間、未指定の場合もデフォルトで全期間表示
+  const yearParam = searchParams.get("year");
+  const financialYear = yearParam !== null ? Number(yearParam) : 0;
   const month = Number(searchParams.get("month")) || 0;
 
   // 組織一覧を取得（リダイレクト用）
@@ -46,7 +47,7 @@ export default function OrganizationPage() {
         organization && "id" in organization ? organization.id : undefined,
       year: financialYear === 0 ? undefined : financialYear,
       month: month || undefined,
-      limit: 500,
+      limit: 9000,
     },
     { query: { enabled: !!organization && "id" in organization } },
   );
@@ -93,12 +94,20 @@ export default function OrganizationPage() {
     });
     return Array.from(bucket.entries())
       .sort(([a], [b]) => (a < b ? -1 : 1))
-      .map(([key, val]) => ({
-        monthLabel: `${Number(key.split("-")[1])}月`,
-        income: val.income,
-        expense: val.expense,
-      }));
-  }, [transactions]);
+      .map(([key, val]) => {
+        const [year, month] = key.split("-");
+        // 全期間表示の場合は年も含める
+        const monthLabel =
+          financialYear === 0
+            ? `${year}/${Number(month)}`
+            : `${Number(month)}月`;
+        return {
+          monthLabel,
+          income: val.income,
+          expense: val.expense,
+        };
+      });
+  }, [transactions, financialYear]);
 
   const totals = useMemo(() => {
     return transactions.reduce(

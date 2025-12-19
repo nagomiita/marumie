@@ -20,7 +20,7 @@ async def list_personal_transactions(
     organization_id: str | None = Query(None, description="Filter by organization id"),
     year: int | None = Query(None, description="Filter by calendar year"),
     month: int | None = Query(None, ge=1, le=12, description="Filter by month (1-12)"),
-    limit: int = Query(100, ge=1, le=500, description="Max items to return"),
+    limit: int = Query(9000, ge=1, le=9000, description="Max items to return"),
     offset: int = Query(0, ge=0, description="Items to skip"),
     session: AsyncSession = Depends(get_db_session),
 ) -> list[PersonalTransactionRead]:
