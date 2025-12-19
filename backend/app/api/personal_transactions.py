@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import extract, select
+from sqlalchemy import distinct, extract, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.db import get_db_session
@@ -39,3 +39,20 @@ async def list_personal_transactions(
 
     transactions = (await session.execute(stmt)).scalars().all()
     return [PersonalTransactionRead.model_validate(tx) for tx in transactions]
+
+
+@router.get("/years", response_model=list[int], operation_id="get_available_years")
+async def get_available_years(
+    organization_id: str | None = None,
+    session: AsyncSession = Depends(get_db_session),
+) -> list[int]:
+    """組織の取引データが存在する年度のリストを取得"""
+    stmt = select(distinct(extract("year", PersonalTransaction.date))).order_by(
+        extract("year", PersonalTransaction.date).desc()
+    )
+
+    if organization_id:
+        stmt = stmt.where(PersonalTransaction.organization_id == organization_id)
+
+    years = (await session.execute(stmt)).scalars().all()
+    return [int(year) for year in years]

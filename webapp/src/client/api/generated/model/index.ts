@@ -57,3 +57,4 @@ export * from "./uploadTransactionsCsvCsvUploadPostParams";
 export * from "./uploadTransactionsCsvParams";
 export * from "./validationError";
 export * from "./validationErrorLocItem";
+export * from "./getAvailableYearsParams";

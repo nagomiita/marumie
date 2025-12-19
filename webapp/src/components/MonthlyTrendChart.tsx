@@ -24,29 +24,32 @@ export default function MonthlyTrendChart({ data }: MonthlyTrendChartProps) {
   const expense = data.map((d) => d.expense * -1);
 
   return (
-    <Chart
-      type="line"
-      height={400}
-      series={[
-        { name: "収入", type: "column", data: income },
-        { name: "支出", type: "column", data: expense },
-        {
-          name: "収支",
-          type: "line",
-          data: data.map((d) => d.income - d.expense),
-        },
-      ]}
-      options={{
-        chart: { stacked: true, toolbar: { show: false } },
-        colors: ["#2AA693", "#DC2626", "#4B5563"],
-        xaxis: { categories: months },
-        yaxis: {
-          labels: {
-            formatter: (val: number) => `${Math.round(val / 10000)}万円`,
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h3 className="text-lg font-semibold mb-4">月次収支トレンド</h3>
+      <Chart
+        type="line"
+        height={350}
+        series={[
+          { name: "収入", type: "column", data: income },
+          { name: "支出", type: "column", data: expense },
+          {
+            name: "収支",
+            type: "line",
+            data: data.map((d) => d.income - d.expense),
           },
-        },
-        plotOptions: { bar: { columnWidth: "45%" } },
-      }}
-    />
+        ]}
+        options={{
+          chart: { stacked: true, toolbar: { show: false } },
+          colors: ["#2AA693", "#DC2626", "#4B5563"],
+          xaxis: { categories: months },
+          yaxis: {
+            labels: {
+              formatter: (val: number) => `${Math.round(val / 10000)}万円`,
+            },
+          },
+          plotOptions: { bar: { columnWidth: "45%" } },
+        }}
+      />
+    </div>
   );
 }

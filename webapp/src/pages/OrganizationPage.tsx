@@ -4,13 +4,17 @@ import {
   useGetOrganization,
   useListOrganizations,
 } from "@/client/api/generated/organizations/organizations";
-import { useListPersonalTransactions } from "@/client/api/generated/personal-transactions/personal-transactions";
+import {
+  useGetAvailableYears,
+  useListPersonalTransactions,
+} from "@/client/api/generated/personal-transactions/personal-transactions";
 import type { PersonalTransactionRead } from "@/client/api/generated/model";
 import Layout from "@/components/Layout";
 import MonthlyTrendChart from "@/components/MonthlyTrendChart";
 import SummaryCards from "@/components/SummaryCards";
 import TransactionsTable from "@/components/TransactionsTable";
 import YearMonthSelector from "@/components/YearMonthSelector";
+import CategoryPieChart from "@/components/CategoryPieChart";
 
 export default function OrganizationPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -36,6 +40,15 @@ export default function OrganizationPage() {
 
   const organization = orgData?.data;
 
+  // 年リスト取得（軽量）
+  const { data: yearsData } = useGetAvailableYears(
+    {
+      organization_id:
+        organization && "id" in organization ? organization.id : undefined,
+    },
+    { query: { enabled: !!organization && "id" in organization } },
+  );
+
   // トランザクションを取得
   const {
     data: txData,
@@ -53,6 +66,9 @@ export default function OrganizationPage() {
   );
 
   const transactions = Array.isArray(txData?.data) ? txData.data : [];
+  const availableYearsFromAPI = Array.isArray(yearsData?.data)
+    ? yearsData.data
+    : [];
   const loading = orgLoading || txLoading;
   const error = orgError || txError;
 
@@ -68,15 +84,10 @@ export default function OrganizationPage() {
     }
   }, [orgError, orgsData, navigate]);
 
+  // APIから取得した年リスト（降順でソート済み）
   const availableYears = useMemo(() => {
-    const years = new Set<number>();
-    transactions.forEach((tx: PersonalTransactionRead) => {
-      const date = new Date(tx.date);
-      years.add(date.getFullYear());
-    });
-    if (years.size === 0) years.add(financialYear);
-    return Array.from(years).sort((a, b) => b - a);
-  }, [transactions, financialYear]);
+    return availableYearsFromAPI;
+  }, [availableYearsFromAPI]);
 
   const monthlyData = useMemo(() => {
     const bucket = new Map<string, { income: number; expense: number }>();
@@ -125,6 +136,20 @@ export default function OrganizationPage() {
       },
       { income: 0, expense: 0 },
     );
+  }, [transactions]);
+
+  const categoryData = useMemo(() => {
+    const categoryMap = new Map<string, number>();
+    transactions.forEach((tx: PersonalTransactionRead) => {
+      if (tx.type === "expense") {
+        const amount = Number(tx.amount);
+        const current = categoryMap.get(tx.category) || 0;
+        categoryMap.set(tx.category, current + amount);
+      }
+    });
+    return Array.from(categoryMap.entries())
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount);
   }, [transactions]);
 
   const handleYearChange = (year: number) => {
@@ -187,7 +212,10 @@ export default function OrganizationPage() {
         ) : (
           <>
             <SummaryCards income={totals.income} expense={totals.expense} />
-            <MonthlyTrendChart data={monthlyData} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <MonthlyTrendChart data={monthlyData} />
+              <CategoryPieChart data={categoryData} />
+            </div>
             <TransactionsTable
               transactions={transactions}
               selectedMonth={month}

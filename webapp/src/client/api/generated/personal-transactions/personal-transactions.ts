@@ -18,6 +18,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  GetAvailableYearsParams,
   HTTPValidationError,
   ListPersonalTransactionsParams,
   PersonalTransactionRead,
@@ -225,6 +226,211 @@ export function useListPersonalTransactions<
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
   const queryOptions = getListPersonalTransactionsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * 組織の取引データが存在する年度のリストを取得
+ * @summary Get Available Years
+ */
+export type getAvailableYearsResponse200 = {
+  data: number[];
+  status: 200;
+};
+
+export type getAvailableYearsResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type getAvailableYearsResponseSuccess = getAvailableYearsResponse200 & {
+  headers: Headers;
+};
+export type getAvailableYearsResponseError = getAvailableYearsResponse422 & {
+  headers: Headers;
+};
+
+export type getAvailableYearsResponse =
+  | getAvailableYearsResponseSuccess
+  | getAvailableYearsResponseError;
+
+export const getGetAvailableYearsUrl = (params?: GetAvailableYearsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/personal-transactions/years?${stringifiedParams}`
+    : `/personal-transactions/years`;
+};
+
+export const getAvailableYears = async (
+  params?: GetAvailableYearsParams,
+  options?: RequestInit,
+): Promise<getAvailableYearsResponse> => {
+  return customFetch<getAvailableYearsResponse>(
+    getGetAvailableYearsUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetAvailableYearsQueryKey = (
+  params?: GetAvailableYearsParams,
+) => {
+  return [`/personal-transactions/years`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetAvailableYearsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAvailableYears>>,
+  TError = HTTPValidationError,
+>(
+  params?: GetAvailableYearsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAvailableYears>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAvailableYearsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAvailableYears>>
+  > = ({ signal }) => getAvailableYears(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAvailableYears>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAvailableYearsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAvailableYears>>
+>;
+export type GetAvailableYearsQueryError = HTTPValidationError;
+
+export function useGetAvailableYears<
+  TData = Awaited<ReturnType<typeof getAvailableYears>>,
+  TError = HTTPValidationError,
+>(
+  params: undefined | GetAvailableYearsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAvailableYears>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvailableYears>>,
+          TError,
+          Awaited<ReturnType<typeof getAvailableYears>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAvailableYears<
+  TData = Awaited<ReturnType<typeof getAvailableYears>>,
+  TError = HTTPValidationError,
+>(
+  params?: GetAvailableYearsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAvailableYears>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvailableYears>>,
+          TError,
+          Awaited<ReturnType<typeof getAvailableYears>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAvailableYears<
+  TData = Awaited<ReturnType<typeof getAvailableYears>>,
+  TError = HTTPValidationError,
+>(
+  params?: GetAvailableYearsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAvailableYears>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get Available Years
+ */
+
+export function useGetAvailableYears<
+  TData = Awaited<ReturnType<typeof getAvailableYears>>,
+  TError = HTTPValidationError,
+>(
+  params?: GetAvailableYearsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAvailableYears>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetAvailableYearsQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

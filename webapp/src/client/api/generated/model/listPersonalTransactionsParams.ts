@@ -21,7 +21,7 @@ export type ListPersonalTransactionsParams = {
   /**
    * Max items to return
    * @minimum 1
-   * @maximum 500
+   * @maximum 9000
    */
   limit?: number;
   /**
