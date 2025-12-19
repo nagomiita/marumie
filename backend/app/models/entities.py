@@ -35,10 +35,12 @@ class User(UUIDIdMixin, TimestampMixin, Base):
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, name="user_role"),
+        Enum(
+            UserRole, name="user_role", values_callable=lambda x: [e.value for e in x]
+        ),
         nullable=False,
-        default=UserRole.ADMIN,
-        server_default=UserRole.USER.value,
+        default=UserRole.USER,
+        server_default="user",
     )
 
     organizations: Mapped[list["Organization"]] = relationship(back_populates="user")
@@ -77,7 +79,12 @@ class Organization(UUIDIdMixin, TimestampMixin, Base):
     )
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     type: Mapped[OrganizationType] = mapped_column(
-        Enum(OrganizationType, name="organization_type"), nullable=False
+        Enum(
+            OrganizationType,
+            name="organization_type",
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
     )
     slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     user_id: Mapped[str | None] = mapped_column(
@@ -114,7 +121,11 @@ class Transaction(IntegerIdMixin, TimestampMixin, Base):
         Integer, nullable=False, name="financial_year"
     )
     transaction_type: Mapped[TransactionType] = mapped_column(
-        Enum(TransactionType, name="transaction_type"),
+        Enum(
+            TransactionType,
+            name="transaction_type",
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=False,
         name="transaction_type",
     )
@@ -199,7 +210,11 @@ class PersonalTransaction(UUIDIdMixin, TimestampMixin, Base):
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)
     type: Mapped[PersonalTransactionType] = mapped_column(
-        Enum(PersonalTransactionType, name="personal_transaction_type"),
+        Enum(
+            PersonalTransactionType,
+            name="personal_transaction_type",
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=False,
         name="type",
     )
