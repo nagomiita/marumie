@@ -16,6 +16,7 @@ import TransactionsTable from "@/components/TransactionsTable";
 import YearMonthSelector from "@/components/YearMonthSelector";
 import CategoryPieChart from "@/components/CategoryPieChart";
 import ExpenseCalendar from "@/components/ExpenseCalendar";
+import SankeyDiagram from "@/components/SankeyDiagram";
 
 export default function OrganizationPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -215,6 +216,7 @@ export default function OrganizationPage() {
         ) : (
           <>
             <SummaryCards income={totals.income} expense={totals.expense} />
+            <SankeyDiagram transactions={transactions} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
               <MonthlyTrendChart data={monthlyData} />
               <CategoryPieChart data={categoryData} />
