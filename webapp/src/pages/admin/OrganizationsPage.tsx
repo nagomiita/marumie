@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
-  useListOrganizationsOrganizationsGet,
-  useCreateOrganizationOrganizationsPost,
-  useDeleteOrganizationOrganizationsOrganizationIdDelete,
+  useListOrganizations,
+  useCreateOrganization,
+  useDeleteOrganization,
 } from "@/client/api/generated/organizations/organizations";
 import type { OrganizationType } from "@/client/api/generated/model";
 
@@ -11,10 +11,9 @@ export default function OrganizationsPage() {
     data: organizations,
     isLoading: loading,
     refetch,
-  } = useListOrganizationsOrganizationsGet();
-  const createMutation = useCreateOrganizationOrganizationsPost();
-  const deleteMutation =
-    useDeleteOrganizationOrganizationsOrganizationIdDelete();
+  } = useListOrganizations();
+  const createMutation = useCreateOrganization();
+  const deleteMutation = useDeleteOrganization();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",

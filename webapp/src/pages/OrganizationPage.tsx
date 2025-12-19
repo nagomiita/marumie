@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  useGetOrganizationOrganizationsSlugGet,
-  useListOrganizationsOrganizationsGet,
+  useGetOrganization,
+  useListOrganizations,
 } from "@/client/api/generated/organizations/organizations";
-import { useListPersonalTransactionsPersonalTransactionsGet } from "@/client/api/generated/personal-transactions/personal-transactions";
+import { useListPersonalTransactions } from "@/client/api/generated/personal-transactions/personal-transactions";
 import type { PersonalTransactionRead } from "@/client/api/generated/model";
 import Layout from "@/components/Layout";
 import MonthlyTrendChart from "@/components/MonthlyTrendChart";
@@ -22,14 +22,14 @@ export default function OrganizationPage() {
   const month = Number(searchParams.get("month")) || 0;
 
   // 組織一覧を取得（リダイレクト用）
-  const { data: orgsData } = useListOrganizationsOrganizationsGet();
+  const { data: orgsData } = useListOrganizations();
 
   // 現在の組織を取得
   const {
     data: orgData,
     isLoading: orgLoading,
     error: orgError,
-  } = useGetOrganizationOrganizationsSlugGet(slug || "", {
+  } = useGetOrganization(slug || "", {
     query: { enabled: !!slug },
   });
 
@@ -40,7 +40,7 @@ export default function OrganizationPage() {
     data: txData,
     isLoading: txLoading,
     error: txError,
-  } = useListPersonalTransactionsPersonalTransactionsGet(
+  } = useListPersonalTransactions(
     {
       organization_id:
         organization && "id" in organization ? organization.id : undefined,

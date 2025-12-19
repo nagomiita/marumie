@@ -11,7 +11,11 @@ from ..schemas import PersonalTransactionRead
 router = APIRouter(prefix="/personal-transactions", tags=["personal_transactions"])
 
 
-@router.get("", response_model=list[PersonalTransactionRead])
+@router.get(
+    "",
+    response_model=list[PersonalTransactionRead],
+    operation_id="list_personal_transactions",
+)
 async def list_personal_transactions(
     organization_id: str | None = Query(None, description="Filter by organization id"),
     year: int | None = Query(None, description="Filter by calendar year"),
@@ -28,7 +32,9 @@ async def list_personal_transactions(
     if month is not None:
         stmt = stmt.where(extract("month", PersonalTransaction.date) == month)
 
-    stmt = stmt.order_by(PersonalTransaction.date.desc(), PersonalTransaction.created_at.desc())
+    stmt = stmt.order_by(
+        PersonalTransaction.date.desc(), PersonalTransaction.created_at.desc()
+    )
     stmt = stmt.limit(limit).offset(offset)
 
     transactions = (await session.execute(stmt)).scalars().all()

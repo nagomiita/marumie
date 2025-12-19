@@ -12,8 +12,8 @@ from ..models.entities import PersonalTransaction
 router = APIRouter(prefix="/csv", tags=["csv"])
 
 
-@router.post("/upload")
-async def upload_csv(
+@router.post("/upload", operation_id="upload_transactions_csv")
+async def upload_transactions_csv(
     organization_id: str,
     file: UploadFile,
     session: AsyncSession = Depends(get_db_session),

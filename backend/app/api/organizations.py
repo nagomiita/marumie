@@ -12,7 +12,9 @@ from ..schemas import OrganizationCreate, OrganizationRead
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
 
-@router.get("", response_model=list[OrganizationRead])
+@router.get(
+    "", response_model=list[OrganizationRead], operation_id="list_organizations"
+)
 async def list_organizations(
     organization_type: OrganizationType | None = Query(
         None, description="Filter by organization type"
@@ -32,7 +34,7 @@ async def list_organizations(
     return [OrganizationRead.model_validate(org) for org in organizations]
 
 
-@router.get("/{slug}", response_model=OrganizationRead)
+@router.get("/{slug}", response_model=OrganizationRead, operation_id="get_organization")
 async def get_organization(
     slug: str,
     session: AsyncSession = Depends(get_db_session),
@@ -44,7 +46,12 @@ async def get_organization(
     return OrganizationRead.model_validate(organization)
 
 
-@router.post("", response_model=OrganizationRead, status_code=201)
+@router.post(
+    "",
+    response_model=OrganizationRead,
+    status_code=201,
+    operation_id="create_organization",
+)
 async def create_organization(
     organization_data: OrganizationCreate,
     session: AsyncSession = Depends(get_db_session),
@@ -56,7 +63,9 @@ async def create_organization(
     return OrganizationRead.model_validate(organization)
 
 
-@router.delete("/{organization_id}", status_code=204)
+@router.delete(
+    "/{organization_id}", status_code=204, operation_id="delete_organization"
+)
 async def delete_organization(
     organization_id: str,
     session: AsyncSession = Depends(get_db_session),

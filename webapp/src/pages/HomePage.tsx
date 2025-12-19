@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { useListOrganizationsOrganizationsGet } from "@/client/api/generated/organizations/organizations";
+import { useListOrganizations } from "@/client/api/generated/organizations/organizations";
 import Layout from "@/components/Layout";
 
 export default function HomePage() {
-  const { data, isLoading, error } = useListOrganizationsOrganizationsGet();
+  const { data, isLoading, error } = useListOrganizations();
 
   const organizations = Array.isArray(data?.data) ? data.data : [];
 

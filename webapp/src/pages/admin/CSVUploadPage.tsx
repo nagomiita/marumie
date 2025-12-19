@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useListOrganizationsOrganizationsGet } from "@/client/api/generated/organizations/organizations";
-import { useUploadCsvCsvUploadPost } from "@/client/api/generated/csv/csv";
+import { useListOrganizations } from "@/client/api/generated/organizations/organizations";
+import { useUploadTransactionsCsv } from "@/client/api/generated/csv/csv";
 
 export default function CSVUploadPage() {
-  const { data: organizationsData } = useListOrganizationsOrganizationsGet();
-  const uploadMutation = useUploadCsvCsvUploadPost();
+  const { data: organizationsData } = useListOrganizations();
+  const uploadMutation = useUploadTransactionsCsv();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState<string>("");
@@ -71,18 +71,22 @@ export default function CSVUploadPage() {
         'input[type="file"]',
       ) as HTMLInputElement;
       if (fileInput) fileInput.value = "";
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error uploading CSV:", error);
 
       // エラーの詳細を取得
       let errorMessage = "CSVのアップロードに失敗しました";
-      if (error?.response) {
+      let errorDetails: string | undefined;
+
+      if (error && typeof error === "object" && "response" in error) {
+        const response = (error as { response: Response }).response;
         try {
-          const errorData = await error.response.json();
+          const errorData = await response.json();
           errorMessage = errorData.detail || errorMessage;
         } catch {
-          errorMessage = `HTTP ${error.response.status}: ${error.response.statusText}`;
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         }
+        errorDetails = await response.clone().text();
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -90,9 +94,7 @@ export default function CSVUploadPage() {
       setResult({
         success: false,
         message: errorMessage,
-        details: error?.response
-          ? await error.response.clone().text()
-          : undefined,
+        details: errorDetails,
       });
     } finally {
       setUploading(false);

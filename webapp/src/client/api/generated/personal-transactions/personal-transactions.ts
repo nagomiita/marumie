@@ -19,7 +19,7 @@ import type {
 
 import type {
   HTTPValidationError,
-  ListPersonalTransactionsPersonalTransactionsGetParams,
+  ListPersonalTransactionsParams,
   PersonalTransactionRead,
 } from ".././model";
 
@@ -30,31 +30,31 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 /**
  * @summary List Personal Transactions
  */
-export type listPersonalTransactionsPersonalTransactionsGetResponse200 = {
+export type listPersonalTransactionsResponse200 = {
   data: PersonalTransactionRead[];
   status: 200;
 };
 
-export type listPersonalTransactionsPersonalTransactionsGetResponse422 = {
+export type listPersonalTransactionsResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type listPersonalTransactionsPersonalTransactionsGetResponseSuccess =
-  listPersonalTransactionsPersonalTransactionsGetResponse200 & {
+export type listPersonalTransactionsResponseSuccess =
+  listPersonalTransactionsResponse200 & {
     headers: Headers;
   };
-export type listPersonalTransactionsPersonalTransactionsGetResponseError =
-  listPersonalTransactionsPersonalTransactionsGetResponse422 & {
+export type listPersonalTransactionsResponseError =
+  listPersonalTransactionsResponse422 & {
     headers: Headers;
   };
 
-export type listPersonalTransactionsPersonalTransactionsGetResponse =
-  | listPersonalTransactionsPersonalTransactionsGetResponseSuccess
-  | listPersonalTransactionsPersonalTransactionsGetResponseError;
+export type listPersonalTransactionsResponse =
+  | listPersonalTransactionsResponseSuccess
+  | listPersonalTransactionsResponseError;
 
-export const getListPersonalTransactionsPersonalTransactionsGetUrl = (
-  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+export const getListPersonalTransactionsUrl = (
+  params?: ListPersonalTransactionsParams,
 ) => {
   const normalizedParams = new URLSearchParams();
 
@@ -71,12 +71,12 @@ export const getListPersonalTransactionsPersonalTransactionsGetUrl = (
     : `/personal-transactions`;
 };
 
-export const listPersonalTransactionsPersonalTransactionsGet = async (
-  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+export const listPersonalTransactions = async (
+  params?: ListPersonalTransactionsParams,
   options?: RequestInit,
-): Promise<listPersonalTransactionsPersonalTransactionsGetResponse> => {
-  return customFetch<listPersonalTransactionsPersonalTransactionsGetResponse>(
-    getListPersonalTransactionsPersonalTransactionsGetUrl(params),
+): Promise<listPersonalTransactionsResponse> => {
+  return customFetch<listPersonalTransactionsResponse>(
+    getListPersonalTransactionsUrl(params),
     {
       ...options,
       method: "GET",
@@ -84,25 +84,21 @@ export const listPersonalTransactionsPersonalTransactionsGet = async (
   );
 };
 
-export const getListPersonalTransactionsPersonalTransactionsGetQueryKey = (
-  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+export const getListPersonalTransactionsQueryKey = (
+  params?: ListPersonalTransactionsParams,
 ) => {
   return [`/personal-transactions`, ...(params ? [params] : [])] as const;
 };
 
-export const getListPersonalTransactionsPersonalTransactionsGetQueryOptions = <
-  TData = Awaited<
-    ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-  >,
+export const getListPersonalTransactionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPersonalTransactions>>,
   TError = HTTPValidationError,
 >(
-  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+  params?: ListPersonalTransactionsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-        >,
+        Awaited<ReturnType<typeof listPersonalTransactions>>,
         TError,
         TData
       >
@@ -113,57 +109,43 @@ export const getListPersonalTransactionsPersonalTransactionsGetQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ??
-    getListPersonalTransactionsPersonalTransactionsGetQueryKey(params);
+    queryOptions?.queryKey ?? getListPersonalTransactionsQueryKey(params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>>
+    Awaited<ReturnType<typeof listPersonalTransactions>>
   > = ({ signal }) =>
-    listPersonalTransactionsPersonalTransactionsGet(params, {
-      signal,
-      ...requestOptions,
-    });
+    listPersonalTransactions(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>>,
+    Awaited<ReturnType<typeof listPersonalTransactions>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ListPersonalTransactionsPersonalTransactionsGetQueryResult =
-  NonNullable<
-    Awaited<ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>>
-  >;
-export type ListPersonalTransactionsPersonalTransactionsGetQueryError =
-  HTTPValidationError;
+export type ListPersonalTransactionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPersonalTransactions>>
+>;
+export type ListPersonalTransactionsQueryError = HTTPValidationError;
 
-export function useListPersonalTransactionsPersonalTransactionsGet<
-  TData = Awaited<
-    ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-  >,
+export function useListPersonalTransactions<
+  TData = Awaited<ReturnType<typeof listPersonalTransactions>>,
   TError = HTTPValidationError,
 >(
-  params: undefined | ListPersonalTransactionsPersonalTransactionsGetParams,
+  params: undefined | ListPersonalTransactionsParams,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-        >,
+        Awaited<ReturnType<typeof listPersonalTransactions>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<
-            ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-          >,
+          Awaited<ReturnType<typeof listPersonalTransactions>>,
           TError,
-          Awaited<
-            ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-          >
+          Awaited<ReturnType<typeof listPersonalTransactions>>
         >,
         "initialData"
       >;
@@ -173,32 +155,24 @@ export function useListPersonalTransactionsPersonalTransactionsGet<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useListPersonalTransactionsPersonalTransactionsGet<
-  TData = Awaited<
-    ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-  >,
+export function useListPersonalTransactions<
+  TData = Awaited<ReturnType<typeof listPersonalTransactions>>,
   TError = HTTPValidationError,
 >(
-  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+  params?: ListPersonalTransactionsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-        >,
+        Awaited<ReturnType<typeof listPersonalTransactions>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<
-            ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-          >,
+          Awaited<ReturnType<typeof listPersonalTransactions>>,
           TError,
-          Awaited<
-            ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-          >
+          Awaited<ReturnType<typeof listPersonalTransactions>>
         >,
         "initialData"
       >;
@@ -208,19 +182,15 @@ export function useListPersonalTransactionsPersonalTransactionsGet<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useListPersonalTransactionsPersonalTransactionsGet<
-  TData = Awaited<
-    ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-  >,
+export function useListPersonalTransactions<
+  TData = Awaited<ReturnType<typeof listPersonalTransactions>>,
   TError = HTTPValidationError,
 >(
-  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+  params?: ListPersonalTransactionsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-        >,
+        Awaited<ReturnType<typeof listPersonalTransactions>>,
         TError,
         TData
       >
@@ -235,19 +205,15 @@ export function useListPersonalTransactionsPersonalTransactionsGet<
  * @summary List Personal Transactions
  */
 
-export function useListPersonalTransactionsPersonalTransactionsGet<
-  TData = Awaited<
-    ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-  >,
+export function useListPersonalTransactions<
+  TData = Awaited<ReturnType<typeof listPersonalTransactions>>,
   TError = HTTPValidationError,
 >(
-  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+  params?: ListPersonalTransactionsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-        >,
+        Awaited<ReturnType<typeof listPersonalTransactions>>,
         TError,
         TData
       >
@@ -258,11 +224,7 @@ export function useListPersonalTransactionsPersonalTransactionsGet<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions =
-    getListPersonalTransactionsPersonalTransactionsGetQueryOptions(
-      params,
-      options,
-    );
+  const queryOptions = getListPersonalTransactionsQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

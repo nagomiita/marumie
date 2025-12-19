@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useListOrganizationsOrganizationsGet } from "@/client/api/generated/organizations/organizations";
-import { useListPersonalTransactionsPersonalTransactionsGet } from "@/client/api/generated/personal-transactions/personal-transactions";
+import { useListOrganizations } from "@/client/api/generated/organizations/organizations";
+import { useListPersonalTransactions } from "@/client/api/generated/personal-transactions/personal-transactions";
 
 export default function TransactionsPage() {
-  const { data: organizationsData } = useListOrganizationsOrganizationsGet();
+  const { data: organizationsData } = useListOrganizations();
   const [selectedOrgId, setSelectedOrgId] = useState<string>("");
   const { data: transactionsData, isLoading: loading } =
-    useListPersonalTransactionsPersonalTransactionsGet(
+    useListPersonalTransactions(
       { organization_id: selectedOrgId || undefined },
       { query: { enabled: !!selectedOrgId } },
     );

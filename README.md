@@ -107,10 +107,16 @@ pnpm run dev:admin     # 管理画面のみ起動
 #### データベース管理
 
 ```bash
+# データを最初からやり直したい場合
 pnpm run db:reset      # データベース完全リセット（データ削除 + マイグレーション + シード）
-pnpm run db:migrate    # マイグレーション実行
-pnpm run db:seed       # シードデータ投入
-pnpm run db:studio     # Prisma Studio起動
+
+# 個別実行
+pnpm run db:migrate    # マイグレーション実行（スキーマ変更の適用）
+pnpm run db:seed       # シードデータ投入（サンプルデータの挿入）
+pnpm run db:studio     # Prisma Studio起動（データベースGUI）
+
+# マイグレーション作成（開発者向け）
+pnpm run db:migrate:create "migration_name"  # 新しいマイグレーションファイルを作成
 ```
 
 #### コード品質チェック

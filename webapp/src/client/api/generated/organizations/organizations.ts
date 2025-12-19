@@ -22,7 +22,7 @@ import type {
 
 import type {
   HTTPValidationError,
-  ListOrganizationsOrganizationsGetParams,
+  ListOrganizationsParams,
   OrganizationCreate,
   OrganizationRead,
 } from ".././model";
@@ -34,32 +34,28 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 /**
  * @summary List Organizations
  */
-export type listOrganizationsOrganizationsGetResponse200 = {
+export type listOrganizationsResponse200 = {
   data: OrganizationRead[];
   status: 200;
 };
 
-export type listOrganizationsOrganizationsGetResponse422 = {
+export type listOrganizationsResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type listOrganizationsOrganizationsGetResponseSuccess =
-  listOrganizationsOrganizationsGetResponse200 & {
-    headers: Headers;
-  };
-export type listOrganizationsOrganizationsGetResponseError =
-  listOrganizationsOrganizationsGetResponse422 & {
-    headers: Headers;
-  };
+export type listOrganizationsResponseSuccess = listOrganizationsResponse200 & {
+  headers: Headers;
+};
+export type listOrganizationsResponseError = listOrganizationsResponse422 & {
+  headers: Headers;
+};
 
-export type listOrganizationsOrganizationsGetResponse =
-  | listOrganizationsOrganizationsGetResponseSuccess
-  | listOrganizationsOrganizationsGetResponseError;
+export type listOrganizationsResponse =
+  | listOrganizationsResponseSuccess
+  | listOrganizationsResponseError;
 
-export const getListOrganizationsOrganizationsGetUrl = (
-  params?: ListOrganizationsOrganizationsGetParams,
-) => {
+export const getListOrganizationsUrl = (params?: ListOrganizationsParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -75,12 +71,12 @@ export const getListOrganizationsOrganizationsGetUrl = (
     : `/organizations`;
 };
 
-export const listOrganizationsOrganizationsGet = async (
-  params?: ListOrganizationsOrganizationsGetParams,
+export const listOrganizations = async (
+  params?: ListOrganizationsParams,
   options?: RequestInit,
-): Promise<listOrganizationsOrganizationsGetResponse> => {
-  return customFetch<listOrganizationsOrganizationsGetResponse>(
-    getListOrganizationsOrganizationsGetUrl(params),
+): Promise<listOrganizationsResponse> => {
+  return customFetch<listOrganizationsResponse>(
+    getListOrganizationsUrl(params),
     {
       ...options,
       method: "GET",
@@ -88,21 +84,21 @@ export const listOrganizationsOrganizationsGet = async (
   );
 };
 
-export const getListOrganizationsOrganizationsGetQueryKey = (
-  params?: ListOrganizationsOrganizationsGetParams,
+export const getListOrganizationsQueryKey = (
+  params?: ListOrganizationsParams,
 ) => {
   return [`/organizations`, ...(params ? [params] : [])] as const;
 };
 
-export const getListOrganizationsOrganizationsGetQueryOptions = <
-  TData = Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+export const getListOrganizationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listOrganizations>>,
   TError = HTTPValidationError,
 >(
-  params?: ListOrganizationsOrganizationsGetParams,
+  params?: ListOrganizationsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        Awaited<ReturnType<typeof listOrganizations>>,
         TError,
         TData
       >
@@ -113,44 +109,42 @@ export const getListOrganizationsOrganizationsGetQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ??
-    getListOrganizationsOrganizationsGetQueryKey(params);
+    queryOptions?.queryKey ?? getListOrganizationsQueryKey(params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>
-  > = ({ signal }) =>
-    listOrganizationsOrganizationsGet(params, { signal, ...requestOptions });
+    Awaited<ReturnType<typeof listOrganizations>>
+  > = ({ signal }) => listOrganizations(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+    Awaited<ReturnType<typeof listOrganizations>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ListOrganizationsOrganizationsGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>
+export type ListOrganizationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listOrganizations>>
 >;
-export type ListOrganizationsOrganizationsGetQueryError = HTTPValidationError;
+export type ListOrganizationsQueryError = HTTPValidationError;
 
-export function useListOrganizationsOrganizationsGet<
-  TData = Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+export function useListOrganizations<
+  TData = Awaited<ReturnType<typeof listOrganizations>>,
   TError = HTTPValidationError,
 >(
-  params: undefined | ListOrganizationsOrganizationsGetParams,
+  params: undefined | ListOrganizationsParams,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        Awaited<ReturnType<typeof listOrganizations>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+          Awaited<ReturnType<typeof listOrganizations>>,
           TError,
-          Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>
+          Awaited<ReturnType<typeof listOrganizations>>
         >,
         "initialData"
       >;
@@ -160,24 +154,24 @@ export function useListOrganizationsOrganizationsGet<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useListOrganizationsOrganizationsGet<
-  TData = Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+export function useListOrganizations<
+  TData = Awaited<ReturnType<typeof listOrganizations>>,
   TError = HTTPValidationError,
 >(
-  params?: ListOrganizationsOrganizationsGetParams,
+  params?: ListOrganizationsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        Awaited<ReturnType<typeof listOrganizations>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+          Awaited<ReturnType<typeof listOrganizations>>,
           TError,
-          Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>
+          Awaited<ReturnType<typeof listOrganizations>>
         >,
         "initialData"
       >;
@@ -187,15 +181,15 @@ export function useListOrganizationsOrganizationsGet<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useListOrganizationsOrganizationsGet<
-  TData = Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+export function useListOrganizations<
+  TData = Awaited<ReturnType<typeof listOrganizations>>,
   TError = HTTPValidationError,
 >(
-  params?: ListOrganizationsOrganizationsGetParams,
+  params?: ListOrganizationsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        Awaited<ReturnType<typeof listOrganizations>>,
         TError,
         TData
       >
@@ -210,15 +204,15 @@ export function useListOrganizationsOrganizationsGet<
  * @summary List Organizations
  */
 
-export function useListOrganizationsOrganizationsGet<
-  TData = Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+export function useListOrganizations<
+  TData = Awaited<ReturnType<typeof listOrganizations>>,
   TError = HTTPValidationError,
 >(
-  params?: ListOrganizationsOrganizationsGetParams,
+  params?: ListOrganizationsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        Awaited<ReturnType<typeof listOrganizations>>,
         TError,
         TData
       >
@@ -229,10 +223,7 @@ export function useListOrganizationsOrganizationsGet<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getListOrganizationsOrganizationsGetQueryOptions(
-    params,
-    options,
-  );
+  const queryOptions = getListOrganizationsQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -247,66 +238,62 @@ export function useListOrganizationsOrganizationsGet<
 /**
  * @summary Create Organization
  */
-export type createOrganizationOrganizationsPostResponse201 = {
+export type createOrganizationResponse201 = {
   data: OrganizationRead;
   status: 201;
 };
 
-export type createOrganizationOrganizationsPostResponse422 = {
+export type createOrganizationResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type createOrganizationOrganizationsPostResponseSuccess =
-  createOrganizationOrganizationsPostResponse201 & {
+export type createOrganizationResponseSuccess =
+  createOrganizationResponse201 & {
     headers: Headers;
   };
-export type createOrganizationOrganizationsPostResponseError =
-  createOrganizationOrganizationsPostResponse422 & {
-    headers: Headers;
-  };
+export type createOrganizationResponseError = createOrganizationResponse422 & {
+  headers: Headers;
+};
 
-export type createOrganizationOrganizationsPostResponse =
-  | createOrganizationOrganizationsPostResponseSuccess
-  | createOrganizationOrganizationsPostResponseError;
+export type createOrganizationResponse =
+  | createOrganizationResponseSuccess
+  | createOrganizationResponseError;
 
-export const getCreateOrganizationOrganizationsPostUrl = () => {
+export const getCreateOrganizationUrl = () => {
   return `/organizations`;
 };
 
-export const createOrganizationOrganizationsPost = async (
+export const createOrganization = async (
   organizationCreate: OrganizationCreate,
   options?: RequestInit,
-): Promise<createOrganizationOrganizationsPostResponse> => {
-  return customFetch<createOrganizationOrganizationsPostResponse>(
-    getCreateOrganizationOrganizationsPostUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(organizationCreate),
-    },
-  );
+): Promise<createOrganizationResponse> => {
+  return customFetch<createOrganizationResponse>(getCreateOrganizationUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(organizationCreate),
+  });
 };
 
-export const getCreateOrganizationOrganizationsPostMutationOptions = <
+export const getCreateOrganizationMutationOptions = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+    Awaited<ReturnType<typeof createOrganization>>,
     TError,
     { data: OrganizationCreate },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+  Awaited<ReturnType<typeof createOrganization>>,
   TError,
   { data: OrganizationCreate },
   TContext
 > => {
-  const mutationKey = ["createOrganizationOrganizationsPost"];
+  const mutationKey = ["createOrganization"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -316,35 +303,33 @@ export const getCreateOrganizationOrganizationsPostMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+    Awaited<ReturnType<typeof createOrganization>>,
     { data: OrganizationCreate }
   > = (props) => {
     const { data } = props ?? {};
 
-    return createOrganizationOrganizationsPost(data, requestOptions);
+    return createOrganization(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type CreateOrganizationOrganizationsPostMutationResult = NonNullable<
-  Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>
+export type CreateOrganizationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createOrganization>>
 >;
-export type CreateOrganizationOrganizationsPostMutationBody =
-  OrganizationCreate;
-export type CreateOrganizationOrganizationsPostMutationError =
-  HTTPValidationError;
+export type CreateOrganizationMutationBody = OrganizationCreate;
+export type CreateOrganizationMutationError = HTTPValidationError;
 
 /**
  * @summary Create Organization
  */
-export const useCreateOrganizationOrganizationsPost = <
+export const useCreateOrganization = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+      Awaited<ReturnType<typeof createOrganization>>,
       TError,
       { data: OrganizationCreate },
       TContext
@@ -353,74 +338,66 @@ export const useCreateOrganizationOrganizationsPost = <
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+  Awaited<ReturnType<typeof createOrganization>>,
   TError,
   { data: OrganizationCreate },
   TContext
 > => {
-  const mutationOptions =
-    getCreateOrganizationOrganizationsPostMutationOptions(options);
+  const mutationOptions = getCreateOrganizationMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
 /**
  * @summary Get Organization
  */
-export type getOrganizationOrganizationsSlugGetResponse200 = {
+export type getOrganizationResponse200 = {
   data: OrganizationRead;
   status: 200;
 };
 
-export type getOrganizationOrganizationsSlugGetResponse422 = {
+export type getOrganizationResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type getOrganizationOrganizationsSlugGetResponseSuccess =
-  getOrganizationOrganizationsSlugGetResponse200 & {
-    headers: Headers;
-  };
-export type getOrganizationOrganizationsSlugGetResponseError =
-  getOrganizationOrganizationsSlugGetResponse422 & {
-    headers: Headers;
-  };
+export type getOrganizationResponseSuccess = getOrganizationResponse200 & {
+  headers: Headers;
+};
+export type getOrganizationResponseError = getOrganizationResponse422 & {
+  headers: Headers;
+};
 
-export type getOrganizationOrganizationsSlugGetResponse =
-  | getOrganizationOrganizationsSlugGetResponseSuccess
-  | getOrganizationOrganizationsSlugGetResponseError;
+export type getOrganizationResponse =
+  | getOrganizationResponseSuccess
+  | getOrganizationResponseError;
 
-export const getGetOrganizationOrganizationsSlugGetUrl = (slug: string) => {
+export const getGetOrganizationUrl = (slug: string) => {
   return `/organizations/${slug}`;
 };
 
-export const getOrganizationOrganizationsSlugGet = async (
+export const getOrganization = async (
   slug: string,
   options?: RequestInit,
-): Promise<getOrganizationOrganizationsSlugGetResponse> => {
-  return customFetch<getOrganizationOrganizationsSlugGetResponse>(
-    getGetOrganizationOrganizationsSlugGetUrl(slug),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
+): Promise<getOrganizationResponse> => {
+  return customFetch<getOrganizationResponse>(getGetOrganizationUrl(slug), {
+    ...options,
+    method: "GET",
+  });
 };
 
-export const getGetOrganizationOrganizationsSlugGetQueryKey = (
-  slug?: string,
-) => {
+export const getGetOrganizationQueryKey = (slug?: string) => {
   return [`/organizations/${slug}`] as const;
 };
 
-export const getGetOrganizationOrganizationsSlugGetQueryOptions = <
-  TData = Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+export const getGetOrganizationQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOrganization>>,
   TError = HTTPValidationError,
 >(
   slug: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        Awaited<ReturnType<typeof getOrganization>>,
         TError,
         TData
       >
@@ -430,14 +407,11 @@ export const getGetOrganizationOrganizationsSlugGetQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getGetOrganizationOrganizationsSlugGetQueryKey(slug);
+  const queryKey = queryOptions?.queryKey ?? getGetOrganizationQueryKey(slug);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>
-  > = ({ signal }) =>
-    getOrganizationOrganizationsSlugGet(slug, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrganization>>> = ({
+    signal,
+  }) => getOrganization(slug, { signal, ...requestOptions });
 
   return {
     queryKey,
@@ -445,35 +419,35 @@ export const getGetOrganizationOrganizationsSlugGetQueryOptions = <
     enabled: !!slug,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+    Awaited<ReturnType<typeof getOrganization>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetOrganizationOrganizationsSlugGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>
+export type GetOrganizationQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getOrganization>>
 >;
-export type GetOrganizationOrganizationsSlugGetQueryError = HTTPValidationError;
+export type GetOrganizationQueryError = HTTPValidationError;
 
-export function useGetOrganizationOrganizationsSlugGet<
-  TData = Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+export function useGetOrganization<
+  TData = Awaited<ReturnType<typeof getOrganization>>,
   TError = HTTPValidationError,
 >(
   slug: string,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        Awaited<ReturnType<typeof getOrganization>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+          Awaited<ReturnType<typeof getOrganization>>,
           TError,
-          Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>
+          Awaited<ReturnType<typeof getOrganization>>
         >,
         "initialData"
       >;
@@ -483,24 +457,24 @@ export function useGetOrganizationOrganizationsSlugGet<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetOrganizationOrganizationsSlugGet<
-  TData = Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+export function useGetOrganization<
+  TData = Awaited<ReturnType<typeof getOrganization>>,
   TError = HTTPValidationError,
 >(
   slug: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        Awaited<ReturnType<typeof getOrganization>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+          Awaited<ReturnType<typeof getOrganization>>,
           TError,
-          Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>
+          Awaited<ReturnType<typeof getOrganization>>
         >,
         "initialData"
       >;
@@ -510,15 +484,15 @@ export function useGetOrganizationOrganizationsSlugGet<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetOrganizationOrganizationsSlugGet<
-  TData = Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+export function useGetOrganization<
+  TData = Awaited<ReturnType<typeof getOrganization>>,
   TError = HTTPValidationError,
 >(
   slug: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        Awaited<ReturnType<typeof getOrganization>>,
         TError,
         TData
       >
@@ -533,15 +507,15 @@ export function useGetOrganizationOrganizationsSlugGet<
  * @summary Get Organization
  */
 
-export function useGetOrganizationOrganizationsSlugGet<
-  TData = Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+export function useGetOrganization<
+  TData = Awaited<ReturnType<typeof getOrganization>>,
   TError = HTTPValidationError,
 >(
   slug: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        Awaited<ReturnType<typeof getOrganization>>,
         TError,
         TData
       >
@@ -552,10 +526,7 @@ export function useGetOrganizationOrganizationsSlugGet<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetOrganizationOrganizationsSlugGetQueryOptions(
-    slug,
-    options,
-  );
+  const queryOptions = getGetOrganizationQueryOptions(slug, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -570,41 +541,38 @@ export function useGetOrganizationOrganizationsSlugGet<
 /**
  * @summary Delete Organization
  */
-export type deleteOrganizationOrganizationsOrganizationIdDeleteResponse204 = {
+export type deleteOrganizationResponse204 = {
   data: void;
   status: 204;
 };
 
-export type deleteOrganizationOrganizationsOrganizationIdDeleteResponse422 = {
+export type deleteOrganizationResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type deleteOrganizationOrganizationsOrganizationIdDeleteResponseSuccess =
-  deleteOrganizationOrganizationsOrganizationIdDeleteResponse204 & {
+export type deleteOrganizationResponseSuccess =
+  deleteOrganizationResponse204 & {
     headers: Headers;
   };
-export type deleteOrganizationOrganizationsOrganizationIdDeleteResponseError =
-  deleteOrganizationOrganizationsOrganizationIdDeleteResponse422 & {
-    headers: Headers;
-  };
+export type deleteOrganizationResponseError = deleteOrganizationResponse422 & {
+  headers: Headers;
+};
 
-export type deleteOrganizationOrganizationsOrganizationIdDeleteResponse =
-  | deleteOrganizationOrganizationsOrganizationIdDeleteResponseSuccess
-  | deleteOrganizationOrganizationsOrganizationIdDeleteResponseError;
+export type deleteOrganizationResponse =
+  | deleteOrganizationResponseSuccess
+  | deleteOrganizationResponseError;
 
-export const getDeleteOrganizationOrganizationsOrganizationIdDeleteUrl = (
-  organizationId: string,
-) => {
+export const getDeleteOrganizationUrl = (organizationId: string) => {
   return `/organizations/${organizationId}`;
 };
 
-export const deleteOrganizationOrganizationsOrganizationIdDelete = async (
+export const deleteOrganization = async (
   organizationId: string,
   options?: RequestInit,
-): Promise<deleteOrganizationOrganizationsOrganizationIdDeleteResponse> => {
-  return customFetch<deleteOrganizationOrganizationsOrganizationIdDeleteResponse>(
-    getDeleteOrganizationOrganizationsOrganizationIdDeleteUrl(organizationId),
+): Promise<deleteOrganizationResponse> => {
+  return customFetch<deleteOrganizationResponse>(
+    getDeleteOrganizationUrl(organizationId),
     {
       ...options,
       method: "DELETE",
@@ -612,73 +580,60 @@ export const deleteOrganizationOrganizationsOrganizationIdDelete = async (
   );
 };
 
-export const getDeleteOrganizationOrganizationsOrganizationIdDeleteMutationOptions =
-  <TError = HTTPValidationError, TContext = unknown>(options?: {
-    mutation?: UseMutationOptions<
-      Awaited<
-        ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
-      >,
-      TError,
-      { organizationId: string },
-      TContext
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  }): UseMutationOptions<
-    Awaited<
-      ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
-    >,
+export const getDeleteOrganizationMutationOptions = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteOrganization>>,
     TError,
     { organizationId: string },
     TContext
-  > => {
-    const mutationKey = ["deleteOrganizationOrganizationsOrganizationIdDelete"];
-    const { mutation: mutationOptions, request: requestOptions } = options
-      ? options.mutation &&
-        "mutationKey" in options.mutation &&
-        options.mutation.mutationKey
-        ? options
-        : { ...options, mutation: { ...options.mutation, mutationKey } }
-      : { mutation: { mutationKey }, request: undefined };
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteOrganization>>,
+  TError,
+  { organizationId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteOrganization"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<
-      Awaited<
-        ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
-      >,
-      { organizationId: string }
-    > = (props) => {
-      const { organizationId } = props ?? {};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteOrganization>>,
+    { organizationId: string }
+  > = (props) => {
+    const { organizationId } = props ?? {};
 
-      return deleteOrganizationOrganizationsOrganizationIdDelete(
-        organizationId,
-        requestOptions,
-      );
-    };
-
-    return { mutationFn, ...mutationOptions };
+    return deleteOrganization(organizationId, requestOptions);
   };
 
-export type DeleteOrganizationOrganizationsOrganizationIdDeleteMutationResult =
-  NonNullable<
-    Awaited<
-      ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
-    >
-  >;
+  return { mutationFn, ...mutationOptions };
+};
 
-export type DeleteOrganizationOrganizationsOrganizationIdDeleteMutationError =
-  HTTPValidationError;
+export type DeleteOrganizationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteOrganization>>
+>;
+
+export type DeleteOrganizationMutationError = HTTPValidationError;
 
 /**
  * @summary Delete Organization
  */
-export const useDeleteOrganizationOrganizationsOrganizationIdDelete = <
+export const useDeleteOrganization = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<
-        ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
-      >,
+      Awaited<ReturnType<typeof deleteOrganization>>,
       TError,
       { organizationId: string },
       TContext
@@ -687,17 +642,12 @@ export const useDeleteOrganizationOrganizationsOrganizationIdDelete = <
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<
-    ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
-  >,
+  Awaited<ReturnType<typeof deleteOrganization>>,
   TError,
   { organizationId: string },
   TContext
 > => {
-  const mutationOptions =
-    getDeleteOrganizationOrganizationsOrganizationIdDeleteMutationOptions(
-      options,
-    );
+  const mutationOptions = getDeleteOrganizationMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

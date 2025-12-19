@@ -13,10 +13,10 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
-  BodyUploadCsvCsvUploadPost,
+  BodyUploadTransactionsCsv,
   HTTPValidationError,
-  UploadCsvCsvUploadPost200,
-  UploadCsvCsvUploadPostParams,
+  UploadTransactionsCsv200,
+  UploadTransactionsCsvParams,
 } from ".././model";
 
 import { customFetch } from "../../custom-fetch";
@@ -25,33 +25,33 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * CSVファイルをアップロードしてトランザクションを一括作成
- * @summary Upload Csv
+ * @summary Upload Transactions Csv
  */
-export type uploadCsvCsvUploadPostResponse200 = {
-  data: UploadCsvCsvUploadPost200;
+export type uploadTransactionsCsvResponse200 = {
+  data: UploadTransactionsCsv200;
   status: 200;
 };
 
-export type uploadCsvCsvUploadPostResponse422 = {
+export type uploadTransactionsCsvResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type uploadCsvCsvUploadPostResponseSuccess =
-  uploadCsvCsvUploadPostResponse200 & {
+export type uploadTransactionsCsvResponseSuccess =
+  uploadTransactionsCsvResponse200 & {
     headers: Headers;
   };
-export type uploadCsvCsvUploadPostResponseError =
-  uploadCsvCsvUploadPostResponse422 & {
+export type uploadTransactionsCsvResponseError =
+  uploadTransactionsCsvResponse422 & {
     headers: Headers;
   };
 
-export type uploadCsvCsvUploadPostResponse =
-  | uploadCsvCsvUploadPostResponseSuccess
-  | uploadCsvCsvUploadPostResponseError;
+export type uploadTransactionsCsvResponse =
+  | uploadTransactionsCsvResponseSuccess
+  | uploadTransactionsCsvResponseError;
 
-export const getUploadCsvCsvUploadPostUrl = (
-  params: UploadCsvCsvUploadPostParams,
+export const getUploadTransactionsCsvUrl = (
+  params: UploadTransactionsCsvParams,
 ) => {
   const normalizedParams = new URLSearchParams();
 
@@ -68,16 +68,16 @@ export const getUploadCsvCsvUploadPostUrl = (
     : `/csv/upload`;
 };
 
-export const uploadCsvCsvUploadPost = async (
-  bodyUploadCsvCsvUploadPost: BodyUploadCsvCsvUploadPost,
-  params: UploadCsvCsvUploadPostParams,
+export const uploadTransactionsCsv = async (
+  bodyUploadTransactionsCsv: BodyUploadTransactionsCsv,
+  params: UploadTransactionsCsvParams,
   options?: RequestInit,
-): Promise<uploadCsvCsvUploadPostResponse> => {
+): Promise<uploadTransactionsCsvResponse> => {
   const formData = new FormData();
-  formData.append(`file`, bodyUploadCsvCsvUploadPost.file);
+  formData.append(`file`, bodyUploadTransactionsCsv.file);
 
-  return customFetch<uploadCsvCsvUploadPostResponse>(
-    getUploadCsvCsvUploadPostUrl(params),
+  return customFetch<uploadTransactionsCsvResponse>(
+    getUploadTransactionsCsvUrl(params),
     {
       ...options,
       method: "POST",
@@ -86,24 +86,24 @@ export const uploadCsvCsvUploadPost = async (
   );
 };
 
-export const getUploadCsvCsvUploadPostMutationOptions = <
+export const getUploadTransactionsCsvMutationOptions = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof uploadCsvCsvUploadPost>>,
+    Awaited<ReturnType<typeof uploadTransactionsCsv>>,
     TError,
-    { data: BodyUploadCsvCsvUploadPost; params: UploadCsvCsvUploadPostParams },
+    { data: BodyUploadTransactionsCsv; params: UploadTransactionsCsvParams },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof uploadCsvCsvUploadPost>>,
+  Awaited<ReturnType<typeof uploadTransactionsCsv>>,
   TError,
-  { data: BodyUploadCsvCsvUploadPost; params: UploadCsvCsvUploadPostParams },
+  { data: BodyUploadTransactionsCsv; params: UploadTransactionsCsvParams },
   TContext
 > => {
-  const mutationKey = ["uploadCsvCsvUploadPost"];
+  const mutationKey = ["uploadTransactionsCsv"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -113,50 +113,47 @@ export const getUploadCsvCsvUploadPostMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof uploadCsvCsvUploadPost>>,
-    { data: BodyUploadCsvCsvUploadPost; params: UploadCsvCsvUploadPostParams }
+    Awaited<ReturnType<typeof uploadTransactionsCsv>>,
+    { data: BodyUploadTransactionsCsv; params: UploadTransactionsCsvParams }
   > = (props) => {
     const { data, params } = props ?? {};
 
-    return uploadCsvCsvUploadPost(data, params, requestOptions);
+    return uploadTransactionsCsv(data, params, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type UploadCsvCsvUploadPostMutationResult = NonNullable<
-  Awaited<ReturnType<typeof uploadCsvCsvUploadPost>>
+export type UploadTransactionsCsvMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadTransactionsCsv>>
 >;
-export type UploadCsvCsvUploadPostMutationBody = BodyUploadCsvCsvUploadPost;
-export type UploadCsvCsvUploadPostMutationError = HTTPValidationError;
+export type UploadTransactionsCsvMutationBody = BodyUploadTransactionsCsv;
+export type UploadTransactionsCsvMutationError = HTTPValidationError;
 
 /**
- * @summary Upload Csv
+ * @summary Upload Transactions Csv
  */
-export const useUploadCsvCsvUploadPost = <
+export const useUploadTransactionsCsv = <
   TError = HTTPValidationError,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof uploadCsvCsvUploadPost>>,
+      Awaited<ReturnType<typeof uploadTransactionsCsv>>,
       TError,
-      {
-        data: BodyUploadCsvCsvUploadPost;
-        params: UploadCsvCsvUploadPostParams;
-      },
+      { data: BodyUploadTransactionsCsv; params: UploadTransactionsCsvParams },
       TContext
     >;
     request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof uploadCsvCsvUploadPost>>,
+  Awaited<ReturnType<typeof uploadTransactionsCsv>>,
   TError,
-  { data: BodyUploadCsvCsvUploadPost; params: UploadCsvCsvUploadPostParams },
+  { data: BodyUploadTransactionsCsv; params: UploadTransactionsCsvParams },
   TContext
 > => {
-  const mutationOptions = getUploadCsvCsvUploadPostMutationOptions(options);
+  const mutationOptions = getUploadTransactionsCsvMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
