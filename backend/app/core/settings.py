@@ -9,11 +9,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = "sqlite+aiosqlite:///./app.db"
-    
+
     # Supabase configuration
     supabase_url: str = "http://127.0.0.1:54321"
     supabase_service_role_key: str | None = None
-    
+
     # Seed configuration
     seed_admin_email: str = "admin@example.com"
     seed_admin_password: str = "admin123456"
