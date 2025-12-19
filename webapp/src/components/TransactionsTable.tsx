@@ -62,6 +62,7 @@ export default function TransactionsTable({
               <tr className="text-left text-gray-600 border-b">
                 <th className="py-2 pr-4">日付</th>
                 <th className="py-2 pr-4">種別</th>
+                <th className="py-2 pr-4">カテゴリ</th>
                 <th className="py-2 pr-4">金額</th>
                 <th className="py-2 pr-4">摘要</th>
               </tr>
@@ -79,7 +80,10 @@ export default function TransactionsTable({
                       {date.toLocaleDateString("ja-JP")}
                     </td>
                     <td className="py-2 pr-4 whitespace-nowrap">{tx.type}</td>
-                    <td className="py-2 pr-4 pr-6 text-right whitespace-nowrap">
+                    <td className="py-2 pr-4 whitespace-nowrap">
+                      {tx.category}
+                    </td>
+                    <td className="py-2 pr-4 text-right whitespace-nowrap">
                       {amount.toLocaleString("ja-JP")}
                     </td>
                     <td className="py-2 pr-4">{tx.description}</td>
