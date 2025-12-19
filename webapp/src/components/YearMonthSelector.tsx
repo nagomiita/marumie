@@ -15,13 +15,19 @@ export default function YearMonthSelector({
 }: YearMonthSelectorProps) {
   const months = [
     { value: 0, label: "全期間" },
-    ...Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `${i + 1}月` })),
+    ...Array.from({ length: 12 }, (_, i) => ({
+      value: i + 1,
+      label: `${i + 1}月`,
+    })),
   ];
 
   return (
     <div className="flex flex-wrap gap-3 items-center">
-      <label className="text-sm font-semibold">対象年度</label>
+      <label htmlFor="year-select" className="text-sm font-semibold">
+        対象年度
+      </label>
       <select
+        id="year-select"
         value={year}
         onChange={(e) => onYearChange(Number(e.target.value))}
         className="border rounded px-3 py-1.5 text-sm"
@@ -32,9 +38,11 @@ export default function YearMonthSelector({
           </option>
         ))}
       </select>
-
-      <label className="text-sm font-semibold">月</label>
+      <label htmlFor="month-select" className="text-sm font-semibold">
+        月
+      </label>
       <select
+        id="month-select"
         value={month}
         onChange={(e) => onMonthChange(Number(e.target.value))}
         className="border rounded px-3 py-1.5 text-sm"

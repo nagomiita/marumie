@@ -13,6 +13,8 @@ dependencies = [
   "alembic~=1.13",
   "asyncpg~=0.29",
   "aiosqlite~=0.20",
+  "greenlet>=2.0",
+  "psycopg2-binary>=2.9.11",
 ]
 
 [project.optional-dependencies]
@@ -28,3 +30,8 @@ factory = true
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["alembic*"]

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { TransactionRead } from "@/api/client";
+import type { TransactionRead } from "@/client/api/generated/model";
 
 interface TransactionsTableProps {
   transactions: TransactionRead[];
@@ -8,12 +8,17 @@ interface TransactionsTableProps {
 
 const PAGE_SIZE = 25;
 
-export default function TransactionsTable({ transactions, selectedMonth }: TransactionsTableProps) {
+export default function TransactionsTable({
+  transactions,
+  selectedMonth,
+}: TransactionsTableProps) {
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     if (!selectedMonth) return transactions;
-    return transactions.filter((tx) => new Date(tx.transaction_date).getMonth() + 1 === selectedMonth);
+    return transactions.filter(
+      (tx) => new Date(tx.transaction_date).getMonth() + 1 === selectedMonth,
+    );
   }, [transactions, selectedMonth]);
 
   const start = (page - 1) * PAGE_SIZE;
@@ -23,7 +28,9 @@ export default function TransactionsTable({ transactions, selectedMonth }: Trans
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">取引一覧 ({filtered.length}件)</h3>
+        <h3 className="text-lg font-semibold">
+          取引一覧 ({filtered.length}件)
+        </h3>
         <div className="flex gap-2 items-center text-sm">
           <button
             type="button"
@@ -67,8 +74,12 @@ export default function TransactionsTable({ transactions, selectedMonth }: Trans
                   : Number(tx.credit_amount || tx.debit_amount);
                 return (
                   <tr key={tx.id} className="border-b last:border-b-0">
-                    <td className="py-2 pr-4 whitespace-nowrap">{date.toLocaleDateString("ja-JP")}</td>
-                    <td className="py-2 pr-4 whitespace-nowrap">{tx.transaction_type}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap">
+                      {date.toLocaleDateString("ja-JP")}
+                    </td>
+                    <td className="py-2 pr-4 whitespace-nowrap">
+                      {tx.transaction_type}
+                    </td>
                     <td className="py-2 pr-4 pr-6 text-right whitespace-nowrap">
                       {amount.toLocaleString("ja-JP")}
                     </td>

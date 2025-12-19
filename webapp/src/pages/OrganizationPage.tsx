@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { apiClient, type PoliticalOrganizationRead, type TransactionRead } from "@/api/client";
+import {
+  listPoliticalOrganizationsPoliticalOrganizationsGet,
+  listTransactionsPoliticalOrganizationsSlugTransactionsGet,
+} from "@/client/api/generated/political-organizations/political-organizations";
+import type {
+  PoliticalOrganizationRead,
+  TransactionRead,
+} from "@/client/api/generated/model";
 import Layout from "@/components/Layout";
 import MonthlyTrendChart from "@/components/MonthlyTrendChart";
 import SummaryCards from "@/components/SummaryCards";
@@ -11,22 +18,24 @@ export default function OrganizationPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [organizations, setOrganizations] = useState<PoliticalOrganizationRead[]>([]);
+  const [organizations, setOrganizations] = useState<
+    PoliticalOrganizationRead[]
+  >([]);
   const [transactions, setTransactions] = useState<TransactionRead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const financialYear = Number(searchParams.get("year")) || new Date().getFullYear();
+  const financialYear =
+    Number(searchParams.get("year")) || new Date().getFullYear();
   const month = Number(searchParams.get("month")) || 0;
 
   useEffect(() => {
-    apiClient
-      .listPoliticalOrganizations()
-      .then((data) => {
-        setOrganizations(data);
-        const exists = data.some((org) => org.slug === slug);
-        if (!exists && data[0]) {
-          navigate(`/o/${data[0].slug}`, { replace: true });
+    listPoliticalOrganizationsPoliticalOrganizationsGet()
+      .then((response) => {
+        setOrganizations(response.data);
+        const exists = response.data.some((org) => org.slug === slug);
+        if (!exists && response.data[0]) {
+          navigate(`/o/${response.data[0].slug}`, { replace: true });
         }
       })
       .catch((err) => setError(err.message));
@@ -35,16 +44,23 @@ export default function OrganizationPage() {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    apiClient
-      .listTransactions(slug, { financial_year: financialYear })
-      .then((data) => setTransactions(data))
+    listTransactionsPoliticalOrganizationsSlugTransactionsGet(slug, {
+      financial_year: financialYear,
+    })
+      .then((response) => {
+        if (Array.isArray(response.data)) {
+          setTransactions(response.data);
+        }
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [slug, financialYear]);
 
   const availableYears = useMemo(() => {
     const years = new Set<number>();
-    transactions.forEach((tx) => years.add(tx.financial_year));
+    transactions.forEach((tx) => {
+      years.add(tx.financial_year);
+    });
     if (years.size === 0) years.add(financialYear);
     return Array.from(years).sort((a, b) => b - a);
   }, [transactions, financialYear]);
@@ -77,9 +93,11 @@ export default function OrganizationPage() {
       (acc, tx) => {
         const amount = Number(tx.credit_amount || tx.debit_amount);
         if (tx.transaction_type.includes("expense")) {
-          return { ...acc, expense: acc.expense + amount };
+          acc.expense += amount;
+        } else {
+          acc.income += amount;
         }
-        return { ...acc, income: acc.income + amount };
+        return acc;
       },
       { income: 0, expense: 0 },
     );
@@ -134,7 +152,10 @@ export default function OrganizationPage() {
           <>
             <SummaryCards income={totals.income} expense={totals.expense} />
             <MonthlyTrendChart data={monthlyData} />
-            <TransactionsTable transactions={transactions} selectedMonth={month} />
+            <TransactionsTable
+              transactions={transactions}
+              selectedMonth={month}
+            />
           </>
         )}
       </div>
