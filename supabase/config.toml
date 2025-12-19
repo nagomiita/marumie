@@ -5,8 +5,9 @@
 project_id = "marumie"
 
 [api]
-enabled = false
+enabled = true
 # Port to use for the API URL.
+port = 54321
 
 [api.tls]
 # Enable HTTPS endpoints locally using a self-signed certificate.

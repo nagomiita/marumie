@@ -4,10 +4,18 @@
  * Marumie Backend
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
@@ -15,6 +23,7 @@ import type {
 import type {
   HTTPValidationError,
   ListOrganizationsOrganizationsGetParams,
+  OrganizationCreate,
   OrganizationRead,
 } from ".././model";
 
@@ -91,10 +100,12 @@ export const getListOrganizationsOrganizationsGetQueryOptions = <
 >(
   params?: ListOrganizationsOrganizationsGetParams,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
@@ -114,7 +125,7 @@ export const getListOrganizationsOrganizationsGetQueryOptions = <
     Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
     TError,
     TData
-  > & { queryKey: QueryKey };
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type ListOrganizationsOrganizationsGetQueryResult = NonNullable<
@@ -122,6 +133,79 @@ export type ListOrganizationsOrganizationsGetQueryResult = NonNullable<
 >;
 export type ListOrganizationsOrganizationsGetQueryError = HTTPValidationError;
 
+export function useListOrganizationsOrganizationsGet<
+  TData = Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+  TError = HTTPValidationError,
+>(
+  params: undefined | ListOrganizationsOrganizationsGetParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListOrganizationsOrganizationsGet<
+  TData = Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+  TError = HTTPValidationError,
+>(
+  params?: ListOrganizationsOrganizationsGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListOrganizationsOrganizationsGet<
+  TData = Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+  TError = HTTPValidationError,
+>(
+  params?: ListOrganizationsOrganizationsGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List Organizations
  */
@@ -132,28 +216,153 @@ export function useListOrganizationsOrganizationsGet<
 >(
   params?: ListOrganizationsOrganizationsGetParams,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof listOrganizationsOrganizationsGet>>,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
   const queryOptions = getListOrganizationsOrganizationsGetQueryOptions(
     params,
     options,
   );
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey;
-  };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey;
 
   return query;
 }
 
+/**
+ * @summary Create Organization
+ */
+export type createOrganizationOrganizationsPostResponse201 = {
+  data: OrganizationRead;
+  status: 201;
+};
+
+export type createOrganizationOrganizationsPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type createOrganizationOrganizationsPostResponseSuccess =
+  createOrganizationOrganizationsPostResponse201 & {
+    headers: Headers;
+  };
+export type createOrganizationOrganizationsPostResponseError =
+  createOrganizationOrganizationsPostResponse422 & {
+    headers: Headers;
+  };
+
+export type createOrganizationOrganizationsPostResponse =
+  | createOrganizationOrganizationsPostResponseSuccess
+  | createOrganizationOrganizationsPostResponseError;
+
+export const getCreateOrganizationOrganizationsPostUrl = () => {
+  return `/organizations`;
+};
+
+export const createOrganizationOrganizationsPost = async (
+  organizationCreate: OrganizationCreate,
+  options?: RequestInit,
+): Promise<createOrganizationOrganizationsPostResponse> => {
+  return customFetch<createOrganizationOrganizationsPostResponse>(
+    getCreateOrganizationOrganizationsPostUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(organizationCreate),
+    },
+  );
+};
+
+export const getCreateOrganizationOrganizationsPostMutationOptions = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+    TError,
+    { data: OrganizationCreate },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+  TError,
+  { data: OrganizationCreate },
+  TContext
+> => {
+  const mutationKey = ["createOrganizationOrganizationsPost"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+    { data: OrganizationCreate }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createOrganizationOrganizationsPost(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateOrganizationOrganizationsPostMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>
+>;
+export type CreateOrganizationOrganizationsPostMutationBody =
+  OrganizationCreate;
+export type CreateOrganizationOrganizationsPostMutationError =
+  HTTPValidationError;
+
+/**
+ * @summary Create Organization
+ */
+export const useCreateOrganizationOrganizationsPost = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+      TError,
+      { data: OrganizationCreate },
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createOrganizationOrganizationsPost>>,
+  TError,
+  { data: OrganizationCreate },
+  TContext
+> => {
+  const mutationOptions =
+    getCreateOrganizationOrganizationsPostMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
 /**
  * @summary Get Organization
  */
@@ -209,10 +418,12 @@ export const getGetOrganizationOrganizationsSlugGetQueryOptions = <
 >(
   slug: string,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
@@ -237,7 +448,7 @@ export const getGetOrganizationOrganizationsSlugGetQueryOptions = <
     Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
     TError,
     TData
-  > & { queryKey: QueryKey };
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetOrganizationOrganizationsSlugGetQueryResult = NonNullable<
@@ -245,6 +456,79 @@ export type GetOrganizationOrganizationsSlugGetQueryResult = NonNullable<
 >;
 export type GetOrganizationOrganizationsSlugGetQueryError = HTTPValidationError;
 
+export function useGetOrganizationOrganizationsSlugGet<
+  TData = Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+          TError,
+          Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetOrganizationOrganizationsSlugGet<
+  TData = Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+          TError,
+          Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetOrganizationOrganizationsSlugGet<
+  TData = Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get Organization
  */
@@ -255,24 +539,165 @@ export function useGetOrganizationOrganizationsSlugGet<
 >(
   slug: string,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrganizationOrganizationsSlugGet>>,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
   const queryOptions = getGetOrganizationOrganizationsSlugGetQueryOptions(
     slug,
     options,
   );
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey;
-  };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey;
 
   return query;
 }
+
+/**
+ * @summary Delete Organization
+ */
+export type deleteOrganizationOrganizationsOrganizationIdDeleteResponse204 = {
+  data: void;
+  status: 204;
+};
+
+export type deleteOrganizationOrganizationsOrganizationIdDeleteResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type deleteOrganizationOrganizationsOrganizationIdDeleteResponseSuccess =
+  deleteOrganizationOrganizationsOrganizationIdDeleteResponse204 & {
+    headers: Headers;
+  };
+export type deleteOrganizationOrganizationsOrganizationIdDeleteResponseError =
+  deleteOrganizationOrganizationsOrganizationIdDeleteResponse422 & {
+    headers: Headers;
+  };
+
+export type deleteOrganizationOrganizationsOrganizationIdDeleteResponse =
+  | deleteOrganizationOrganizationsOrganizationIdDeleteResponseSuccess
+  | deleteOrganizationOrganizationsOrganizationIdDeleteResponseError;
+
+export const getDeleteOrganizationOrganizationsOrganizationIdDeleteUrl = (
+  organizationId: string,
+) => {
+  return `/organizations/${organizationId}`;
+};
+
+export const deleteOrganizationOrganizationsOrganizationIdDelete = async (
+  organizationId: string,
+  options?: RequestInit,
+): Promise<deleteOrganizationOrganizationsOrganizationIdDeleteResponse> => {
+  return customFetch<deleteOrganizationOrganizationsOrganizationIdDeleteResponse>(
+    getDeleteOrganizationOrganizationsOrganizationIdDeleteUrl(organizationId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteOrganizationOrganizationsOrganizationIdDeleteMutationOptions =
+  <TError = HTTPValidationError, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
+      >,
+      TError,
+      { organizationId: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  }): UseMutationOptions<
+    Awaited<
+      ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
+    >,
+    TError,
+    { organizationId: string },
+    TContext
+  > => {
+    const mutationKey = ["deleteOrganizationOrganizationsOrganizationIdDelete"];
+    const { mutation: mutationOptions, request: requestOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, request: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
+      >,
+      { organizationId: string }
+    > = (props) => {
+      const { organizationId } = props ?? {};
+
+      return deleteOrganizationOrganizationsOrganizationIdDelete(
+        organizationId,
+        requestOptions,
+      );
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type DeleteOrganizationOrganizationsOrganizationIdDeleteMutationResult =
+  NonNullable<
+    Awaited<
+      ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
+    >
+  >;
+
+export type DeleteOrganizationOrganizationsOrganizationIdDeleteMutationError =
+  HTTPValidationError;
+
+/**
+ * @summary Delete Organization
+ */
+export const useDeleteOrganizationOrganizationsOrganizationIdDelete = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
+      >,
+      TError,
+      { organizationId: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<
+    ReturnType<typeof deleteOrganizationOrganizationsOrganizationIdDelete>
+  >,
+  TError,
+  { organizationId: string },
+  TContext
+> => {
+  const mutationOptions =
+    getDeleteOrganizationOrganizationsOrganizationIdDeleteMutationOptions(
+      options,
+    );
+
+  return useMutation(mutationOptions, queryClient);
+};

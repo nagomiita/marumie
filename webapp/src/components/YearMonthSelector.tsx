@@ -32,6 +32,7 @@ export default function YearMonthSelector({
         onChange={(e) => onYearChange(Number(e.target.value))}
         className="border rounded px-3 py-1.5 text-sm"
       >
+        <option value={0}>全期間</option>
         {years.map((y) => (
           <option key={y} value={y}>
             {y}年度

@@ -16,6 +16,8 @@ Requires-Dist: greenlet>=2.0
 Requires-Dist: psycopg2-binary>=2.9.11
 Requires-Dist: supabase~=2.0
 Requires-Dist: python-dotenv~=1.0
+Requires-Dist: python-multipart>=0.0.21
+Requires-Dist: polars>=1.36.1
 Provides-Extra: dev
 Requires-Dist: httpx~=0.27; extra == "dev"
 Requires-Dist: pytest~=8.3; extra == "dev"

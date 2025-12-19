@@ -13,5 +13,6 @@ export const OrganizationType = {
   household: "household",
   business: "business",
   nonprofit: "nonprofit",
+  political_organization: "political_organization",
   other: "other",
 } as const;

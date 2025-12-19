@@ -13,12 +13,20 @@ export const customFetch = async <T>(
 ): Promise<T> => {
   const fullUrl = `${getApiBaseUrl()}${url}`;
 
+  // FormDataの場合はContent-Typeを自動設定させる（boundary含む）
+  const isFormData = options?.body instanceof FormData;
+  const headers: Record<string, string> = {
+    ...(options?.headers as Record<string, string>),
+  };
+
+  // FormDataでない場合のみContent-Typeを設定
+  if (!isFormData && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const response = await fetch(fullUrl, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {

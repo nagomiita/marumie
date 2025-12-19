@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import type { TransactionRead } from "@/client/api/generated/model";
+import type { PersonalTransactionRead } from "@/client/api/generated/model";
 
 interface TransactionsTableProps {
-  transactions: TransactionRead[];
+  transactions: PersonalTransactionRead[];
   selectedMonth?: number;
 }
 
@@ -17,7 +17,7 @@ export default function TransactionsTable({
   const filtered = useMemo(() => {
     if (!selectedMonth) return transactions;
     return transactions.filter(
-      (tx) => new Date(tx.transaction_date).getMonth() + 1 === selectedMonth,
+      (tx) => new Date(tx.date).getMonth() + 1 === selectedMonth,
     );
   }, [transactions, selectedMonth]);
 
@@ -67,23 +67,22 @@ export default function TransactionsTable({
               </tr>
             </thead>
             <tbody>
-              {pageItems.map((tx) => {
-                const date = new Date(tx.transaction_date);
-                const amount = tx.transaction_type.includes("expense")
-                  ? -Number(tx.debit_amount)
-                  : Number(tx.credit_amount || tx.debit_amount);
+              {pageItems.map((tx: PersonalTransactionRead) => {
+                const date = new Date(tx.date);
+                const amount =
+                  tx.type === "expense"
+                    ? -Number(tx.amount)
+                    : Number(tx.amount);
                 return (
                   <tr key={tx.id} className="border-b last:border-b-0">
                     <td className="py-2 pr-4 whitespace-nowrap">
                       {date.toLocaleDateString("ja-JP")}
                     </td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
-                      {tx.transaction_type}
-                    </td>
+                    <td className="py-2 pr-4 whitespace-nowrap">{tx.type}</td>
                     <td className="py-2 pr-4 pr-6 text-right whitespace-nowrap">
                       {amount.toLocaleString("ja-JP")}
                     </td>
-                    <td className="py-2 pr-4">{tx.description || tx.label}</td>
+                    <td className="py-2 pr-4">{tx.description}</td>
                   </tr>
                 );
               })}

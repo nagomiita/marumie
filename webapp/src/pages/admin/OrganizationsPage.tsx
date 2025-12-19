@@ -1,64 +1,45 @@
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-
-interface Organization {
-  id: string;
-  name: string;
-  display_name: string;
-  type: string;
-  slug: string;
-  created_at: string;
-}
+import { useState } from "react";
+import {
+  useListOrganizationsOrganizationsGet,
+  useCreateOrganizationOrganizationsPost,
+  useDeleteOrganizationOrganizationsOrganizationIdDelete,
+} from "@/client/api/generated/organizations/organizations";
+import type { OrganizationType } from "@/client/api/generated/model";
 
 export default function OrganizationsPage() {
-  const { supabase } = useAuth();
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: organizations,
+    isLoading: loading,
+    refetch,
+  } = useListOrganizationsOrganizationsGet();
+  const createMutation = useCreateOrganizationOrganizationsPost();
+  const deleteMutation =
+    useDeleteOrganizationOrganizationsOrganizationIdDelete();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     display_name: "",
-    type: "household",
+    type: "household" as OrganizationType,
     slug: "",
     description: "",
   });
 
-  const loadOrganizations = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from("organizations")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setOrganizations(data || []);
-    } catch (error) {
-      console.error("Error loading organizations:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
-
-  useEffect(() => {
-    loadOrganizations();
-  }, [loadOrganizations]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.from("organizations").insert([formData]);
-
-      if (error) throw error;
+      await createMutation.mutateAsync({
+        data: formData,
+      });
 
       setShowForm(false);
       setFormData({
         name: "",
         display_name: "",
-        type: "household",
+        type: "household" as OrganizationType,
         slug: "",
         description: "",
       });
-      loadOrganizations();
+      refetch();
     } catch (error) {
       console.error("Error creating organization:", error);
       alert("組織の作成に失敗しました");
@@ -69,13 +50,10 @@ export default function OrganizationsPage() {
     if (!confirm("本当に削除しますか？")) return;
 
     try {
-      const { error } = await supabase
-        .from("organizations")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-      loadOrganizations();
+      await deleteMutation.mutateAsync({
+        organizationId: id,
+      });
+      refetch();
     } catch (error) {
       console.error("Error deleting organization:", error);
       alert("組織の削除に失敗しました");
@@ -168,7 +146,10 @@ export default function OrganizationsPage() {
                 id="org-type"
                 value={formData.type}
                 onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value })
+                  setFormData({
+                    ...formData,
+                    type: e.target.value as OrganizationType,
+                  })
                 }
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
@@ -228,31 +209,32 @@ export default function OrganizationsPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {organizations.map((org) => (
-              <tr key={org.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {org.display_name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {org.slug}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {org.type}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(org.created_at).toLocaleDateString("ja-JP")}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(org.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    削除
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {Array.isArray(organizations?.data) &&
+              organizations.data.map((org) => (
+                <tr key={org.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {org.display_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {org.slug}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {org.type}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(org.created_at).toLocaleDateString("ja-JP")}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(org.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      削除
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

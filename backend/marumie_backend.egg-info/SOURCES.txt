@@ -4,6 +4,7 @@ app/__init__.py
 app/main.py
 app/schemas.py
 app/api/__init__.py
+app/api/csv_upload.py
 app/api/health.py
 app/api/organizations.py
 app/api/personal_transactions.py

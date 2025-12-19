@@ -1,15 +1,30 @@
-import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { useListOrganizationsOrganizationsGet } from "@/client/api/generated/organizations/organizations";
+import { useUploadCsvCsvUploadPost } from "@/client/api/generated/csv/csv";
 
 export default function CSVUploadPage() {
-  const { supabase } = useAuth();
+  const { data: organizationsData } = useListOrganizationsOrganizationsGet();
+  const uploadMutation = useUploadCsvCsvUploadPost();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedOrgId, setSelectedOrgId] = useState<string>("");
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
     details?: unknown;
   } | null>(null);
+
+  // 最初の組織を自動選択
+  useEffect(() => {
+    if (
+      organizationsData?.data &&
+      Array.isArray(organizationsData.data) &&
+      organizationsData.data.length > 0 &&
+      !selectedOrgId
+    ) {
+      setSelectedOrgId(organizationsData.data[0].id);
+    }
+  }, [organizationsData, selectedOrgId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -22,83 +37,32 @@ export default function CSVUploadPage() {
     e.preventDefault();
     if (!file) return;
 
+    if (!selectedOrgId) {
+      setResult({
+        success: false,
+        message: "組織を選択してください",
+      });
+      return;
+    }
+
     setUploading(true);
     setResult(null);
 
     try {
-      // CSVファイルを読み込み
-      const text = await file.text();
-      const lines = text.split("\n").filter((line) => line.trim());
-
-      if (lines.length < 2) {
-        throw new Error("CSVファイルが空です");
-      }
-
-      // ヘッダー行を解析
-      const headers = lines[0].split(",").map((h) => h.trim());
-
-      // 必須カラムのチェック
-      const requiredColumns = [
-        "organization_id",
-        "date",
-        "category_key",
-        "label",
-        "amount",
-        "type",
-        "friendly_category",
-      ];
-      const missingColumns = requiredColumns.filter(
-        (col) => !headers.includes(col),
-      );
-
-      if (missingColumns.length > 0) {
-        throw new Error(
-          `必須カラムが不足しています: ${missingColumns.join(", ")}\n\n` +
-            `検出されたカラム: ${headers.join(", ")}\n\n` +
-            `このCSVファイルは異なるフォーマットのようです。正しいフォーマットのCSVファイルをアップロードしてください。`,
-        );
-      }
-
-      // データ行を解析してトランザクションを作成
-      const transactions = lines.slice(1).map((line, index) => {
-        const values = line.split(",").map((v) => v.trim());
-        const row: Record<string, string | number> = {};
-
-        headers.forEach((header, idx) => {
-          const value = values[idx] || "";
-          // 数値フィールドを適切に変換
-          if (header === "amount" && value) {
-            row[header] = Number(value);
-          } else {
-            row[header] = value;
-          }
-        });
-
-        // 必須フィールドのバリデーション
-        if (!row.organization_id || !row.date || !row.amount) {
-          throw new Error(
-            `行 ${index + 2}: 必須フィールド（organization_id, date, amount）が不足しています`,
-          );
-        }
-
-        return row;
+      const response = await uploadMutation.mutateAsync({
+        data: { file },
+        params: { organization_id: selectedOrgId },
       });
-
-      // Supabaseにデータを挿入
-      const { data, error } = await supabase
-        .from("transactions")
-        .insert(transactions);
-
-      if (error) {
-        throw new Error(
-          `データベースエラー: ${error.message}\n\nヒント: organization_idが正しいか、日付フォーマットがYYYY-MM-DDになっているか確認してください。`,
-        );
-      }
 
       setResult({
         success: true,
-        message: `${transactions.length}件のトランザクションをインポートしました`,
-        details: data,
+        message:
+          (response.data &&
+          "message" in response.data &&
+          typeof response.data.message === "string"
+            ? response.data.message
+            : undefined) || "アップロード成功",
+        details: response.data,
       });
       setFile(null);
 
@@ -107,14 +71,28 @@ export default function CSVUploadPage() {
         'input[type="file"]',
       ) as HTMLInputElement;
       if (fileInput) fileInput.value = "";
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading CSV:", error);
+
+      // エラーの詳細を取得
+      let errorMessage = "CSVのアップロードに失敗しました";
+      if (error?.response) {
+        try {
+          const errorData = await error.response.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          errorMessage = `HTTP ${error.response.status}: ${error.response.statusText}`;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       setResult({
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "CSVのアップロードに失敗しました",
+        message: errorMessage,
+        details: error?.response
+          ? await error.response.clone().text()
+          : undefined,
       });
     } finally {
       setUploading(false);
@@ -131,20 +109,60 @@ export default function CSVUploadPage() {
             CSVフォーマット
           </h2>
           <p className="text-sm text-gray-600 mb-4">
-            以下のカラムを含むCSVファイルをアップロードしてください:
+            以下のカラムを含むCSVファイルをアップロードしてください（日本語・英語どちらでも可）:
           </p>
-          <div className="bg-gray-50 p-4 rounded-md">
-            <code className="text-sm">
-              organization_id, date, category_key, label, amount, type,
-              friendly_category
-            </code>
+          <div className="bg-gray-50 p-4 rounded-md space-y-2">
+            <div>
+              <strong className="text-sm">日本語ヘッダー:</strong>
+              <code className="text-sm block mt-1">
+                日付,カテゴリ,サブカテゴリ,金額,収支区分,支払方法,摘要,メモ
+              </code>
+            </div>
+            <div>
+              <strong className="text-sm">英語ヘッダー:</strong>
+              <code className="text-sm block mt-1">
+                organization_id, date, category_key, label, amount, type,
+                friendly_category
+              </code>
+            </div>
           </div>
           <p className="text-sm text-gray-600 mt-2">
             ※ ヘッダー行を必ず含めてください
+            <br />※ 日付は YYYY/MM/DD または YYYY-MM-DD 形式で入力してください
+            <br />※
+            収支区分は「支出」「収入」「振替」のいずれかを指定してください
           </p>
         </div>
 
         <form onSubmit={handleUpload} className="space-y-4">
+          <div>
+            <label
+              htmlFor="organization"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              組織を選択
+            </label>
+            <select
+              id="organization"
+              value={selectedOrgId}
+              onChange={(e) => setSelectedOrgId(e.target.value)}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            >
+              {!organizationsData?.data ||
+              !Array.isArray(organizationsData.data) ||
+              organizationsData.data.length === 0 ? (
+                <option value="">組織がありません</option>
+              ) : (
+                organizationsData.data.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.display_name || org.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
           <div>
             <label
               htmlFor="csv-file"
@@ -177,7 +195,7 @@ export default function CSVUploadPage() {
 
           <button
             type="submit"
-            disabled={!file || uploading}
+            disabled={!file || uploading || !selectedOrgId}
             className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {uploading ? "アップロード中..." : "アップロード"}

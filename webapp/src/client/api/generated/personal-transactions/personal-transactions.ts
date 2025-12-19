@@ -6,8 +6,13 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
@@ -93,12 +98,14 @@ export const getListPersonalTransactionsPersonalTransactionsGetQueryOptions = <
 >(
   params?: ListPersonalTransactionsPersonalTransactionsGetParams,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-      >,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+        >,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
@@ -121,7 +128,7 @@ export const getListPersonalTransactionsPersonalTransactionsGetQueryOptions = <
     Awaited<ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>>,
     TError,
     TData
-  > & { queryKey: QueryKey };
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type ListPersonalTransactionsPersonalTransactionsGetQueryResult =
@@ -131,6 +138,99 @@ export type ListPersonalTransactionsPersonalTransactionsGetQueryResult =
 export type ListPersonalTransactionsPersonalTransactionsGetQueryError =
   HTTPValidationError;
 
+export function useListPersonalTransactionsPersonalTransactionsGet<
+  TData = Awaited<
+    ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  params: undefined | ListPersonalTransactionsPersonalTransactionsGetParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<
+            ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+          >,
+          TError,
+          Awaited<
+            ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListPersonalTransactionsPersonalTransactionsGet<
+  TData = Awaited<
+    ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<
+            ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+          >,
+          TError,
+          Awaited<
+            ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListPersonalTransactionsPersonalTransactionsGet<
+  TData = Awaited<
+    ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  params?: ListPersonalTransactionsPersonalTransactionsGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List Personal Transactions
  */
@@ -143,25 +243,31 @@ export function useListPersonalTransactionsPersonalTransactionsGet<
 >(
   params?: ListPersonalTransactionsPersonalTransactionsGetParams,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
-      >,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPersonalTransactionsPersonalTransactionsGet>
+        >,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
   const queryOptions =
     getListPersonalTransactionsPersonalTransactionsGetQueryOptions(
       params,
       options,
     );
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey;
-  };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey;
 

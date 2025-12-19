@@ -52,6 +52,12 @@ export default function AdminLayout() {
                   組織管理
                 </a>
                 <a
+                  href="/admin/transactions"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  トランザクション
+                </a>
+                <a
                   href="/admin/users"
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >

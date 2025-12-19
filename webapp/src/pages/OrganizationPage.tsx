@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  listPoliticalOrganizationsPoliticalOrganizationsGet,
-  listTransactionsPoliticalOrganizationsSlugTransactionsGet,
-} from "@/client/api/generated/political-organizations/political-organizations";
-import type {
-  PoliticalOrganizationRead,
-  TransactionRead,
-} from "@/client/api/generated/model";
+  useGetOrganizationOrganizationsSlugGet,
+  useListOrganizationsOrganizationsGet,
+} from "@/client/api/generated/organizations/organizations";
+import { useListPersonalTransactionsPersonalTransactionsGet } from "@/client/api/generated/personal-transactions/personal-transactions";
+import type { PersonalTransactionRead } from "@/client/api/generated/model";
 import Layout from "@/components/Layout";
 import MonthlyTrendChart from "@/components/MonthlyTrendChart";
 import SummaryCards from "@/components/SummaryCards";
@@ -18,48 +16,62 @@ export default function OrganizationPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [organizations, setOrganizations] = useState<
-    PoliticalOrganizationRead[]
-  >([]);
-  const [transactions, setTransactions] = useState<TransactionRead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const financialYear =
     Number(searchParams.get("year")) || new Date().getFullYear();
   const month = Number(searchParams.get("month")) || 0;
 
-  useEffect(() => {
-    listPoliticalOrganizationsPoliticalOrganizationsGet()
-      .then((response) => {
-        setOrganizations(response.data);
-        const exists = response.data.some((org) => org.slug === slug);
-        if (!exists && response.data[0]) {
-          navigate(`/o/${response.data[0].slug}`, { replace: true });
-        }
-      })
-      .catch((err) => setError(err.message));
-  }, [navigate, slug]);
+  // 組織一覧を取得（リダイレクト用）
+  const { data: orgsData } = useListOrganizationsOrganizationsGet();
 
+  // 現在の組織を取得
+  const {
+    data: orgData,
+    isLoading: orgLoading,
+    error: orgError,
+  } = useGetOrganizationOrganizationsSlugGet(slug || "", {
+    query: { enabled: !!slug },
+  });
+
+  const organization = orgData?.data;
+
+  // トランザクションを取得
+  const {
+    data: txData,
+    isLoading: txLoading,
+    error: txError,
+  } = useListPersonalTransactionsPersonalTransactionsGet(
+    {
+      organization_id:
+        organization && "id" in organization ? organization.id : undefined,
+      year: financialYear === 0 ? undefined : financialYear,
+      month: month || undefined,
+      limit: 500,
+    },
+    { query: { enabled: !!organization && "id" in organization } },
+  );
+
+  const transactions = Array.isArray(txData?.data) ? txData.data : [];
+  const loading = orgLoading || txLoading;
+  const error = orgError || txError;
+
+  // 組織が見つからない場合、最初の組織にリダイレクト
   useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    listTransactionsPoliticalOrganizationsSlugTransactionsGet(slug, {
-      financial_year: financialYear,
-    })
-      .then((response) => {
-        if (Array.isArray(response.data)) {
-          setTransactions(response.data);
-        }
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [slug, financialYear]);
+    if (
+      orgError &&
+      orgsData?.data &&
+      Array.isArray(orgsData.data) &&
+      orgsData.data.length > 0
+    ) {
+      navigate(`/o/${orgsData.data[0].slug}`, { replace: true });
+    }
+  }, [orgError, orgsData, navigate]);
 
   const availableYears = useMemo(() => {
     const years = new Set<number>();
-    transactions.forEach((tx) => {
-      years.add(tx.financial_year);
+    transactions.forEach((tx: PersonalTransactionRead) => {
+      const date = new Date(tx.date);
+      years.add(date.getFullYear());
     });
     if (years.size === 0) years.add(financialYear);
     return Array.from(years).sort((a, b) => b - a);
@@ -67,14 +79,14 @@ export default function OrganizationPage() {
 
   const monthlyData = useMemo(() => {
     const bucket = new Map<string, { income: number; expense: number }>();
-    transactions.forEach((tx) => {
-      const date = new Date(tx.transaction_date);
+    transactions.forEach((tx: PersonalTransactionRead) => {
+      const date = new Date(tx.date);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
       const current = bucket.get(key) || { income: 0, expense: 0 };
-      const amount = Number(tx.credit_amount || tx.debit_amount);
-      if (tx.transaction_type.includes("expense")) {
+      const amount = Number(tx.amount);
+      if (tx.type === "expense") {
         current.expense += amount;
-      } else {
+      } else if (tx.type === "income") {
         current.income += amount;
       }
       bucket.set(key, current);
@@ -90,11 +102,14 @@ export default function OrganizationPage() {
 
   const totals = useMemo(() => {
     return transactions.reduce(
-      (acc, tx) => {
-        const amount = Number(tx.credit_amount || tx.debit_amount);
-        if (tx.transaction_type.includes("expense")) {
+      (
+        acc: { income: number; expense: number },
+        tx: PersonalTransactionRead,
+      ) => {
+        const amount = Number(tx.amount);
+        if (tx.type === "expense") {
           acc.expense += amount;
-        } else {
+        } else if (tx.type === "income") {
           acc.income += amount;
         }
         return acc;
@@ -125,14 +140,24 @@ export default function OrganizationPage() {
   };
 
   if (!slug) {
-    return <p className="text-gray-700">組織が選択されていません。</p>;
+    return (
+      <Layout>
+        <p className="text-gray-700">組織が選択されていません。</p>
+      </Layout>
+    );
   }
 
   return (
     <Layout>
       <div className="space-y-6">
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-gray-500">{slug}</p>
+          <p className="text-sm text-gray-500">
+            {organization && "display_name" in organization
+              ? String(organization.display_name)
+              : organization && "name" in organization
+                ? String(organization.name)
+                : slug}
+          </p>
           <h2 className="text-3xl font-bold text-gray-900">ダッシュボード</h2>
         </div>
 
@@ -147,7 +172,9 @@ export default function OrganizationPage() {
         {loading ? (
           <p className="text-gray-700">読込中...</p>
         ) : error ? (
-          <p className="text-red-600">{error}</p>
+          <p className="text-red-600">
+            データ取得に失敗しました: {String(error)}
+          </p>
         ) : (
           <>
             <SummaryCards income={totals.income} expense={totals.expense} />

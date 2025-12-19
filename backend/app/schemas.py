@@ -6,7 +6,12 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from .models.enums import OrganizationType, PersonalTransactionType, TransactionType, UserRole
+from .models.enums import (
+    OrganizationType,
+    PersonalTransactionType,
+    TransactionType,
+    UserRole,
+)
 
 
 class BaseSchema(BaseModel):
@@ -20,6 +25,16 @@ class UserRead(BaseSchema):
     role: UserRole
     created_at: datetime
     updated_at: datetime
+
+
+class OrganizationCreate(BaseSchema):
+    name: str
+    display_name: str
+    description: str | None = None
+    type: OrganizationType
+    slug: str
+    user_id: str | None = None
+    settings: dict[str, Any] | None = None
 
 
 class OrganizationRead(BaseSchema):

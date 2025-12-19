@@ -6,8 +6,13 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
@@ -69,12 +74,14 @@ export const getListPoliticalOrganizationsPoliticalOrganizationsGetQueryOptions 
     >,
     TError = unknown,
   >(options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
-      >,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
+        >,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   }) => {
@@ -100,7 +107,7 @@ export const getListPoliticalOrganizationsPoliticalOrganizationsGetQueryOptions 
       >,
       TError,
       TData
-    > & { queryKey: QueryKey };
+    > & { queryKey: DataTag<QueryKey, TData, TError> };
   };
 
 export type ListPoliticalOrganizationsPoliticalOrganizationsGetQueryResult =
@@ -112,6 +119,104 @@ export type ListPoliticalOrganizationsPoliticalOrganizationsGetQueryResult =
 export type ListPoliticalOrganizationsPoliticalOrganizationsGetQueryError =
   unknown;
 
+export function useListPoliticalOrganizationsPoliticalOrganizationsGet<
+  TData = Awaited<
+    ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
+  >,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<
+            ReturnType<
+              typeof listPoliticalOrganizationsPoliticalOrganizationsGet
+            >
+          >,
+          TError,
+          Awaited<
+            ReturnType<
+              typeof listPoliticalOrganizationsPoliticalOrganizationsGet
+            >
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListPoliticalOrganizationsPoliticalOrganizationsGet<
+  TData = Awaited<
+    ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
+  >,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<
+            ReturnType<
+              typeof listPoliticalOrganizationsPoliticalOrganizationsGet
+            >
+          >,
+          TError,
+          Awaited<
+            ReturnType<
+              typeof listPoliticalOrganizationsPoliticalOrganizationsGet
+            >
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListPoliticalOrganizationsPoliticalOrganizationsGet<
+  TData = Awaited<
+    ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
+  >,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List Political Organizations
  */
@@ -121,22 +226,30 @@ export function useListPoliticalOrganizationsPoliticalOrganizationsGet<
     ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
   >,
   TError = unknown,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<
-      ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
-    >,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof listPoliticalOrganizationsPoliticalOrganizationsGet>
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
   const queryOptions =
     getListPoliticalOrganizationsPoliticalOrganizationsGetQueryOptions(options);
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey;
-  };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -202,14 +315,16 @@ export const getGetPoliticalOrganizationPoliticalOrganizationsSlugGetQueryOption
   >(
     slug: string,
     options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
-          >
-        >,
-        TError,
-        TData
+      query?: Partial<
+        UseQueryOptions<
+          Awaited<
+            ReturnType<
+              typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+            >
+          >,
+          TError,
+          TData
+        >
       >;
       request?: SecondParameter<typeof customFetch>;
     },
@@ -241,7 +356,7 @@ export const getGetPoliticalOrganizationPoliticalOrganizationsSlugGetQueryOption
       >,
       TError,
       TData
-    > & { queryKey: QueryKey };
+    > & { queryKey: DataTag<QueryKey, TData, TError> };
   };
 
 export type GetPoliticalOrganizationPoliticalOrganizationsSlugGetQueryResult =
@@ -253,6 +368,113 @@ export type GetPoliticalOrganizationPoliticalOrganizationsSlugGetQueryResult =
 export type GetPoliticalOrganizationPoliticalOrganizationsSlugGetQueryError =
   HTTPValidationError;
 
+export function useGetPoliticalOrganizationPoliticalOrganizationsSlugGet<
+  TData = Awaited<
+    ReturnType<typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+          >
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<
+            ReturnType<
+              typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+            >
+          >,
+          TError,
+          Awaited<
+            ReturnType<
+              typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+            >
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetPoliticalOrganizationPoliticalOrganizationsSlugGet<
+  TData = Awaited<
+    ReturnType<typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+          >
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<
+            ReturnType<
+              typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+            >
+          >,
+          TError,
+          Awaited<
+            ReturnType<
+              typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+            >
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetPoliticalOrganizationPoliticalOrganizationsSlugGet<
+  TData = Awaited<
+    ReturnType<typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+          >
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get Political Organization
  */
@@ -265,25 +487,33 @@ export function useGetPoliticalOrganizationPoliticalOrganizationsSlugGet<
 >(
   slug: string,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet>
-      >,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof getPoliticalOrganizationPoliticalOrganizationsSlugGet
+          >
+        >,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
   const queryOptions =
     getGetPoliticalOrganizationPoliticalOrganizationsSlugGetQueryOptions(
       slug,
       options,
     );
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey;
-  };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -377,14 +607,16 @@ export const getListTransactionsPoliticalOrganizationsSlugTransactionsGetQueryOp
     slug: string,
     params?: ListTransactionsPoliticalOrganizationsSlugTransactionsGetParams,
     options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
-          >
-        >,
-        TError,
-        TData
+      query?: Partial<
+        UseQueryOptions<
+          Awaited<
+            ReturnType<
+              typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+            >
+          >,
+          TError,
+          TData
+        >
       >;
       request?: SecondParameter<typeof customFetch>;
     },
@@ -423,7 +655,7 @@ export const getListTransactionsPoliticalOrganizationsSlugTransactionsGetQueryOp
       >,
       TError,
       TData
-    > & { queryKey: QueryKey };
+    > & { queryKey: DataTag<QueryKey, TData, TError> };
   };
 
 export type ListTransactionsPoliticalOrganizationsSlugTransactionsGetQueryResult =
@@ -437,6 +669,118 @@ export type ListTransactionsPoliticalOrganizationsSlugTransactionsGetQueryResult
 export type ListTransactionsPoliticalOrganizationsSlugTransactionsGetQueryError =
   HTTPValidationError;
 
+export function useListTransactionsPoliticalOrganizationsSlugTransactionsGet<
+  TData = Awaited<
+    ReturnType<typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  params:
+    | undefined
+    | ListTransactionsPoliticalOrganizationsSlugTransactionsGetParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+          >
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<
+            ReturnType<
+              typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+            >
+          >,
+          TError,
+          Awaited<
+            ReturnType<
+              typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+            >
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListTransactionsPoliticalOrganizationsSlugTransactionsGet<
+  TData = Awaited<
+    ReturnType<typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  params?: ListTransactionsPoliticalOrganizationsSlugTransactionsGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+          >
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<
+            ReturnType<
+              typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+            >
+          >,
+          TError,
+          Awaited<
+            ReturnType<
+              typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+            >
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListTransactionsPoliticalOrganizationsSlugTransactionsGet<
+  TData = Awaited<
+    ReturnType<typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet>
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  params?: ListTransactionsPoliticalOrganizationsSlugTransactionsGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+          >
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List Transactions
  */
@@ -450,18 +794,23 @@ export function useListTransactionsPoliticalOrganizationsSlugTransactionsGet<
   slug: string,
   params?: ListTransactionsPoliticalOrganizationsSlugTransactionsGetParams,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
-        >
-      >,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof listTransactionsPoliticalOrganizationsSlugTransactionsGet
+          >
+        >,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
   const queryOptions =
     getListTransactionsPoliticalOrganizationsSlugTransactionsGetQueryOptions(
       slug,
@@ -469,9 +818,10 @@ export function useListTransactionsPoliticalOrganizationsSlugTransactionsGet<
       options,
     );
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey;
-  };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -570,14 +920,16 @@ export const getListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGe
     slug: string,
     params?: ListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetParams,
     options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
-          >
-        >,
-        TError,
-        TData
+      query?: Partial<
+        UseQueryOptions<
+          Awaited<
+            ReturnType<
+              typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+            >
+          >,
+          TError,
+          TData
+        >
       >;
       request?: SecondParameter<typeof customFetch>;
     },
@@ -617,7 +969,7 @@ export const getListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGe
       >,
       TError,
       TData
-    > & { queryKey: QueryKey };
+    > & { queryKey: DataTag<QueryKey, TData, TError> };
   };
 
 export type ListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetQueryResult =
@@ -631,6 +983,124 @@ export type ListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetQue
 export type ListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetQueryError =
   HTTPValidationError;
 
+export function useListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet<
+  TData = Awaited<
+    ReturnType<
+      typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+    >
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  params:
+    | undefined
+    | ListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+          >
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<
+            ReturnType<
+              typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+            >
+          >,
+          TError,
+          Awaited<
+            ReturnType<
+              typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+            >
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet<
+  TData = Awaited<
+    ReturnType<
+      typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+    >
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  params?: ListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+          >
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<
+            ReturnType<
+              typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+            >
+          >,
+          TError,
+          Awaited<
+            ReturnType<
+              typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+            >
+          >
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet<
+  TData = Awaited<
+    ReturnType<
+      typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+    >
+  >,
+  TError = HTTPValidationError,
+>(
+  slug: string,
+  params?: ListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+          >
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List Balance Snapshots
  */
@@ -646,18 +1116,23 @@ export function useListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshot
   slug: string,
   params?: ListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetParams,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
-        >
-      >,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<
+            typeof listBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGet
+          >
+        >,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
   const queryOptions =
     getListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshotsGetQueryOptions(
       slug,
@@ -665,9 +1140,10 @@ export function useListBalanceSnapshotsPoliticalOrganizationsSlugBalanceSnapshot
       options,
     );
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey;
-  };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey;
 

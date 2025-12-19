@@ -7,14 +7,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..core.db import get_db_session
 from ..models.entities import Organization
 from ..models.enums import OrganizationType
-from ..schemas import OrganizationRead
+from ..schemas import OrganizationCreate, OrganizationRead
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
 
 @router.get("", response_model=list[OrganizationRead])
 async def list_organizations(
-    organization_type: OrganizationType | None = Query(None, description="Filter by organization type"),
+    organization_type: OrganizationType | None = Query(
+        None, description="Filter by organization type"
+    ),
     user_id: str | None = Query(None, description="Filter by owner user id"),
     session: AsyncSession = Depends(get_db_session),
 ) -> list[OrganizationRead]:
@@ -40,3 +42,28 @@ async def get_organization(
     if organization is None:
         raise HTTPException(status_code=404, detail="Organization not found")
     return OrganizationRead.model_validate(organization)
+
+
+@router.post("", response_model=OrganizationRead, status_code=201)
+async def create_organization(
+    organization_data: OrganizationCreate,
+    session: AsyncSession = Depends(get_db_session),
+) -> OrganizationRead:
+    organization = Organization(**organization_data.model_dump())
+    session.add(organization)
+    await session.commit()
+    await session.refresh(organization)
+    return OrganizationRead.model_validate(organization)
+
+
+@router.delete("/{organization_id}", status_code=204)
+async def delete_organization(
+    organization_id: str,
+    session: AsyncSession = Depends(get_db_session),
+) -> None:
+    stmt = select(Organization).where(Organization.id == organization_id)
+    organization = (await session.execute(stmt)).scalar_one_or_none()
+    if organization is None:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    await session.delete(organization)
+    await session.commit()
