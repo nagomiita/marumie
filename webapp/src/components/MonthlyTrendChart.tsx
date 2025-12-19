@@ -47,7 +47,7 @@ export default function MonthlyTrendChart({ data }: MonthlyTrendChartProps) {
               formatter: (val: number) => `${Math.round(val / 10000)}万円`,
             },
           },
-          plotOptions: { bar: { columnWidth: "45%" } },
+          plotOptions: { bar: { columnWidth: "65%" } },
         }}
       />
     </div>
