@@ -7,7 +7,7 @@
   .font-english {
     font-family: var(--font-noto-sans, "Noto Sans", sans-serif);
   }
-  
+
   /* Screen Reader Only - スクリーンリーダー専用コンテンツ */
   .sr-only {
     position: absolute;

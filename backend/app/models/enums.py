@@ -4,25 +4,26 @@ import enum
 
 
 class TransactionType(str, enum.Enum):
-    income = "income"
-    expense = "expense"
-    non_cash_journal = "non_cash_journal"
-    offset_income = "offset_income"
-    offset_expense = "offset_expense"
+    INCOME = "income"
+    EXPENSE = "expense"
+    NON_CASH_JOURNAL = "non_cash_journal"
+    OFFSET_INCOME = "offset_income"
+    OFFSET_EXPENSE = "offset_expense"
 
 
 class PersonalTransactionType(str, enum.Enum):
-    income = "income"
-    expense = "expense"
+    INCOME = "income"
+    EXPENSE = "expense"
 
 
 class UserRole(str, enum.Enum):
-    admin = "admin"
-    user = "user"
+    ADMIN = "admin"
+    USER = "user"
 
 
 class OrganizationType(str, enum.Enum):
-    household = "household"
-    business = "business"
-    nonprofit = "nonprofit"
-    other = "other"
+    HOUSEHOLD = "household"
+    BUSINESS = "business"
+    NONPROFIT = "nonprofit"
+    POLITICAL_ORGANIZATION = "political_organization"
+    OTHER = "other"

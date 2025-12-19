@@ -30,7 +30,11 @@ export default function MonthlyTrendChart({ data }: MonthlyTrendChartProps) {
       series={[
         { name: "収入", type: "column", data: income },
         { name: "支出", type: "column", data: expense },
-        { name: "収支", type: "line", data: data.map((d) => d.income - d.expense) },
+        {
+          name: "収支",
+          type: "line",
+          data: data.map((d) => d.income - d.expense),
+        },
       ]}
       options={{
         chart: { stacked: true, toolbar: { show: false } },

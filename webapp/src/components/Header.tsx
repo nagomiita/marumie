@@ -12,7 +12,10 @@ export default function Header() {
             まる見え家計簿
           </Link>
           <nav className="flex gap-4 text-sm font-semibold text-gray-700">
-            <Link to="/" className={!isHome ? "hover:text-teal-700" : "text-teal-700"}>
+            <Link
+              to="/"
+              className={!isHome ? "hover:text-teal-700" : "text-teal-700"}
+            >
               ホーム
             </Link>
           </nav>

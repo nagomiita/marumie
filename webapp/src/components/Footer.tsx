@@ -10,7 +10,9 @@ export default function Footer() {
             プライバシーポリシー
           </a>
         </div>
-        <p className="text-gray-600 text-sm">© 2025 まる見え家計簿 All rights Reserved</p>
+        <p className="text-gray-600 text-sm">
+          © 2025 まる見え家計簿 All rights Reserved
+        </p>
       </div>
     </footer>
   );

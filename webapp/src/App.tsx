@@ -17,7 +17,10 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/o/:slug" element={<OrganizationPage />} />
-      <Route path="/privacy" element={<SimplePage title="プライバシーポリシー" />} />
+      <Route
+        path="/privacy"
+        element={<SimplePage title="プライバシーポリシー" />}
+      />
       <Route path="/terms" element={<SimplePage title="利用規約" />} />
     </Routes>
   );
