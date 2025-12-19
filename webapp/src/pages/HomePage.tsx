@@ -16,13 +16,10 @@ export default function HomePage() {
     listPoliticalOrganizationsPoliticalOrganizationsGet()
       .then((response) => {
         setOrganizations(response.data);
-        if (response.data[0]) {
-          navigate(`/o/${response.data[0].slug}`, { replace: true });
-        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [navigate]);
+  }, []);
 
   const content = (() => {
     if (loading) return <p className="text-gray-700">読込中...</p>;
@@ -33,7 +30,15 @@ export default function HomePage() {
 
     return (
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold">組織一覧</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">組織一覧</h2>
+          <Link
+            to="/admin/login"
+            className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition"
+          >
+            管理画面
+          </Link>
+        </div>
         <div className="grid md:grid-cols-2 gap-4">
           {organizations.map((org) => (
             <Link
