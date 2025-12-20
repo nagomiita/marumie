@@ -25,7 +25,7 @@ export default function PayeeRanking({
   transactions,
   categories = [],
   selectedMonth,
-  limit = 20,
+  limit = 10,
 }: PayeeRankingProps) {
   // デフォルトで「投資」カテゴリを除外
   const defaultExcludedCategories = useMemo(() => {
