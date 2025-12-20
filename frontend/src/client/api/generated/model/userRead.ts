@@ -10,6 +10,7 @@ export interface UserRead {
   id: string;
   auth_id: string;
   email: string;
+  name: string;
   role: EnumUserRole;
   created_at: string;
   updated_at: string;

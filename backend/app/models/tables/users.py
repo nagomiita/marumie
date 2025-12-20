@@ -25,6 +25,7 @@ class User(AbstractTableClass):
         email: Mapped[str] = mapped_column(
             String(255), unique=True, nullable=False, comment="メールアドレス"
         )
+        name: Mapped[str] = mapped_column(String(255), nullable=False, comment="表示名")
         role: Mapped[EnumUserRole] = mapped_column(
             Enum(
                 EnumUserRole,

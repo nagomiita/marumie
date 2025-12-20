@@ -12,6 +12,7 @@ import type { UserRead } from "@/client/api/generated/model";
 import { EnumUserRole } from "@/client/api/generated/model";
 
 interface UserCreateForm {
+  name: string;
   email: string;
   password: string;
   role: EnumUserRole;
@@ -21,6 +22,7 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<UserCreateForm>({
+    name: "",
     email: "",
     password: "",
     role: EnumUserRole.user,
@@ -46,6 +48,7 @@ export default function UsersPage() {
   const handleCancel = () => {
     setShowForm(false);
     setFormData({
+      name: "",
       email: "",
       password: "",
       role: EnumUserRole.user,
@@ -53,6 +56,12 @@ export default function UsersPage() {
   };
 
   const formFields: FormField<UserCreateForm>[] = [
+    {
+      name: "name",
+      label: "名前",
+      type: "text",
+      required: true,
+    },
     {
       name: "email",
       label: "メールアドレス",
@@ -111,12 +120,21 @@ export default function UsersPage() {
 
   const columns: Column<UserRead>[] = [
     {
+      key: "name",
+      label: "名前",
+      sortable: true,
+      filterable: true,
+      filterType: "text",
+      render: (user) => (
+        <span className="font-medium text-gray-900">{user.name}</span>
+      ),
+    },
+    {
       key: "email",
       label: "メールアドレス",
       sortable: true,
-      render: (user) => (
-        <span className="font-medium text-gray-900">{user.email}</span>
-      ),
+      filterable: true,
+      filterType: "text",
     },
     {
       key: "role",

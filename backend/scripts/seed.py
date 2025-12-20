@@ -34,6 +34,7 @@ load_dotenv()
 async def seed_users():
     """Seed default users with Supabase authentication"""
     # Default credentials for local development
+    ADMIN_NAME = os.getenv("SEED_ADMIN_NAME", "admin")
     ADMIN_EMAIL = os.getenv("SEED_ADMIN_EMAIL", "admin@example.com")
     ADMIN_PASSWORD = os.getenv("SEED_ADMIN_PASSWORD", "admin123456")
 
@@ -102,6 +103,7 @@ async def seed_users():
 
             # Create user in database
             user = User(
+                name=ADMIN_NAME,
                 auth_id=auth_id,
                 email=ADMIN_EMAIL,
                 role=EnumUserRole.ADMIN,

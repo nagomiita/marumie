@@ -10,6 +10,7 @@ class UserRead(BaseSchema):
     id: str
     auth_id: str
     email: str
+    name: str
     role: EnumUserRole
     created_at: datetime
     updated_at: datetime
