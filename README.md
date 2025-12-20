@@ -12,7 +12,7 @@
 
 ```
 marumie/
-├── webapp/           # フロントエンド（Vite + React）
+├── frontend/           # フロントエンド（Vite + React）
 │   ├── src/
 │   │   ├── api/      # FastAPI 用のクライアント
 │   │   ├── components/ # UI コンポーネント
@@ -49,9 +49,9 @@ marumie/
 
 ### 各ディレクトリの役割
 
-- **webapp/**: 一般ユーザー向けのフロントエンドアプリケーション（家計簿データの可視化）
+- **frontend/**: 一般ユーザー向けのフロントエンドアプリケーション（家計簿データの可視化）
 - **admin/**: 管理者向けの管理画面（データ登録・管理機能）
-- **shared/**: webapp と admin で共通して使用するモデル、型定義、ユーティリティ関数
+- **shared/**: frontend と admin で共通して使用するモデル、型定義、ユーティリティ関数
 - **data/**: サンプルデータファイル
 - **supabase/**: Supabase ローカル開発環境の設定ファイルとテンプレート
 - **prisma/**: データベーススキーマ定義、マイグレーションファイル、シードデータ
@@ -91,7 +91,7 @@ pnpm run dev:setup
 2. **開発サーバーの起動**
 
 ```bash
-pnpm run dev  # Webapp + 管理画面を同時起動（Supabase自動起動）
+pnpm run dev  # frontend + 管理画面を同時起動（Supabase自動起動）
 ```
 
 ### よく使うコマンド
@@ -99,8 +99,8 @@ pnpm run dev  # Webapp + 管理画面を同時起動（Supabase自動起動）
 #### 開発関連
 
 ```bash
-pnpm run dev           # Webapp + 管理画面を同時起動（推奨）
-pnpm run dev:webapp    # Webappのみ起動
+pnpm run dev           # frontend + 管理画面を同時起動（推奨）
+pnpm run dev:frontend    # frontendのみ起動
 pnpm run dev:admin     # 管理画面のみ起動
 ```
 
@@ -155,7 +155,7 @@ pnpm run fresh         # クリーンインストール + セットアップ
 
 ### 本番環境・開発環境
 
-- Vercel で行われる webapp の build 過程で自動的にマイグレーションが実行されます
+- Vercel で行われる frontend の build 過程で自動的にマイグレーションが実行されます
 
 ### ローカル開発環境
 
@@ -177,7 +177,7 @@ pnpm run db:migrate
 
 ### モックデータの使用
 
-`webapp/.env.local` に以下を追加してモックデータを有効化：
+`frontend/.env.local` に以下を追加してモックデータを有効化：
 
 ```
 USE_MOCK_DATA=true
