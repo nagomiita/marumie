@@ -3,6 +3,9 @@
 CSV conversion utility for unifying financial institution CSV exports.
 Extracted from the previous inline Python in convert_csv.sh for readability.
 """
+
+from __future__ import annotations
+
 import codecs
 import csv
 import json
@@ -10,15 +13,15 @@ import os
 import re
 import shutil
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
 # Configuration helpers
 # ---------------------------------------------------------------------------
 
-def load_config(script_dir: str) -> Dict:
+
+def load_config(script_dir: str) -> dict:
     config_path = os.path.join(script_dir, "config.json")
-    with open(config_path, "r", encoding="utf-8") as f:
+    with open(config_path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -30,7 +33,10 @@ def ensure_output_dir(output_dir: str) -> None:
 # Parsing helpers
 # ---------------------------------------------------------------------------
 
-def detect_bank_type(filename: str, banks_config: Dict) -> Tuple[Optional[str], Optional[Dict]]:
+
+def detect_bank_type(
+    filename: str, banks_config: dict
+) -> tuple[str | None, dict | None]:
     """Detect bank type based on filename patterns."""
     for bank_id, bank_config in banks_config.items():
         for pattern in bank_config.get("file_patterns", []):
@@ -45,10 +51,7 @@ def parse_amount(amount_str: str) -> float:
     if not amount_str:
         return 0
     amount_str = (
-        amount_str.replace(",", "")
-        .replace("¥", "")
-        .replace(" ", "")
-        .replace("\\", "")
+        amount_str.replace(",", "").replace("¥", "").replace(" ", "").replace("\\", "")
     )
     try:
         return abs(float(amount_str))
@@ -104,13 +107,17 @@ def adjust_date_to_billing_month(date_str: str, target_year_month: str) -> str:
 
             last_day = calendar.monthrange(target_year, target_month)[1]
             adjusted_day = min(original_date.day, last_day)
-            adjusted_date = original_date.replace(year=target_year, month=target_month, day=adjusted_day)
+            adjusted_date = original_date.replace(
+                year=target_year, month=target_month, day=adjusted_day
+            )
         return adjusted_date.strftime("%Y/%m/%d")
     except Exception:
         return date_str
 
 
-def categorize_transaction(description: str, description_detail: str, categories: Dict) -> str:
+def categorize_transaction(
+    description: str, description_detail: str, categories: dict
+) -> str:
     """Infer account category from description."""
     combined_text = f"{description} {description_detail}".lower()
 
@@ -128,12 +135,13 @@ def categorize_transaction(description: str, description_detail: str, categories
 # Conversion
 # ---------------------------------------------------------------------------
 
+
 def convert_csv_file(
     input_path: str,
-    bank_config: Dict,
-    categories: Dict,
+    bank_config: dict,
+    categories: dict,
     year_month: str,
-) -> List[Dict]:
+) -> list[dict]:
     """Convert a single CSV file to unified format."""
     encoding = bank_config.get("encoding", "utf-8")
     columns = bank_config["columns"]
@@ -210,7 +218,9 @@ def convert_csv_file(
     return transactions
 
 
-def write_unified_csv(transactions: List[Dict], output_path: str, output_config: Dict) -> None:
+def write_unified_csv(
+    transactions: list[dict], output_path: str, output_config: dict
+) -> None:
     columns = output_config["columns"]
     encoding = output_config.get("encoding", "utf-8")
 
@@ -240,7 +250,8 @@ def write_unified_csv(transactions: List[Dict], output_path: str, output_config:
 # Directory helpers
 # ---------------------------------------------------------------------------
 
-def infer_year_month_from_csv(csv_path: str, bank_config: Dict) -> Optional[str]:
+
+def infer_year_month_from_csv(csv_path: str, bank_config: dict) -> str | None:
     """Try to infer YYYY-MM from the first valid date row in the CSV."""
     encoding = bank_config.get("encoding", "utf-8")
     columns = bank_config.get("columns", {})
@@ -273,7 +284,7 @@ def move_to_year_month(csv_path: str, target_year_month: str, base_dir: str) -> 
     shutil.move(csv_path, os.path.join(destination_dir, os.path.basename(csv_path)))
 
 
-def reorganize_input_structure(base_dir: str, banks_config: Dict) -> None:
+def reorganize_input_structure(base_dir: str, banks_config: dict) -> None:
     """Convert legacy YYYY-MM folders into YYYY/MM layout and auto-sort loose files."""
     # 1. Convert legacy YYYY-MM directories into nested YYYY/MM
     for entry in os.listdir(base_dir):
@@ -315,7 +326,8 @@ def reorganize_input_structure(base_dir: str, banks_config: Dict) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
-def convert_all(input_dir: str, output_dir: str, config: Dict) -> None:
+
+def convert_all(input_dir: str, output_dir: str, config: dict) -> None:
     ensure_output_dir(output_dir)
 
     banks_config = config["banks"]
@@ -324,51 +336,56 @@ def convert_all(input_dir: str, output_dir: str, config: Dict) -> None:
 
     reorganize_input_structure(input_dir, banks_config)
 
-    for year in sorted(os.listdir(input_dir)):
-        year_path = os.path.join(input_dir, year)
-        if not (os.path.isdir(year_path) and re.fullmatch(r"\d{4}", year)):
-            continue
+    # Process all CSV files recursively in the input directory
+    all_files_by_month: dict[str, list[tuple[str, dict]]] = {}
 
-        for month in sorted(os.listdir(year_path)):
-            if not re.fullmatch(r"\d{2}", month):
+    for root, dirs, files in os.walk(input_dir):
+        for csv_file in files:
+            if not csv_file.endswith(".csv"):
                 continue
 
-            year_month_dir = f"{year}-{month}"
-            print(f"Processing {year_month_dir}...")
+            input_path = os.path.join(root, csv_file)
+            bank_id, bank_config = detect_bank_type(csv_file, banks_config)
 
-            input_month_dir = os.path.join(year_path, month)
-            output_month_dir = os.path.join(output_dir, year, month)
-            os.makedirs(output_month_dir, exist_ok=True)
+            if not bank_config:
+                print(f"  Unknown file format: {csv_file}")
+                continue
 
-            all_transactions: List[Dict] = []
+            # Infer year-month from the CSV content
+            year_month = infer_year_month_from_csv(input_path, bank_config)
+            if not year_month:
+                # Fallback to file modified time
+                modified = datetime.fromtimestamp(os.path.getmtime(input_path))
+                year_month = f"{modified.year:04d}-{modified.month:02d}"
 
-            for csv_file in sorted(os.listdir(input_month_dir)):
-                if not csv_file.endswith(".csv"):
-                    continue
+            if year_month not in all_files_by_month:
+                all_files_by_month[year_month] = []
+            all_files_by_month[year_month].append((input_path, bank_config))
 
-                bank_id, bank_config = detect_bank_type(csv_file, banks_config)
-                if not bank_config:
-                    print(f"  Unknown file format: {csv_file}")
-                    continue
+    # Process each month
+    for year_month in sorted(all_files_by_month.keys()):
+        print(f"Processing {year_month}...")
+        year, month = year_month.split("-")
+        output_month_dir = os.path.join(output_dir, year, month)
+        os.makedirs(output_month_dir, exist_ok=True)
 
-                print(f"  Processing {csv_file} as {bank_config['name']}...")
-                input_path = os.path.join(input_month_dir, csv_file)
-                transactions = convert_csv_file(
-                    input_path, bank_config, categories, year_month_dir
-                )
-                all_transactions.extend(transactions)
+        all_transactions: list[dict] = []
 
-            if all_transactions:
-                all_transactions.sort(key=lambda x: x["date"])
-                output_path = os.path.join(
-                    output_month_dir, f"unified_{year_month_dir}.csv"
-                )
-                write_unified_csv(all_transactions, output_path, output_config)
-                print(
-                    f"  Output: {output_path} ({len(all_transactions)} transactions)"
-                )
-            else:
-                print(f"  No transactions found for {year_month_dir}")
+        for input_path, bank_config in all_files_by_month[year_month]:
+            csv_file = os.path.basename(input_path)
+            print(f"  Processing {csv_file} as {bank_config['name']}...")
+            transactions = convert_csv_file(
+                input_path, bank_config, categories, year_month
+            )
+            all_transactions.extend(transactions)
+
+        if all_transactions:
+            all_transactions.sort(key=lambda x: x["date"])
+            output_path = os.path.join(output_month_dir, f"unified_{year_month}.csv")
+            write_unified_csv(all_transactions, output_path, output_config)
+            print(f"  Output: {output_path} ({len(all_transactions)} transactions)")
+        else:
+            print(f"  No transactions found for {year_month}")
 
 
 def main() -> None:

@@ -1,16 +1,23 @@
 """
 Database seeding script for Marumie backend
-Run with: python -m app.scripts.seed
+Run with: uv run python -m scripts.seed
 """
 
 from __future__ import annotations
 
 import asyncio
 import os
+import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import select
 from supabase import Client, create_client
+
+# Add backend directory to Python path
+backend_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_dir))
+
 
 from app.core.db import SessionLocal
 from app.models import (

@@ -9,7 +9,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '20251220_add_category_master'
-down_revision = None  # 最新のマイグレーションIDに置き換えてください
+down_revision = '20251220_drop_unused'
 branch_labels = None
 depends_on = None
 
@@ -83,7 +83,7 @@ def upgrade() -> None:
             sa.column('subcategory', sa.String),
             sa.column('color', sa.String),
             sa.column('short_label', sa.String),
-            sa.column('type', sa.String),
+            sa.column('type', postgresql.ENUM('income', 'expense', name='category_type')),
             sa.column('display_order', sa.Integer),
         ),
         [
