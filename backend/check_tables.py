@@ -1,7 +1,8 @@
 import asyncio
 
-from app.core.db import engine
 from sqlalchemy import text
+
+from app.core.db import engine
 
 
 async def check():

@@ -9,7 +9,7 @@
 3. 依存関係をインストールします。
 
 ```bash
-pip install -e .[dev]
+uv sync --extra dev
 ```
 
 4. 開発サーバーを起動します。
