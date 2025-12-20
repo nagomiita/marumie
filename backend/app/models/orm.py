@@ -18,7 +18,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, relationship
 
 from .base import Base
-from .tables import categories, organizations, personal_transactions, users
+from .tables import categories, organizations, transactions, users
 
 
 # ---------------------------------------------------------------------------
@@ -51,8 +51,8 @@ class Organization(Base, organizations.Organization.Columns):
         "User",
         back_populates="organizations",
     )
-    personal_transactions: Mapped[list[PersonalTransaction]] = relationship(
-        "PersonalTransaction",
+    transactions: Mapped[list[Transaction]] = relationship(
+        "Transaction",
         back_populates="organization",
         cascade="all, delete-orphan",
         passive_deletes=True,
@@ -62,33 +62,33 @@ class Organization(Base, organizations.Organization.Columns):
     @hybrid_property
     def transaction_count(self) -> int:
         """トランザクション数（インスタンスレベル）"""
-        return len(self.personal_transactions)
+        return len(self.transactions)
 
     @transaction_count.inplace.expression
     @classmethod
     def _transaction_count_expression(cls):
         """トランザクション数（クエリレベル）"""
         return (
-            select(func.count(PersonalTransaction.id))
-            .where(PersonalTransaction.organization_id == cls.id)
-            .correlate_except(PersonalTransaction)
+            select(func.count(Transaction.id))
+            .where(Transaction.organization_id == cls.id)
+            .correlate_except(Transaction)
             .scalar_subquery()
         )
 
 
 # ---------------------------------------------------------------------------
-# PersonalTransaction
+# Transaction
 # ---------------------------------------------------------------------------
-class PersonalTransaction(Base, personal_transactions.PersonalTransaction.Columns):
-    """PersonalTransactionテーブル（ORM拡張）"""
+class Transaction(Base, transactions.Transaction.Columns):
+    """Transactionテーブル（ORM拡張）"""
 
-    __tablename__ = personal_transactions.PersonalTransaction.__tablename__
-    __table_args__ = personal_transactions.PersonalTransaction.__table_args__
+    __tablename__ = transactions.Transaction.__tablename__
+    __table_args__ = transactions.Transaction.__table_args__
 
     # リレーションシップ
     organization: Mapped[Organization | None] = relationship(
         "Organization",
-        back_populates="personal_transactions",
+        back_populates="transactions",
     )
 
     # ハイブリッドプロパティ
@@ -123,6 +123,6 @@ class Category(Base, categories.Category.Columns):
 __all__ = [
     "User",
     "Organization",
-    "PersonalTransaction",
+    "Transaction",
     "Category",
 ]

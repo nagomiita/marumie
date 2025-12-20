@@ -8,20 +8,20 @@ from sqlalchemy import Date, Enum, ForeignKey, Index, Numeric, String, Text, tex
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..base import DB_SCHEMA, AbstractTableClass
-from ..enums import EnumPersonalTransactionType
+from ..enums import EnumTransactionType
 from ..mixins import TimestampMixin, UUIDIdMixin
 
 
-class PersonalTransaction(AbstractTableClass):
-    """PersonalTransactionテーブル定義"""
+class Transaction(AbstractTableClass):
+    """Transactionテーブル定義"""
 
     __tablename__ = Path(__file__).stem
     __table_args__ = (
         Index(
-            "ix_personal_transactions_org_date", "organization_id", text("date DESC")
+            "ix_transactions_org_date", "organization_id", text("date DESC")
         ),
-        Index("ix_personal_transactions_category_type", "category", "type"),
-        {"schema": DB_SCHEMA, "comment": "個人取引"},
+        Index("ix_transactions_category_type", "category", "type"),
+        {"schema": DB_SCHEMA, "comment": "取引"},
     )
 
     class Columns(UUIDIdMixin, TimestampMixin):
@@ -37,10 +37,10 @@ class PersonalTransaction(AbstractTableClass):
         amount: Mapped[Decimal] = mapped_column(
             Numeric(15, 2), nullable=False, comment="金額"
         )
-        type: Mapped[EnumPersonalTransactionType] = mapped_column(
+        type: Mapped[EnumTransactionType] = mapped_column(
             Enum(
-                EnumPersonalTransactionType,
-                name="personal_transaction_type",
+                EnumTransactionType,
+                name="transaction_type",
                 values_callable=lambda x: [e.value for e in x],
             ),
             nullable=False,
@@ -69,4 +69,4 @@ class PersonalTransaction(AbstractTableClass):
         )
 
         def __repr__(self) -> str:
-            return f"<PersonalTransaction(id={self.id}, date={self.date}, amount={self.amount})>"
+            return f"<Transaction(id={self.id}, date={self.date}, amount={self.amount})>"

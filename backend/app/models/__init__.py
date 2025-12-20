@@ -2,10 +2,10 @@ from .base import Base
 from .enums import (
     EnumCategoryType,
     EnumOrganizationType,
-    EnumPersonalTransactionType,
+    EnumTransactionType,
     EnumUserRole,
 )
-from .orm import Category, Organization, PersonalTransaction, User
+from .orm import Category, Organization, Transaction, User
 
 __all__ = [
     "Base",
@@ -13,8 +13,8 @@ __all__ = [
     "EnumCategoryType",
     "Organization",
     "EnumOrganizationType",
-    "PersonalTransaction",
-    "EnumPersonalTransactionType",
+    "Transaction",
+    "EnumTransactionType",
     "User",
     "EnumUserRole",
 ]

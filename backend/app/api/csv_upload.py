@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.db import get_db_session
-from ..models import PersonalTransaction
+from ..models import Transaction
 
 router = APIRouter(prefix="/csv", tags=["csv"])
 
@@ -105,7 +105,7 @@ async def upload_transactions_csv(
                     detail=f"行 {', '.join(str(i + 2) for i in range(null_amounts.height))}: 金額が不正です",
                 )
 
-        # PersonalTransactionには必須フィールドのデフォルト値を設定
+        # Transactionには必須フィールドのデフォルト値を設定
         if "payment_method" not in df.columns:
             df = df.with_columns(pl.lit("現金").alias("payment_method"))
         if "description" not in df.columns:
@@ -125,7 +125,7 @@ async def upload_transactions_csv(
         transactions = []
         for row_dict in df.to_dicts():
             try:
-                transactions.append(PersonalTransaction(**row_dict))
+                transactions.append(Transaction(**row_dict))
             except Exception as e:
                 raise HTTPException(
                     status_code=400,

@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 
 
-class EnumPersonalTransactionType(str, enum.Enum):
+class EnumTransactionType(str, enum.Enum):
     INCOME = "income"
     EXPENSE = "expense"
 
