@@ -100,4 +100,5 @@ logs/
 prompts
 
 # Seed data
+scripts/data/input
 scripts/data/output

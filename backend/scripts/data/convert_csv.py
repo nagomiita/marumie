@@ -46,7 +46,7 @@ class BankConfig:
 @dataclass
 class CategoryConfig:
     id: str
-    account: str
+    name: str
     keywords: list[str] = field(default_factory=list)
 
 
@@ -358,7 +358,7 @@ def categorize_transaction(
     default_category: str,
     exclude_keywords: list[str] | None = None,
 ) -> str:
-    """摘要から勘定科目を推定"""
+    """摘要からカテゴリIDを推定"""
     normalized_description = normalize_text(description)
     normalized_detail = normalize_text(description_detail)
     combined_text = f"{normalized_description} {normalized_detail}".lower()
@@ -370,7 +370,7 @@ def categorize_transaction(
         for keyword in category.keywords:
             normalized_keyword = normalize_text(keyword).lower()
             if normalized_keyword in combined_text:
-                return category.account
+                return category.id
 
     return default_category
 
@@ -550,7 +550,7 @@ def load_config(script_dir: str) -> AppConfig:
     categories = [
         CategoryConfig(
             id=category["id"],
-            account=category["account"],
+            name=category["name"],
             keywords=category.get("keywords", []),
         )
         for category in raw["categories"]
@@ -643,7 +643,7 @@ def main() -> None:
     banks_config = config.banks
     categories = config.categories
     default_category = next(
-        (category.account for category in categories if category.id == "default"),
+        (category.name for category in categories if category.id == "default"),
         "未分類",
     )
     output_config = config.output
