@@ -246,7 +246,13 @@ export default function OrganizationPage() {
                 month={month}
               />
             )}
-            <PayeeRanking transactions={transactions} selectedMonth={month} />
+            <PayeeRanking
+              transactions={transactions}
+              categories={
+                Array.isArray(categoriesData?.data) ? categoriesData.data : []
+              }
+              selectedMonth={month}
+            />
             <TransactionsTable
               transactions={transactions}
               selectedMonth={month}

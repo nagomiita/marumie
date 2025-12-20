@@ -54,8 +54,14 @@ export default function AdminLayout() {
                 ))}
               </div>
             </div>
-            <div className="flex items-center">
-              <span className="text-sm text-gray-700 mr-4">{user.email}</span>
+            <div className="flex items-center gap-4">
+              <a
+                href="/"
+                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                ホーム
+              </a>
+              <span className="text-sm text-gray-700">{user.email}</span>
               <LogoutButton />
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { type ReactNode, useMemo, useState } from "react";
 import Selector from "./Selector";
+import Button from "./Button";
 
 export interface Column<T> {
   key: string;
@@ -197,25 +198,25 @@ export default function DataTable<T extends Record<string, any>>({
 
       {pageItems.length > 0 && totalPages > 1 && (
         <div className="flex gap-2 items-center justify-center text-xs md:text-sm pt-2">
-          <button
-            type="button"
+          <Button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-2 py-1 text-xs md:text-sm rounded border border-gray-300 disabled:opacity-50"
+            variant="secondary"
+            size="sm"
           >
             前へ
-          </button>
+          </Button>
           <span className="text-xs md:text-sm">
             {page}/{totalPages}
           </span>
-          <button
-            type="button"
+          <Button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-2 py-1 text-xs md:text-sm rounded border border-gray-300 disabled:opacity-50"
+            variant="secondary"
+            size="sm"
           >
             次へ
-          </button>
+          </Button>
         </div>
       )}
     </div>
