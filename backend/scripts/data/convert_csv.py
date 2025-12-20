@@ -7,6 +7,7 @@ CSV変換スクリプト
 from __future__ import annotations
 
 import codecs
+import copy
 import csv
 import json
 import os
@@ -523,9 +524,30 @@ def write_unified_csv(
 
 
 def load_config(script_dir: str) -> AppConfig:
-    config_path = os.path.join(script_dir, "config.json")
-    with open(config_path, encoding="utf-8") as f:
-        raw = json.load(f)
+    public_path = os.path.join(script_dir, "config.public.json")
+    private_path = os.path.join(script_dir, "config.private.json")
+
+    with open(public_path, encoding="utf-8") as f:
+        public = json.load(f)
+    if os.path.exists(private_path):
+        with open(private_path, encoding="utf-8") as f:
+            private = json.load(f)
+    else:
+        private = {}
+
+    # publicをベースにprivateで上書き（deep merge）
+    def deep_merge(a, b):
+        if not isinstance(b, dict):
+            return b
+        result = copy.deepcopy(a)
+        for k, v in b.items():
+            if k in result and isinstance(result[k], dict):
+                result[k] = deep_merge(result[k], v)
+            else:
+                result[k] = copy.deepcopy(v)
+        return result
+
+    merged = deep_merge(public, private)
 
     banks = [
         BankConfig(
@@ -544,7 +566,7 @@ def load_config(script_dir: str) -> AppConfig:
             skip_rows=bank.get("skip_rows", 0),
             ignore_description_keywords=bank.get("ignore_description_keywords", []),
         )
-        for bank in raw["banks"]
+        for bank in merged.get("banks", [])
     ]
 
     categories = [
@@ -553,12 +575,12 @@ def load_config(script_dir: str) -> AppConfig:
             name=category["name"],
             keywords=category.get("keywords", []),
         )
-        for category in raw["categories"]
+        for category in merged.get("categories", [])
     ]
 
     output = OutputConfig(
-        encoding=raw["output"]["encoding"],
-        columns=raw["output"]["columns"],
+        encoding=merged["output"]["encoding"],
+        columns=merged["output"]["columns"],
     )
 
     return AppConfig(banks=banks, categories=categories, output=output)

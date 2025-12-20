@@ -102,3 +102,6 @@ prompts
 # Seed data
 scripts/data/input
 scripts/data/output
+
+# Configuration files
+scripts/data/config.private.json

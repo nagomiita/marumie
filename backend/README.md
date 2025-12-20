@@ -77,7 +77,6 @@ uv run alembic upgrade head
 ```
 
 ### 2. シードデータの投入
-
 ```bash
 # 組織とカテゴリマスタを投入
 uv run python -m scripts.seed
@@ -94,6 +93,8 @@ SEED_ORG_TYPE=household
 ### 3. CSVデータのインポート（オプション）
 
 ```bash
+# フォーマット統合スクリプト
+uv run python -m scripts.data.convert_csv
 # トランザクションデータをCSVからインポート
 uv run python -m scripts.import_csv
 ```
