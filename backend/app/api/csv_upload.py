@@ -3,11 +3,11 @@ from __future__ import annotations
 from io import BytesIO
 
 import polars as pl
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.db import get_db_session
-from ..models.entities import PersonalTransaction
+from ..models import PersonalTransaction
 
 router = APIRouter(prefix="/csv", tags=["csv"])
 

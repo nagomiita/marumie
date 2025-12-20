@@ -13,11 +13,11 @@ from sqlalchemy import select
 from supabase import Client, create_client
 
 from app.core.db import SessionLocal
-from app.models.entities import (
+from app.models import (
+    EnumOrganizationType,
+    EnumUserRole,
     Organization,
-    OrganizationType,
     User,
-    UserRole,
 )
 
 # Load environment variables
@@ -48,7 +48,7 @@ async def seed_users():
                 User(
                     auth_id="local-admin-001",
                     email=ADMIN_EMAIL,
-                    role=UserRole.ADMIN,
+                    role=EnumUserRole.ADMIN,
                 ),
             ]
             session.add_all(users)
@@ -97,7 +97,7 @@ async def seed_users():
             user = User(
                 auth_id=auth_id,
                 email=ADMIN_EMAIL,
-                role=UserRole.ADMIN,
+                role=EnumUserRole.ADMIN,
             )
             session.add(user)
             await session.commit()
@@ -124,7 +124,7 @@ async def seed_organizations():
                 name="team-hirano",
                 display_name="平野大輔",
                 slug="team-hirano",
-                type=OrganizationType.POLITICAL_ORGANIZATION,
+                type=EnumOrganizationType.POLITICAL_ORGANIZATION,
                 description="政治団体テスト",
             ),
         ]

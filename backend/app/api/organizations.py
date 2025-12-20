@@ -5,8 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.db import get_db_session
-from ..models.entities import Organization
-from ..models.enums import OrganizationType
+from ..models import EnumOrganizationType, Organization
 from ..schemas import OrganizationCreate, OrganizationRead
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
@@ -16,7 +15,7 @@ router = APIRouter(prefix="/organizations", tags=["organizations"])
     "", response_model=list[OrganizationRead], operation_id="list_organizations"
 )
 async def list_organizations(
-    organization_type: OrganizationType | None = Query(
+    organization_type: EnumOrganizationType | None = Query(
         None, description="Filter by organization type"
     ),
     user_id: str | None = Query(None, description="Filter by owner user id"),

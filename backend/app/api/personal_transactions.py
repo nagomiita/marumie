@@ -5,7 +5,7 @@ from sqlalchemy import distinct, extract, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.db import get_db_session
-from ..models.entities import PersonalTransaction
+from ..models import PersonalTransaction
 from ..schemas import PersonalTransactionRead
 
 router = APIRouter(prefix="/personal-transactions", tags=["personal_transactions"])
