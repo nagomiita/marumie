@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import Modal from "@/components/common/Modal";
+import Form, { type FormField } from "@/components/common/Form";
 import {
   useListUsersUsersGet,
   useUpdateUserRoleUsersUserIdRolePatch,
@@ -9,13 +11,19 @@ import {
 import type { UserRead } from "@/client/api/generated/model";
 import { EnumUserRole } from "@/client/api/generated/model";
 
+interface UserCreateForm {
+  email: string;
+  password: string;
+  role: EnumUserRole;
+}
+
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UserCreateForm>({
     email: "",
     password: "",
-    role: "user" as EnumUserRole,
+    role: EnumUserRole.user,
   });
 
   // ユーザー一覧取得
@@ -32,7 +40,44 @@ export default function UsersPage() {
     e.preventDefault();
     // TODO: バックエンドにユーザー作成APIを追加する必要があります
     alert("ユーザー作成機能は未実装です");
+    setShowForm(false);
   };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setFormData({
+      email: "",
+      password: "",
+      role: EnumUserRole.user,
+    });
+  };
+
+  const formFields: FormField<UserCreateForm>[] = [
+    {
+      name: "email",
+      label: "メールアドレス",
+      type: "email",
+      required: true,
+    },
+    {
+      name: "password",
+      label: "パスワード",
+      type: "password",
+      required: true,
+      minLength: 6,
+      title: "6文字以上で入力してください",
+    },
+    {
+      name: "role",
+      label: "ロール",
+      type: "select",
+      required: true,
+      options: [
+        { value: EnumUserRole.user, label: "ユーザー" },
+        { value: EnumUserRole.admin, label: "管理者" },
+      ],
+    },
+  ];
 
   const handleDelete = async (id: string) => {
     if (!confirm("本当に削除しますか?")) return;
@@ -117,90 +162,24 @@ export default function UsersPage() {
         <h1 className="text-2xl font-bold text-gray-900">ユーザー管理</h1>
         <button
           type="button"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setShowForm(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          {showForm ? "キャンセル" : "新規作成"}
+          新規作成
         </button>
       </div>
 
-      {showForm && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            ユーザーを作成
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="user-email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                メールアドレス
-              </label>
-              <input
-                id="user-email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="user-password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                パスワード
-              </label>
-              <input
-                id="user-password"
-                type="password"
-                required
-                minLength={6}
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                6文字以上で入力してください
-              </p>
-            </div>
-            <div>
-              <label
-                htmlFor="user-role"
-                className="block text-sm font-medium text-gray-700"
-              >
-                ロール
-              </label>
-              <select
-                id="user-role"
-                value={formData.role}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    role: e.target.value as EnumUserRole,
-                  })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value={EnumUserRole.user}>ユーザー</option>
-                <option value={EnumUserRole.admin}>管理者</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              作成
-            </button>
-          </form>
-        </div>
-      )}
+      <Modal open={showForm} onClose={handleCancel}>
+        <h2 className="text-lg font-semibold mb-4">新規ユーザー</h2>
+        <Form
+          fields={formFields}
+          formData={formData}
+          onChange={setFormData}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          submitLabel="作成"
+        />
+      </Modal>
 
       <DataTable
         data={users}

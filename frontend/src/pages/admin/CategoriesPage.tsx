@@ -11,6 +11,8 @@ import type {
   CategoryRead,
 } from "@/client/api/generated/model";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import Modal from "@/components/common/Modal";
+import Form, { type FormField } from "@/components/common/Form";
 
 export default function CategoriesPage() {
   const {
@@ -38,6 +40,64 @@ export default function CategoriesPage() {
   const categories = Array.isArray(categoriesData?.data)
     ? categoriesData.data
     : [];
+
+  const formFields: FormField<CategoryCreate>[] = [
+    {
+      name: "id",
+      label: "ID（英数字）",
+      type: "text",
+      required: true,
+      disabled: !!editingId,
+      pattern: "[a-zA-Z0-9_]+",
+      title: "英数字とアンダースコアのみ使用できます",
+    },
+    {
+      name: "name",
+      label: "カテゴリ名（日本語）",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "group",
+      label: "グループ（大分類）",
+      type: "text",
+      required: true,
+      placeholder: "例: 固定費、変動費、収入",
+    },
+    {
+      name: "color",
+      label: "表示色",
+      type: "color",
+      required: true,
+    },
+    {
+      name: "short_label",
+      label: "短縮ラベル",
+      type: "text",
+      required: true,
+      maxLength: 10,
+    },
+    {
+      name: "type",
+      label: "種別",
+      type: "select",
+      required: true,
+      options: [
+        { value: EnumCategoryType.income, label: "収入" },
+        { value: EnumCategoryType.expense, label: "支出" },
+      ],
+    },
+    {
+      name: "display_order",
+      label: "表示順",
+      type: "number",
+    },
+    {
+      name: "is_active",
+      label: "有効",
+      type: "checkbox",
+    },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -246,196 +306,19 @@ export default function CategoriesPage() {
         </button>
       </div>
 
-      {showForm && (
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">
-            {editingId ? "カテゴリ編集" : "新規カテゴリ"}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="category_id"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                ID（英数字）
-              </label>
-              <input
-                id="category_id"
-                type="text"
-                value={formData.id}
-                onChange={(e) =>
-                  setFormData({ ...formData, id: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                required
-                disabled={!!editingId}
-                pattern="[a-zA-Z0-9_]+"
-                title="英数字とアンダースコアのみ使用できます"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="category_name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                カテゴリ名（日本語）
-              </label>
-              <input
-                id="category_name"
-                type="text"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="group"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                グループ（大分類）
-              </label>
-              <input
-                id="group"
-                type="text"
-                value={formData.group}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    group: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="例: 固定費、変動費、収入"
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="color"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                表示色
-              </label>
-              <input
-                id="color"
-                type="color"
-                value={formData.color}
-                onChange={(e) =>
-                  setFormData({ ...formData, color: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="short_label"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                短縮ラベル
-              </label>
-              <input
-                id="short_label"
-                type="text"
-                value={formData.short_label}
-                onChange={(e) =>
-                  setFormData({ ...formData, short_label: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                required
-                maxLength={10}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="category_type"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                種別
-              </label>
-              <select
-                id="category_type"
-                value={formData.type}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    type: e.target.value as EnumCategoryType,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                required
-              >
-                <option value={EnumCategoryType.income}>収入</option>
-                <option value={EnumCategoryType.expense}>支出</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="display_order"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                表示順
-              </label>
-              <input
-                id="display_order"
-                type="number"
-                value={formData.display_order}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    display_order: Number(e.target.value),
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="is_active"
-                checked={formData.is_active}
-                onChange={(e) =>
-                  setFormData({ ...formData, is_active: e.target.checked })
-                }
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="is_active"
-                className="ml-2 block text-sm text-gray-900"
-              >
-                有効
-              </label>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                {editingId ? "更新" : "作成"}
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                キャンセル
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      <Modal open={showForm} onClose={handleCancel}>
+        <h2 className="text-lg font-semibold mb-4">
+          {editingId ? "カテゴリ編集" : "新規カテゴリ"}
+        </h2>
+        <Form
+          fields={formFields}
+          formData={formData}
+          onChange={setFormData}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          submitLabel={editingId ? "更新" : "作成"}
+        />
+      </Modal>
 
       <DataTable
         data={categories}

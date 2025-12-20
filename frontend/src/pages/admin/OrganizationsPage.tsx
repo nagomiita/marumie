@@ -7,6 +7,16 @@ import {
 import { EnumOrganizationType } from "@/client/api/generated/model";
 import type { OrganizationRead } from "@/client/api/generated/model";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import Modal from "@/components/common/Modal";
+import Form, { type FormField } from "@/components/common/Form";
+
+interface OrganizationCreateForm {
+  name: string;
+  display_name: string;
+  type: EnumOrganizationType;
+  slug: string;
+  description: string;
+}
 
 export default function OrganizationsPage() {
   const {
@@ -17,13 +27,7 @@ export default function OrganizationsPage() {
   const createMutation = useCreateOrganization();
   const deleteMutation = useDeleteOrganization();
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState<{
-    name: string;
-    display_name: string;
-    type: EnumOrganizationType;
-    slug: string;
-    description: string;
-  }>({
+  const [formData, setFormData] = useState<OrganizationCreateForm>({
     name: "",
     display_name: "",
     type: EnumOrganizationType.household,
@@ -71,6 +75,17 @@ export default function OrganizationsPage() {
     }
   };
 
+  const handleCancel = () => {
+    setShowForm(false);
+    setFormData({
+      name: "",
+      display_name: "",
+      type: EnumOrganizationType.household,
+      slug: "",
+      description: "",
+    });
+  };
+
   const typeLabels: Record<string, string> = {
     household: "家計簿",
     business: "ビジネス",
@@ -78,6 +93,49 @@ export default function OrganizationsPage() {
     political_organization: "政治団体",
     other: "その他",
   };
+
+  const formFields: FormField<OrganizationCreateForm>[] = [
+    {
+      name: "name",
+      label: "名前（内部ID）",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "display_name",
+      label: "表示名",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "slug",
+      label: "スラッグ",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "type",
+      label: "タイプ",
+      type: "select",
+      required: true,
+      options: [
+        { value: EnumOrganizationType.household, label: "家計簿" },
+        { value: EnumOrganizationType.business, label: "ビジネス" },
+        { value: EnumOrganizationType.nonprofit, label: "非営利" },
+        {
+          value: EnumOrganizationType.political_organization,
+          label: "政治団体",
+        },
+        { value: EnumOrganizationType.other, label: "その他" },
+      ],
+    },
+    {
+      name: "description",
+      label: "説明",
+      type: "textarea",
+      rows: 3,
+    },
+  ];
 
   const columns: Column<OrganizationRead>[] = [
     {
@@ -134,125 +192,24 @@ export default function OrganizationsPage() {
         <h1 className="text-2xl font-bold text-gray-900">組織管理</h1>
         <button
           type="button"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setShowForm(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          {showForm ? "キャンセル" : "新規作成"}
+          新規作成
         </button>
       </div>
 
-      {showForm && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">組織を作成</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="org-name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                名前（内部ID）
-              </label>
-              <input
-                id="org-name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="org-display-name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                表示名
-              </label>
-              <input
-                id="org-display-name"
-                type="text"
-                required
-                value={formData.display_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, display_name: e.target.value })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="org-slug"
-                className="block text-sm font-medium text-gray-700"
-              >
-                スラッグ
-              </label>
-              <input
-                id="org-slug"
-                type="text"
-                required
-                value={formData.slug}
-                onChange={(e) =>
-                  setFormData({ ...formData, slug: e.target.value })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="org-type"
-                className="block text-sm font-medium text-gray-700"
-              >
-                タイプ
-              </label>
-              <select
-                id="org-type"
-                value={formData.type}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    type: e.target
-                      .value as (typeof EnumOrganizationType)[keyof typeof EnumOrganizationType],
-                  })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value={EnumOrganizationType.household}>家計簿</option>
-                <option value={EnumOrganizationType.business}>ビジネス</option>
-                <option value={EnumOrganizationType.nonprofit}>非営利</option>
-                <option value={EnumOrganizationType.political_organization}>
-                  政治団体
-                </option>
-                <option value={EnumOrganizationType.other}>その他</option>
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="org-description"
-                className="block text-sm font-medium text-gray-700"
-              >
-                説明
-              </label>
-              <textarea
-                id="org-description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={3}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              作成
-            </button>
-          </form>
-        </div>
-      )}
+      <Modal open={showForm} onClose={handleCancel}>
+        <h2 className="text-lg font-semibold mb-4">新規組織</h2>
+        <Form
+          fields={formFields}
+          formData={formData}
+          onChange={setFormData}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          submitLabel="作成"
+        />
+      </Modal>
 
       <DataTable
         data={organizationList}
