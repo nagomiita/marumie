@@ -8,14 +8,6 @@ interface TransactionsTableProps {
   categoryColorMap?: Map<string, string>;
 }
 
-// Hex色をRGBAに変換する関数
-const hexToRgba = (hex: string, alpha: number): string => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
 export default function TransactionsTable({
   transactions,
   selectedMonth,
@@ -78,10 +70,7 @@ export default function TransactionsTable({
           <span
             className="inline-block px-2 py-1 text-xs font-medium rounded-md border text-gray-800"
             style={{
-              backgroundColor: hexToRgba(
-                categoryColorMap.get(tx.category)!,
-                0.2,
-              ),
+              backgroundColor: categoryColorMap.get(tx.category),
               borderColor: categoryColorMap.get(tx.category),
             }}
           >

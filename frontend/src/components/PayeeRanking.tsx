@@ -38,9 +38,11 @@ export default function PayeeRanking({
       const amount = Math.abs(Number(tx.amount));
 
       if (statsMap.has(payee)) {
-        const stats = statsMap.get(payee)!;
-        stats.totalAmount += amount;
-        stats.count += 1;
+        const stats = statsMap.get(payee);
+        if (stats) {
+          stats.totalAmount += amount;
+          stats.count += 1;
+        }
       } else {
         statsMap.set(payee, {
           payee,
