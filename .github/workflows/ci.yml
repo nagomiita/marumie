@@ -3,11 +3,9 @@ name: CI
 on:
   push:
     paths:
-      - 'admin/**'
       - 'frontend/**'
   pull_request:
     paths:
-      - 'admin/**'
       - 'frontend/**'
 
 jobs:
@@ -29,15 +27,6 @@ jobs:
           
       - name: Install dependencies
         run: pnpm install
-        
-      - name: Run lint for admin
-        run: pnpm --filter admin run lint
-        
-      - name: Run tests for admin
-        run: pnpm --filter admin run test
-        
-      - name: Run type check for admin
-        run: pnpm --filter admin run type-check
         
       - name: Run lint for frontend
         run: pnpm --filter frontend run lint
