@@ -17,9 +17,7 @@ class Transaction(AbstractTableClass):
 
     __tablename__ = Path(__file__).stem
     __table_args__ = (
-        Index(
-            "ix_transactions_org_date", "organization_id", text("date DESC")
-        ),
+        Index("ix_transactions_org_date", "organization_id", text("date DESC")),
         Index("ix_transactions_category_type", "category", "type"),
         {"schema": DB_SCHEMA, "comment": "取引"},
     )
@@ -69,4 +67,6 @@ class Transaction(AbstractTableClass):
         )
 
         def __repr__(self) -> str:
-            return f"<Transaction(id={self.id}, date={self.date}, amount={self.amount})>"
+            return (
+                f"<Transaction(id={self.id}, date={self.date}, amount={self.amount})>"
+            )

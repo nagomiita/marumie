@@ -32,9 +32,7 @@ async def list_transactions(
     if month is not None:
         stmt = stmt.where(extract("month", Transaction.date) == month)
 
-    stmt = stmt.order_by(
-        Transaction.date.desc(), Transaction.created_at.desc()
-    )
+    stmt = stmt.order_by(Transaction.date.desc(), Transaction.created_at.desc())
     stmt = stmt.limit(limit).offset(offset)
 
     transactions = (await session.execute(stmt)).scalars().all()
