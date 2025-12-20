@@ -1,13 +1,20 @@
 from .base import Base
-from .entities import Organization, PersonalTransaction, User
-from .enums import OrganizationType, PersonalTransactionType, UserRole
+from .enums import (
+    EnumCategoryType,
+    EnumOrganizationType,
+    EnumPersonalTransactionType,
+    EnumUserRole,
+)
+from .orm import Category, Organization, PersonalTransaction, User
 
 __all__ = [
     "Base",
+    "Category",
+    "EnumCategoryType",
     "Organization",
-    "OrganizationType",
+    "EnumOrganizationType",
     "PersonalTransaction",
-    "PersonalTransactionType",
+    "EnumPersonalTransactionType",
     "User",
-    "UserRole",
+    "EnumUserRole",
 ]

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import inspect
+from pathlib import Path
+
 from sqlalchemy import MetaData
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, declared_attr
 
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
@@ -14,3 +17,16 @@ NAMING_CONVENTION = {
 
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+    @declared_attr.directive
+    def __tablename__(cls) -> str:
+        """ファイル名からテーブル名を自動生成"""
+        # クラスが定義されているファイルのパスを取得
+        module = inspect.getmodule(cls)
+        if module and hasattr(module, "__file__") and module.__file__:
+            return Path(module.__file__).stem
+        # フォールバック: クラス名を小文字+スネークケースに変換
+        import re
+
+        name = cls.__name__
+        return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()

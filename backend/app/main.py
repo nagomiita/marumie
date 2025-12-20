@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from .api import (
+    categories,
     csv_upload,
     health,
     organizations,
@@ -28,6 +29,7 @@ def get_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(health.router)
+    app.include_router(categories.router)
     app.include_router(organizations.router)
     app.include_router(personal_transactions.router)
     app.include_router(csv_upload.router)
