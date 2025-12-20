@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.db import get_db_session
-from ..models import EnumOrganizationType, Organization
+from ..models import EnumOrganizationType
 from ..schemas import OrganizationCreate, OrganizationRead
+from ..services import OrganizationService
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
@@ -21,16 +21,9 @@ async def list_organizations(
     user_id: str | None = Query(None, description="Filter by owner user id"),
     session: AsyncSession = Depends(get_db_session),
 ) -> list[OrganizationRead]:
-    stmt = select(Organization)
-    if organization_type is not None:
-        stmt = stmt.where(Organization.type == organization_type)
-    if user_id is not None:
-        stmt = stmt.where(Organization.user_id == user_id)
-
-    stmt = stmt.order_by(Organization.created_at.desc())
-    result = await session.execute(stmt)
-    organizations = result.scalars().all()
-    return [OrganizationRead.model_validate(org) for org in organizations]
+    return await OrganizationService.list_organizations(
+        session, organization_type, user_id
+    )
 
 
 @router.get("/{slug}", response_model=OrganizationRead, operation_id="get_organization")
@@ -38,11 +31,7 @@ async def get_organization(
     slug: str,
     session: AsyncSession = Depends(get_db_session),
 ) -> OrganizationRead:
-    stmt = select(Organization).where(Organization.slug == slug)
-    organization = (await session.execute(stmt)).scalar_one_or_none()
-    if organization is None:
-        raise HTTPException(status_code=404, detail="Organization not found")
-    return OrganizationRead.model_validate(organization)
+    return await OrganizationService.get_organization(session, slug)
 
 
 @router.post(
@@ -55,11 +44,7 @@ async def create_organization(
     organization_data: OrganizationCreate,
     session: AsyncSession = Depends(get_db_session),
 ) -> OrganizationRead:
-    organization = Organization(**organization_data.model_dump())
-    session.add(organization)
-    await session.commit()
-    await session.refresh(organization)
-    return OrganizationRead.model_validate(organization)
+    return await OrganizationService.create_organization(session, organization_data)
 
 
 @router.delete(
@@ -69,9 +54,4 @@ async def delete_organization(
     organization_id: str,
     session: AsyncSession = Depends(get_db_session),
 ) -> None:
-    stmt = select(Organization).where(Organization.id == organization_id)
-    organization = (await session.execute(stmt)).scalar_one_or_none()
-    if organization is None:
-        raise HTTPException(status_code=404, detail="Organization not found")
-    await session.delete(organization)
-    await session.commit()
+    await OrganizationService.delete_organization(session, organization_id)
