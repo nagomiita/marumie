@@ -4,7 +4,7 @@
  * Marumie Backend
  * OpenAPI spec version: 0.1.0
  */
-import type { CategoryReadSubcategory } from "./categoryReadSubcategory";
+import type { EnumCategoryType } from "./enumCategoryType";
 
 /**
  * カテゴリマスタのレスポンススキーマ
@@ -12,10 +12,10 @@ import type { CategoryReadSubcategory } from "./categoryReadSubcategory";
 export interface CategoryRead {
   id: string;
   name: string;
-  subcategory: CategoryReadSubcategory;
+  group: string;
   color: string;
   short_label: string;
-  type: string;
+  type: EnumCategoryType;
   display_order: number;
   is_active: boolean;
   created_at: string;

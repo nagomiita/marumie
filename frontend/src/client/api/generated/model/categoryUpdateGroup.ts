@@ -5,7 +5,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListCategoriesParams = {
-  type?: string | null;
-  is_active?: boolean | null;
-};
+export type CategoryUpdateGroup = string | null;

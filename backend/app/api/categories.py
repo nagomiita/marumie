@@ -13,14 +13,14 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 @router.get("", response_model=list[CategoryRead], operation_id="list_categories")
 async def list_categories(
     type: str | None = None,
-    is_active: bool = True,
+    is_active: bool | None = None,
     session: AsyncSession = Depends(get_db_session),
 ) -> list[CategoryRead]:
     """カテゴリ一覧を取得
 
     Args:
         type: フィルタする種別 ("income" | "expense")
-        is_active: 有効なカテゴリのみ取得するか
+        is_active: 有効なカテゴリのみ取得するか（Noneの場合は全て取得）
     """
     return await CategoryService.list_categories(session, type, is_active)
 

@@ -8,6 +8,7 @@ import {
   useGetAvailableYears,
   useListTransactions,
 } from "@/client/api/generated/transactions/transactions";
+import { useListCategories } from "@/client/api/generated/categories/categories";
 import type { TransactionRead } from "@/client/api/generated/model";
 import Layout from "@/components/Layout";
 import MonthlyTrendChart from "@/components/MonthlyTrendChart";
@@ -28,6 +29,21 @@ export default function OrganizationPage() {
   const yearParam = searchParams.get("year");
   const financialYear = yearParam !== null ? Number(yearParam) : 0;
   const month = Number(searchParams.get("month")) || 0;
+
+  // カテゴリ情報を取得
+  const { data: categoriesData } = useListCategories({ is_active: true });
+  const categories = Array.isArray(categoriesData?.data)
+    ? categoriesData.data
+    : [];
+
+  // カテゴリ名から色を取得するマップを作成
+  const categoryColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    categories.forEach((cat) => {
+      map.set(cat.name, cat.color);
+    });
+    return map;
+  }, [categories]);
 
   // 組織一覧を取得（リダイレクト用）
   const { data: orgsData } = useListOrganizations();
@@ -148,9 +164,13 @@ export default function OrganizationPage() {
       }
     });
     return Array.from(categoryMap.entries())
-      .map(([category, amount]) => ({ category, amount }))
+      .map(([category, amount]) => ({
+        category,
+        amount,
+        color: categoryColorMap.get(category) || "#94A3B8", // デフォルト色
+      }))
       .sort((a, b) => b.amount - a.amount);
-  }, [transactions]);
+  }, [transactions, categoryColorMap]);
 
   const handleYearChange = (year: number) => {
     setSearchParams((prev) => {
@@ -230,6 +250,7 @@ export default function OrganizationPage() {
             <TransactionsTable
               transactions={transactions}
               selectedMonth={month}
+              categoryColorMap={categoryColorMap}
             />
           </>
         )}

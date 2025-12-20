@@ -4,7 +4,7 @@
  * Marumie Backend
  * OpenAPI spec version: 0.1.0
  */
-import type { CategoryCreateSubcategory } from "./categoryCreateSubcategory";
+import type { EnumCategoryType } from "./enumCategoryType";
 
 /**
  * カテゴリマスタの作成スキーマ
@@ -12,10 +12,10 @@ import type { CategoryCreateSubcategory } from "./categoryCreateSubcategory";
 export interface CategoryCreate {
   id: string;
   name: string;
-  subcategory?: CategoryCreateSubcategory;
+  group: string;
   color: string;
   short_label: string;
-  type: string;
+  type: EnumCategoryType;
   display_order?: number;
   is_active?: boolean;
 }

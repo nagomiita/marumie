@@ -4,47 +4,23 @@ import type { TransactionRead } from "@/client/api/generated/model";
 interface TransactionsTableProps {
   transactions: TransactionRead[];
   selectedMonth?: number;
+  categoryColorMap?: Map<string, string>;
 }
 
 const PAGE_SIZE = 25;
 
-// カテゴリ名から一貫した色を生成する関数
-const getCategoryColor = (category: string): string => {
-  const colors = [
-    "bg-blue-100 text-blue-800 border-blue-200",
-    "bg-green-100 text-green-800 border-green-200",
-    "bg-yellow-100 text-yellow-800 border-yellow-200",
-    "bg-red-100 text-red-800 border-red-200",
-    "bg-purple-100 text-purple-800 border-purple-200",
-    "bg-pink-100 text-pink-800 border-pink-200",
-    "bg-indigo-100 text-indigo-800 border-indigo-200",
-    "bg-orange-100 text-orange-800 border-orange-200",
-    "bg-teal-100 text-teal-800 border-teal-200",
-    "bg-cyan-100 text-cyan-800 border-cyan-200",
-    "bg-lime-100 text-lime-800 border-lime-200",
-    "bg-emerald-100 text-emerald-800 border-emerald-200",
-    "bg-sky-100 text-sky-800 border-sky-200",
-    "bg-violet-100 text-violet-800 border-violet-200",
-    "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200",
-    "bg-rose-100 text-rose-800 border-rose-200",
-    "bg-amber-100 text-amber-800 border-amber-200",
-    "bg-slate-100 text-slate-800 border-slate-200",
-    "bg-zinc-100 text-zinc-800 border-zinc-200",
-    "bg-stone-100 text-stone-800 border-stone-200",
-  ];
-
-  // カテゴリ名から一貫したハッシュ値を生成
-  let hash = 0;
-  for (let i = 0; i < category.length; i++) {
-    hash = category.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  return colors[Math.abs(hash) % colors.length];
+// Hex色をRGBAに変換する関数
+const hexToRgba = (hex: string, alpha: number): string => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
 export default function TransactionsTable({
   transactions,
   selectedMonth,
+  categoryColorMap,
 }: TransactionsTableProps) {
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -300,11 +276,24 @@ export default function TransactionsTable({
                       </span>
                     </td>
                     <td className="py-2 pr-4">
-                      <span
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded-md border ${getCategoryColor(tx.category)}`}
-                      >
-                        {tx.category}
-                      </span>
+                      {categoryColorMap?.has(tx.category) ? (
+                        <span
+                          className="inline-block px-2 py-1 text-xs font-medium rounded-md border text-gray-800"
+                          style={{
+                            backgroundColor: hexToRgba(
+                              categoryColorMap.get(tx.category)!,
+                              0.2,
+                            ),
+                            borderColor: categoryColorMap.get(tx.category),
+                          }}
+                        >
+                          {tx.category}
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2 py-1 text-xs font-medium rounded-md border bg-gray-100 text-gray-800 border-gray-300">
+                          {tx.category}
+                        </span>
+                      )}
                     </td>
                     <td className="py-2 pr-4 text-right whitespace-nowrap">
                       {amount.toLocaleString("ja-JP")}

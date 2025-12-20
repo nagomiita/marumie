@@ -35,6 +35,15 @@ export default function AdminDashboardPage() {
             <p className="mt-2 text-sm text-purple-700">データのインポート</p>
           </a>
           <a
+            href="/admin/categories"
+            className="block p-6 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition"
+          >
+            <h3 className="text-lg font-medium text-indigo-900">
+              カテゴリ管理
+            </h3>
+            <p className="mt-2 text-sm text-indigo-700">カテゴリの作成・編集</p>
+          </a>
+          <a
             href="/admin/users"
             className="block p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition"
           >

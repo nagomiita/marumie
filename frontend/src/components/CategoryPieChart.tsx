@@ -3,6 +3,7 @@ import Chart from "react-apexcharts";
 export interface CategoryData {
   category: string;
   amount: number;
+  color?: string;
 }
 
 interface CategoryPieChartProps {
@@ -24,6 +25,7 @@ export default function CategoryPieChart({
 
   const categories = data.map((d) => d.category);
   const amounts = data.map((d) => d.amount);
+  const colors = data.map((d) => d.color || "#94A3B8");
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -47,18 +49,7 @@ export default function CategoryPieChart({
               formatter: (val: number) => `${Math.round(val / 10000)}万円`,
             },
           },
-          colors: [
-            "#2AA693",
-            "#DC2626",
-            "#F59E0B",
-            "#3B82F6",
-            "#8B5CF6",
-            "#EC4899",
-            "#10B981",
-            "#F97316",
-            "#6366F1",
-            "#14B8A6",
-          ],
+          colors: colors,
         }}
       />
     </div>

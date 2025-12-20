@@ -37,7 +37,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 Args:
     type: フィルタする種別 ("income" | "expense")
-    is_active: 有効なカテゴリのみ取得するか
+    is_active: 有効なカテゴリのみ取得するか（Noneの場合は全て取得）
  * @summary List Categories
  */
 export type listCategoriesResponse200 = {

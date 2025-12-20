@@ -10,6 +10,7 @@ import OrganizationsPage from "./pages/admin/OrganizationsPage";
 import UsersPage from "./pages/admin/UsersPage";
 import CSVUploadPage from "./pages/admin/CSVUploadPage";
 import TransactionsPage from "./pages/admin/TransactionsPage";
+import CategoriesPage from "./pages/admin/CategoriesPage";
 import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="/admin/users" element={<UsersPage />} />
             <Route path="/admin/transactions" element={<TransactionsPage />} />
             <Route path="/admin/csv-upload" element={<CSVUploadPage />} />
+            <Route path="/admin/categories" element={<CategoriesPage />} />
           </Route>
         </Routes>
       </AuthProvider>

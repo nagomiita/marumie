@@ -5,9 +5,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CategoryUpdateName } from "./categoryUpdateName";
-import type { CategoryUpdateSubcategory } from "./categoryUpdateSubcategory";
+import type { CategoryUpdateGroup } from "./categoryUpdateGroup";
 import type { CategoryUpdateColor } from "./categoryUpdateColor";
 import type { CategoryUpdateShortLabel } from "./categoryUpdateShortLabel";
+import type { CategoryUpdateType } from "./categoryUpdateType";
 import type { CategoryUpdateDisplayOrder } from "./categoryUpdateDisplayOrder";
 import type { CategoryUpdateIsActive } from "./categoryUpdateIsActive";
 
@@ -16,9 +17,10 @@ import type { CategoryUpdateIsActive } from "./categoryUpdateIsActive";
  */
 export interface CategoryUpdate {
   name?: CategoryUpdateName;
-  subcategory?: CategoryUpdateSubcategory;
+  group?: CategoryUpdateGroup;
   color?: CategoryUpdateColor;
   short_label?: CategoryUpdateShortLabel;
+  type?: CategoryUpdateType;
   display_order?: CategoryUpdateDisplayOrder;
   is_active?: CategoryUpdateIsActive;
 }

@@ -4,8 +4,6 @@
  * Marumie Backend
  * OpenAPI spec version: 0.1.0
  */
+import type { EnumCategoryType } from "./enumCategoryType";
 
-export type ListCategoriesParams = {
-  type?: string | null;
-  is_active?: boolean | null;
-};
+export type CategoryUpdateType = EnumCategoryType | null;

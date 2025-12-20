@@ -15,14 +15,14 @@ class CategoryService:
     async def list_categories(
         session: AsyncSession,
         type: str | None = None,
-        is_active: bool = True,
+        is_active: bool | None = None,
     ) -> list[CategoryRead]:
         """カテゴリ一覧を取得
 
         Args:
             session: データベースセッション
             type: フィルタする種別 ("income" | "expense")
-            is_active: 有効なカテゴリのみ取得するか
+            is_active: 有効なカテゴリのみ取得するか（Noneの場合は全て取得）
 
         Returns:
             カテゴリのリスト
@@ -32,8 +32,8 @@ class CategoryService:
         if type:
             query = query.where(Category.type == type)
 
-        if is_active:
-            query = query.where(Category.is_active)
+        if is_active is not None:
+            query = query.where(Category.is_active == is_active)
 
         query = query.order_by(Category.display_order, Category.id)
 
