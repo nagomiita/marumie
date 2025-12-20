@@ -1,6 +1,7 @@
 {
-  "banks": {
-    "ufj": {
+  "banks": [
+    {
+      "id": "ufj",
       "name": "UFJ銀行",
       "encoding": "shift_jis",
       "columns": {
@@ -15,8 +16,75 @@
         "UFJ_sample_*.csv"
       ],
       "account_name": "UFJ銀行"
+    },
+    {
+      "id": "rakuten_card",
+      "name": "楽天カード",
+      "encoding": "utf-8-sig",
+      "columns": {
+        "date": "利用日",
+        "description": "利用店名・商品名",
+        "description_detail": "利用者",
+        "debit": "利用金額",
+        "credit": "支払総額"
+      },
+      "file_patterns": [
+        "enavi*.csv"
+      ],
+      "account_name": "楽天カード",
+      "is_credit_card": true,
+      "exclude_keywords": [
+        "本人"
+      ]
+    },
+    {
+      "id": "smbc_card",
+      "name": "三井住友カード",
+      "encoding": "shift_jis",
+      "columns": {
+        "date": "date",
+        "description": "description",
+        "description_detail": "description",
+        "debit": "amount",
+        "credit": "billing_amount"
+      },
+      "file_patterns": [],
+      "account_name": "三井住友カード",
+      "is_credit_card": true,
+      "exclude_keywords": [
+        "本人"
+      ],
+      "fieldnames": [
+        "date",
+        "description",
+        "amount",
+        "installment_count",
+        "installment_paid",
+        "billing_amount",
+        "note"
+      ],
+      "skip_rows": 1
+    },
+    {
+      "id": "japan_post_bank",
+      "name": "ゆうちょ銀行",
+      "encoding": "utf-8-sig",
+      "columns": {
+        "date": "取引日",
+        "description": "詳細１",
+        "description_detail": "詳細２",
+        "debit": "払出金額（円）",
+        "credit": "受入金額（円）"
+      },
+      "file_patterns": [],
+      "account_name": "ゆうちょ銀行",
+      "ignore_description_keywords": [
+        "ラクテンカードサーヒ",
+        "楽天カード",
+        "ﾗｸﾃﾝｶｰﾄﾞ"
+      ]
     }
-  },
+  ],
   "output": {
     "encoding": "utf-8-sig",
     "columns": [
@@ -30,22 +98,25 @@
       "メモ"
     ]
   },
-  "categories": {
-    "salary": {
+  "categories": [
+    {
+      "id": "salary",
       "account": "給与収入",
       "keywords": [
         "給与",
         "給料"
       ]
     },
-    "bonus": {
+    {
+      "id": "bonus",
       "account": "賞与",
       "keywords": [
         "賞与",
         "ボーナス"
       ]
     },
-    "misc_income": {
+    {
+      "id": "misc_income",
       "account": "雑収入",
       "keywords": [
         "振込",
@@ -54,7 +125,8 @@
         "還付"
       ]
     },
-    "rent": {
+    {
+      "id": "rent",
       "account": "家賃",
       "keywords": [
         "家賃",
@@ -62,7 +134,8 @@
         "管理費"
       ]
     },
-    "utilities": {
+    {
+      "id": "utilities",
       "account": "水道光熱費",
       "keywords": [
         "電気",
@@ -73,7 +146,8 @@
         "東京ガス"
       ]
     },
-    "communication": {
+    {
+      "id": "communication",
       "account": "通信費",
       "keywords": [
         "携帯",
@@ -87,7 +161,8 @@
         "楽天モバイル"
       ]
     },
-    "insurance": {
+    {
+      "id": "insurance",
       "account": "保険料",
       "keywords": [
         "保険",
@@ -96,7 +171,8 @@
         "損害保険"
       ]
     },
-    "subscription": {
+    {
+      "id": "subscription",
       "account": "サブスクリプション",
       "keywords": [
         "Netflix",
@@ -108,7 +184,8 @@
         "Adobe"
       ]
     },
-    "food": {
+    {
+      "id": "food",
       "account": "食費",
       "keywords": [
         "スーパー",
@@ -123,7 +200,8 @@
         "魚"
       ]
     },
-    "dining": {
+    {
+      "id": "dining",
       "account": "外食費",
       "keywords": [
         "レストラン",
@@ -137,7 +215,8 @@
         "ディナー"
       ]
     },
-    "daily_necessities": {
+    {
+      "id": "daily_necessities",
       "account": "日用品",
       "keywords": [
         "コンビニ",
@@ -149,7 +228,8 @@
         "ウエルシア"
       ]
     },
-    "transport": {
+    {
+      "id": "transport",
       "account": "交通費",
       "keywords": [
         "JR",
@@ -165,7 +245,8 @@
         "切符"
       ]
     },
-    "travel": {
+    {
+      "id": "travel",
       "account": "旅費交通費",
       "keywords": [
         "新幹線",
@@ -177,7 +258,8 @@
         "スマートEX"
       ]
     },
-    "medical": {
+    {
+      "id": "medical",
       "account": "医療費",
       "keywords": [
         "病院",
@@ -190,7 +272,8 @@
         "眼科"
       ]
     },
-    "clothing": {
+    {
+      "id": "clothing",
       "account": "衣服費",
       "keywords": [
         "ユニクロ",
@@ -201,7 +284,8 @@
         "ファッション"
       ]
     },
-    "beauty": {
+    {
+      "id": "beauty",
       "account": "美容費",
       "keywords": [
         "美容",
@@ -212,7 +296,8 @@
         "理容"
       ]
     },
-    "education": {
+    {
+      "id": "education",
       "account": "教育費",
       "keywords": [
         "学校",
@@ -224,7 +309,8 @@
         "参考書"
       ]
     },
-    "entertainment": {
+    {
+      "id": "entertainment",
       "account": "娯楽費",
       "keywords": [
         "映画",
@@ -237,7 +323,8 @@
         "アミューズメント"
       ]
     },
-    "social": {
+    {
+      "id": "social",
       "account": "交際費",
       "keywords": [
         "プレゼント",
@@ -247,10 +334,10 @@
         "接待"
       ]
     },
-    "credit_card": {
+    {
+      "id": "credit_card",
       "account": "クレジットカード",
       "keywords": [
-        "カード",
         "クレジット",
         "VISA",
         "Master",
@@ -260,7 +347,8 @@
         "ニコス"
       ]
     },
-    "cash": {
+    {
+      "id": "cash",
       "account": "現金",
       "keywords": [
         "ATM",
@@ -269,7 +357,8 @@
         "現金"
       ]
     },
-    "savings": {
+    {
+      "id": "savings",
       "account": "貯金",
       "keywords": [
         "積立",
@@ -278,7 +367,8 @@
         "貯金"
       ]
     },
-    "investment": {
+    {
+      "id": "investment",
       "account": "投資",
       "keywords": [
         "証券",
@@ -291,7 +381,8 @@
         "コインチェック"
       ]
     },
-    "fees": {
+    {
+      "id": "fees",
       "account": "その他の経費",
       "keywords": [
         "手数料",
@@ -299,8 +390,9 @@
         "為替手数料"
       ]
     },
-    "default": {
+    {
+      "id": "default",
       "account": "その他の経費"
     }
-  }
+  ]
 }

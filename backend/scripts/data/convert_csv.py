@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-CSV conversion utility for unifying financial institution CSV exports.
-Extracted from the previous inline Python in convert_csv.sh for readability.
+CSV変換スクリプト
+各銀行・クレジットカードの明細CSVを統一フォーマットに変換
 """
 
 from __future__ import annotations
@@ -11,98 +11,281 @@ import csv
 import json
 import os
 import re
-import shutil
+import unicodedata
+from dataclasses import dataclass, field
 from datetime import datetime
-
-# ---------------------------------------------------------------------------
-# Configuration helpers
-# ---------------------------------------------------------------------------
+from typing import TypedDict
 
 
-def load_config(script_dir: str) -> dict:
-    config_path = os.path.join(script_dir, "config.json")
-    with open(config_path, encoding="utf-8") as f:
-        return json.load(f)
+@dataclass
+class BankColumns:
+    date: str
+    description: str
+    description_detail: str
+    debit: str
+    credit: str
+    balance: str | None = None
 
 
-def ensure_output_dir(output_dir: str) -> None:
-    os.makedirs(output_dir, exist_ok=True)
+@dataclass
+class BankConfig:
+    id: str
+    name: str
+    encoding: str
+    columns: BankColumns
+    file_patterns: list[str] = field(default_factory=list)
+    account_name: str = "普通預金"
+    is_credit_card: bool = False
+    adjust_date_to_billing_month: bool = False
+    exclude_keywords: list[str] = field(default_factory=list)
+    fieldnames: list[str] | None = None
+    skip_rows: int = 0
+    ignore_description_keywords: list[str] = field(default_factory=list)
 
 
-# ---------------------------------------------------------------------------
-# Parsing helpers
-# ---------------------------------------------------------------------------
+@dataclass
+class CategoryConfig:
+    id: str
+    account: str
+    keywords: list[str] = field(default_factory=list)
+
+
+@dataclass
+class OutputConfig:
+    encoding: str
+    columns: list[str]
+
+
+@dataclass
+class AppConfig:
+    banks: list[BankConfig]
+    categories: list[CategoryConfig]
+    output: OutputConfig
+
+
+class Transaction(TypedDict):
+    date: str
+    category: str
+    amount: float
+    type: str
+    payment_method: str
+    description: str
 
 
 def detect_bank_type(
-    filename: str, banks_config: dict
-) -> tuple[str | None, dict | None]:
-    """Detect bank type based on filename patterns."""
-    for bank_id, bank_config in banks_config.items():
-        for pattern in bank_config.get("file_patterns", []):
+    filename: str, banks_config: list[BankConfig]
+) -> tuple[str | None, BankConfig | None]:
+    """ファイル名から銀行タイプを判定"""
+    for bank_config in banks_config:
+        for pattern in bank_config.file_patterns:
             regex_pattern = pattern.replace("*", ".*")
             if re.match(regex_pattern, filename):
-                return bank_id, bank_config
+                return bank_config.id, bank_config
     return None, None
 
 
-def parse_amount(amount_str: str) -> float:
-    """Convert amount strings to numeric values."""
-    if not amount_str:
+def normalize_text(value: str | None) -> str:
+    """半角/全角などを正規化"""
+    if not value:
+        return ""
+    return unicodedata.normalize("NFKC", value)
+
+
+def remove_excluded_terms(text: str | None, exclusions: list[str] | None) -> str:
+    """指定された語句を取り除いた正規化済みテキストを返す"""
+    normalized_text = normalize_text(text)
+    if not exclusions or not normalized_text:
+        return normalized_text
+
+    filtered = normalized_text
+    for exclusion in exclusions:
+        normalized_exclusion = normalize_text(exclusion)
+        if not normalized_exclusion:
+            continue
+        filtered = filtered.replace(normalized_exclusion, " ")
+    return " ".join(filtered.split())
+
+
+def apply_exclusions(text: str, exclusions: list[str] | None) -> str:
+    """指定された文字列をテキストから除去"""
+    if not exclusions:
+        return text
+    filtered = text
+    for exclusion in exclusions:
+        normalized_exclusion = normalize_text(exclusion).lower()
+        if not normalized_exclusion:
+            continue
+        filtered = filtered.replace(normalized_exclusion, " ")
+    return filtered
+
+
+def prepare_descriptions(
+    raw_description: str,
+    raw_description_detail: str,
+    exclusions: list[str] | None,
+) -> tuple[str, str, str]:
+    """カテゴリ判定と出力に用いる摘要をまとめて生成"""
+    description = remove_excluded_terms(text=raw_description, exclusions=exclusions)
+    description_detail = remove_excluded_terms(
+        text=raw_description_detail, exclusions=exclusions
+    )
+    full_description = f"{description} {description_detail}".strip()
+    return description, description_detail, full_description
+
+
+def create_transaction(
+    *,
+    date: str,
+    category: str,
+    amount: float,
+    entry_type: str,
+    payment_method: str,
+    description: str,
+) -> Transaction:
+    return {
+        "date": date,
+        "category": category,
+        "amount": amount,
+        "type": entry_type,
+        "payment_method": payment_method,
+        "description": description,
+    }
+
+
+def should_record_transaction(amount: float) -> bool:
+    return amount is not None and amount > 0
+
+
+def should_ignore_description(
+    description: str, detail: str, ignore_keywords: list[str]
+) -> bool:
+    if not ignore_keywords:
+        return False
+    combined = f"{description} {detail}".lower()
+    for keyword in ignore_keywords:
+        normalized = normalize_text(keyword).lower()
+        if normalized and normalized in combined:
+            return True
+    return False
+
+
+def append_transaction_if_needed(
+    *,
+    transactions: list[Transaction],
+    amount: float,
+    entry_type: str,
+    description: str,
+    description_detail: str,
+    full_description: str,
+    categories: list[CategoryConfig],
+    default_category: str,
+    exclude_keywords: list[str] | None,
+    payment_method: str,
+    date: str,
+) -> None:
+    if not should_record_transaction(amount):
+        return
+
+    category = categorize_transaction(
+        description=description,
+        description_detail=description_detail,
+        categories=categories,
+        default_category=default_category,
+        exclude_keywords=exclude_keywords,
+    )
+    transactions.append(
+        create_transaction(
+            date=date,
+            category=category,
+            amount=amount,
+            entry_type=entry_type,
+            payment_method=payment_method,
+            description=full_description,
+        )
+    )
+
+
+def parse_amount(amount_str: str | None) -> float:
+    """金額文字列を数値に変換"""
+    if not amount_str or amount_str == "":
         return 0
+    # カンマ、円記号、スペースを削除
     amount_str = (
         amount_str.replace(",", "").replace("¥", "").replace(" ", "").replace("\\", "")
     )
     try:
         return abs(float(amount_str))
-    except Exception:
+    except:
         return 0
 
 
 def parse_date(date_str: str) -> str:
-    """Normalize date strings into YYYY/MM/DD format."""
+    """日付文字列を統一フォーマットに変換"""
     if not date_str:
         return ""
 
-    formats = ["%Y/%m/%d", "%Y-%m-%d", "%Y年%m月%d日", "%m/%d"]
+    # 各種日付フォーマットを試す
+    formats = [
+        "%Y/%m/%d",
+        "%Y-%m-%d",
+        "%Y年%m月%d日",
+        "%Y%m%d",
+        "%m/%d",  # M/D形式（今年と仮定）
+    ]
+
     for fmt in formats:
         try:
             dt = datetime.strptime(date_str, fmt)
+            # M/D形式の場合は現在の年を設定
             if fmt == "%m/%d":
-                dt = dt.replace(year=datetime.now().year)
+                current_year = datetime.now().year
+                dt = dt.replace(year=current_year)
             return dt.strftime("%Y/%m/%d")
-        except Exception:
+        except:
             continue
 
+    # 標準的な変換を試みる
     try:
+        # "2025年1月1日"のような形式
         date_str_converted = (
             date_str.replace("年", "/").replace("月", "/").replace("日", "")
         )
         parts = date_str_converted.split("/")
         if len(parts) >= 3:
-            year, month, day = map(int, parts[:3])
+            year = int(parts[0])
+            month = int(parts[1])
+            day = int(parts[2])
             return f"{year:04d}/{month:02d}/{day:02d}"
-        if len(parts) == 2:
+        elif len(parts) == 2:
+            # M/D形式の場合は現在の年を使用
             current_year = datetime.now().year
-            month, day = map(int, parts)
+            month = int(parts[0])
+            day = int(parts[1])
             return f"{current_year:04d}/{month:02d}/{day:02d}"
-    except Exception:
+    except:
         pass
 
     return date_str
 
 
 def adjust_date_to_billing_month(date_str: str, target_year_month: str) -> str:
-    """Adjust dates for billing month (for SAISON cards)."""
+    """利用日を引き落とし月に調整（SAISON_CARD/SAISON_GOLD用）"""
     if not date_str or not target_year_month:
         return date_str
 
     try:
+        # 元の日付を解析
         original_date = datetime.strptime(date_str, "%Y/%m/%d")
+
+        # 目標年月を解析（YYYY-MM形式）
         target_year, target_month = map(int, target_year_month.split("-"))
+
+        # 日付を調整（年月を目標に変更、日はそのまま）
+        # ただし、その月に存在しない日付の場合は月末にする
         try:
             adjusted_date = original_date.replace(year=target_year, month=target_month)
         except ValueError:
+            # 31日の日付を30日以下の月に調整する場合など
             import calendar
 
             last_day = calendar.monthrange(target_year, target_month)[1]
@@ -110,107 +293,143 @@ def adjust_date_to_billing_month(date_str: str, target_year_month: str) -> str:
             adjusted_date = original_date.replace(
                 year=target_year, month=target_month, day=adjusted_day
             )
+
         return adjusted_date.strftime("%Y/%m/%d")
-    except Exception:
+    except:
         return date_str
 
 
 def categorize_transaction(
-    description: str, description_detail: str, categories: dict
+    description: str,
+    description_detail: str,
+    categories: list[CategoryConfig],
+    default_category: str,
+    exclude_keywords: list[str] | None = None,
 ) -> str:
-    """Infer account category from description."""
-    combined_text = f"{description} {description_detail}".lower()
+    """摘要から勘定科目を推定"""
+    normalized_description = normalize_text(description)
+    normalized_detail = normalize_text(description_detail)
+    combined_text = f"{normalized_description} {normalized_detail}".lower()
+    combined_text = apply_exclusions(combined_text, exclude_keywords)
 
-    for category_id, category_config in categories.items():
-        if category_id == "default":
+    for category in categories:
+        if category.id == "default":
             continue
-        for keyword in category_config.get("keywords", []):
-            if keyword.lower() in combined_text:
-                return category_config["account"]
+        for keyword in category.keywords:
+            normalized_keyword = normalize_text(keyword).lower()
+            if normalized_keyword in combined_text:
+                return category.account
 
-    return categories["default"]["account"]
-
-
-# ---------------------------------------------------------------------------
-# Conversion
-# ---------------------------------------------------------------------------
+    return default_category
 
 
 def convert_csv_file(
     input_path: str,
-    bank_config: dict,
-    categories: dict,
+    bank_config: BankConfig,
+    categories: list[CategoryConfig],
+    default_category: str,
     year_month: str,
-) -> list[dict]:
-    """Convert a single CSV file to unified format."""
-    encoding = bank_config.get("encoding", "utf-8")
-    columns = bank_config["columns"]
-    account_name = bank_config.get("account_name", "普通預金")
-    is_credit_card = bank_config.get("is_credit_card", False)
-    adjust_date = bank_config.get("adjust_date_to_billing_month", False)
+) -> list[Transaction]:
+    """CSVファイルを統一フォーマットに変換"""
+    encoding = bank_config.encoding or "utf-8"
+    columns = bank_config.columns
+    account_name = bank_config.account_name
+    is_credit_card = bank_config.is_credit_card
+    adjust_date = bank_config.adjust_date_to_billing_month
 
-    transactions = []
+    transactions: list[Transaction] = []
+    exclude_keywords = bank_config.exclude_keywords
 
+    # ファイルを読み込み
     try:
         with codecs.open(input_path, "r", encoding=encoding, errors="ignore") as f:
-            reader = csv.DictReader(f)
+            if bank_config.skip_rows > 0:
+                for _ in range(bank_config.skip_rows):
+                    next(f, None)
+
+            if bank_config.fieldnames:
+                reader = csv.DictReader(f, fieldnames=bank_config.fieldnames)
+            else:
+                reader = csv.DictReader(f)
+
             for row in reader:
-                date = parse_date(row.get(columns["date"], ""))
+                # 各列の値を取得
+                date = parse_date(date_str=row.get(columns.date, ""))
                 if not date:
                     continue
+
+                # 日付調整（SAISON_CARD/SAISON_GOLD用）
                 if adjust_date:
-                    date = adjust_date_to_billing_month(date, year_month)
+                    date = adjust_date_to_billing_month(
+                        date_str=date, target_year_month=year_month
+                    )
 
-                description = row.get(columns["description"], "")
-                description_detail = row.get(columns["description_detail"], "")
-                debit_amount = parse_amount(row.get(columns["debit"], ""))
-                credit_amount = parse_amount(row.get(columns["credit"], ""))
-                full_description = f"{description} {description_detail}".strip()
+                raw_description = row.get(columns.description, "")
+                raw_description_detail = row.get(columns.description_detail, "")
 
+                # 借方・貸方の金額を取得
+                debit_amount = parse_amount(amount_str=row.get(columns.debit, ""))
+                credit_amount = parse_amount(amount_str=row.get(columns.credit, ""))
+
+                # 摘要を結合
+                description, description_detail, full_description = (
+                    prepare_descriptions(
+                        raw_description=raw_description,
+                        raw_description_detail=raw_description_detail,
+                        exclusions=exclude_keywords,
+                    )
+                )
+
+                if should_ignore_description(
+                    description=description,
+                    detail=description_detail,
+                    ignore_keywords=bank_config.ignore_description_keywords,
+                ):
+                    continue
+
+                # 勘定科目を判定
                 if is_credit_card:
-                    if debit_amount > 0:
-                        category = categorize_transaction(
-                            description, description_detail, categories
-                        )
-                        transactions.append(
-                            {
-                                "date": date,
-                                "category": category,
-                                "amount": debit_amount,
-                                "type": "支出",
-                                "payment_method": account_name,
-                                "description": full_description,
-                            }
-                        )
+                    append_transaction_if_needed(
+                        transactions=transactions,
+                        amount=debit_amount,
+                        entry_type="支出",
+                        description=description,
+                        description_detail=description_detail,
+                        full_description=full_description,
+                        categories=categories,
+                        default_category=default_category,
+                        exclude_keywords=exclude_keywords,
+                        payment_method=account_name,
+                        date=date,
+                    )
                 else:
-                    if debit_amount > 0:
-                        category = categorize_transaction(
-                            description, description_detail, categories
-                        )
-                        transactions.append(
-                            {
-                                "date": date,
-                                "category": category,
-                                "amount": debit_amount,
-                                "type": "支出",
-                                "payment_method": account_name,
-                                "description": full_description,
-                            }
-                        )
-                    elif credit_amount > 0:
-                        category = categorize_transaction(
-                            description, description_detail, categories
-                        )
-                        transactions.append(
-                            {
-                                "date": date,
-                                "category": category,
-                                "amount": credit_amount,
-                                "type": "収入",
-                                "payment_method": account_name,
-                                "description": full_description,
-                            }
-                        )
+                    append_transaction_if_needed(
+                        transactions=transactions,
+                        amount=debit_amount,
+                        entry_type="支出",
+                        description=description,
+                        description_detail=description_detail,
+                        full_description=full_description,
+                        categories=categories,
+                        default_category=default_category,
+                        exclude_keywords=exclude_keywords,
+                        payment_method=account_name,
+                        date=date,
+                    )
+
+                    append_transaction_if_needed(
+                        transactions=transactions,
+                        amount=credit_amount,
+                        entry_type="収入",
+                        description=description,
+                        description_detail=description_detail,
+                        full_description=full_description,
+                        categories=categories,
+                        default_category=default_category,
+                        exclude_keywords=exclude_keywords,
+                        payment_method=account_name,
+                        date=date,
+                    )
     except Exception as e:
         print(f"Error reading {input_path}: {e}")
         return []
@@ -219,182 +438,193 @@ def convert_csv_file(
 
 
 def write_unified_csv(
-    transactions: list[dict], output_path: str, output_config: dict
+    transactions: list[Transaction], output_path: str, output_config: OutputConfig
 ) -> None:
-    columns = output_config["columns"]
-    encoding = output_config.get("encoding", "utf-8")
+    """統一フォーマットでCSVを出力"""
+    columns = output_config.columns
+    encoding = output_config.encoding
 
     with open(output_path, "w", encoding=encoding, newline="") as f:
         writer = csv.writer(f)
+
+        # ヘッダーを書き込み
         writer.writerow(columns)
 
+        # 取引データを書き込み
         for trans in transactions:
+            # カテゴリとサブカテゴリを分離
             category_parts = trans["category"].split("/")
             main_category = category_parts[0] if category_parts else trans["category"]
             sub_category = category_parts[1] if len(category_parts) > 1 else ""
 
             row = [
-                trans["date"],
-                main_category,
-                sub_category,
-                int(trans["amount"]),
-                trans["type"],
-                trans["payment_method"],
-                trans["description"],
-                "",
+                trans["date"],  # 日付
+                main_category,  # カテゴリ
+                sub_category,  # サブカテゴリ
+                int(trans["amount"]),  # 金額
+                trans["type"],  # 収支区分（収入/支出）
+                trans["payment_method"],  # 支払方法
+                trans["description"],  # 摘要
+                "",  # メモ
             ]
             writer.writerow(row)
 
 
-# ---------------------------------------------------------------------------
-# Directory helpers
-# ---------------------------------------------------------------------------
+def load_config(script_dir: str) -> AppConfig:
+    config_path = os.path.join(script_dir, "config.json")
+    with open(config_path, encoding="utf-8") as f:
+        raw = json.load(f)
+
+    banks = [
+        BankConfig(
+            id=bank["id"],
+            name=bank["name"],
+            encoding=bank.get("encoding", "utf-8"),
+            columns=BankColumns(**bank["columns"]),
+            file_patterns=bank.get("file_patterns", []),
+            account_name=bank.get("account_name", "普通預金"),
+            is_credit_card=bank.get("is_credit_card", False),
+            adjust_date_to_billing_month=bank.get(
+                "adjust_date_to_billing_month", False
+            ),
+            exclude_keywords=bank.get("exclude_keywords", []),
+            fieldnames=bank.get("fieldnames"),
+            skip_rows=bank.get("skip_rows", 0),
+            ignore_description_keywords=bank.get("ignore_description_keywords", []),
+        )
+        for bank in raw["banks"]
+    ]
+
+    categories = [
+        CategoryConfig(
+            id=category["id"],
+            account=category["account"],
+            keywords=category.get("keywords", []),
+        )
+        for category in raw["categories"]
+    ]
+
+    output = OutputConfig(
+        encoding=raw["output"]["encoding"],
+        columns=raw["output"]["columns"],
+    )
+
+    return AppConfig(banks=banks, categories=categories, output=output)
 
 
-def infer_year_month_from_csv(csv_path: str, bank_config: dict) -> str | None:
-    """Try to infer YYYY-MM from the first valid date row in the CSV."""
-    encoding = bank_config.get("encoding", "utf-8")
-    columns = bank_config.get("columns", {})
-    date_column = columns.get("date")
-    if not date_column:
-        return None
-
-    try:
-        with codecs.open(csv_path, "r", encoding=encoding, errors="ignore") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                raw_date = row.get(date_column, "")
-                normalized_date = parse_date(raw_date)
-                if normalized_date:
-                    try:
-                        dt = datetime.strptime(normalized_date, "%Y/%m/%d")
-                        return f"{dt.year:04d}-{dt.month:02d}"
-                    except Exception:
-                        continue
-    except Exception:
-        return None
-
+def extract_year_month_from_filename(filename: str) -> str | None:
+    match = re.search(r"(20\d{2})(0[1-9]|1[0-2])", filename)
+    if match:
+        return f"{match.group(1)}-{match.group(2)}"
     return None
 
 
-def move_to_year_month(csv_path: str, target_year_month: str, base_dir: str) -> None:
-    year, month = target_year_month.split("-")
-    destination_dir = os.path.join(base_dir, year, month)
-    os.makedirs(destination_dir, exist_ok=True)
-    shutil.move(csv_path, os.path.join(destination_dir, os.path.basename(csv_path)))
+def gather_transactions_by_month(
+    *,
+    input_dir: str,
+    banks_config: list[BankConfig],
+    categories: list[CategoryConfig],
+    default_category: str,
+) -> dict[str, list[Transaction]]:
+    transactions_by_month: dict[str, list[Transaction]] = {}
 
-
-def reorganize_input_structure(base_dir: str, banks_config: dict) -> None:
-    """Convert legacy YYYY-MM folders into YYYY/MM layout and auto-sort loose files."""
-    # 1. Convert legacy YYYY-MM directories into nested YYYY/MM
-    for entry in os.listdir(base_dir):
-        entry_path = os.path.join(base_dir, entry)
-        if os.path.isdir(entry_path) and re.fullmatch(r"\d{4}-\d{2}", entry):
-            year, month = entry.split("-")
-            year_dir = os.path.join(base_dir, year)
-            month_dir = os.path.join(year_dir, month)
-
-            os.makedirs(month_dir, exist_ok=True)
-
-            for child in os.listdir(entry_path):
-                shutil.move(
-                    os.path.join(entry_path, child), os.path.join(month_dir, child)
-                )
-
-            shutil.rmtree(entry_path, ignore_errors=True)
-
-    # 2. Auto-distribute loose CSV files placed directly under input/
-    for entry in os.listdir(base_dir):
-        entry_path = os.path.join(base_dir, entry)
-        if os.path.isdir(entry_path) or not entry.lower().endswith(".csv"):
+    for bank_config in banks_config:
+        bank_input_dir = os.path.join(input_dir, bank_config.id)
+        if not os.path.isdir(bank_input_dir):
+            print(f"Skipping {bank_config.id}: directory not found -> {bank_input_dir}")
             continue
 
-        _, bank_config = detect_bank_type(entry, banks_config)
-        if not bank_config:
-            continue
-
-        target_year_month = infer_year_month_from_csv(entry_path, bank_config)
-        if not target_year_month:
-            # Fallback to file modified time
-            modified = datetime.fromtimestamp(os.path.getmtime(entry_path))
-            target_year_month = f"{modified.year:04d}-{modified.month:02d}"
-
-        move_to_year_month(entry_path, target_year_month, base_dir)
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
-
-def convert_all(input_dir: str, output_dir: str, config: dict) -> None:
-    ensure_output_dir(output_dir)
-
-    banks_config = config["banks"]
-    categories = config["categories"]
-    output_config = config["output"]
-
-    reorganize_input_structure(input_dir, banks_config)
-
-    # Process all CSV files recursively in the input directory
-    all_files_by_month: dict[str, list[tuple[str, dict]]] = {}
-
-    for root, dirs, files in os.walk(input_dir):
-        for csv_file in files:
+        for csv_file in sorted(os.listdir(bank_input_dir)):
             if not csv_file.endswith(".csv"):
                 continue
 
-            input_path = os.path.join(root, csv_file)
-            bank_id, bank_config = detect_bank_type(csv_file, banks_config)
+            year_month_hint = extract_year_month_from_filename(csv_file)
+            if not year_month_hint:
+                print(
+                    f"  Cannot determine billing month from filename '{csv_file}' for {bank_config.name}"
+                )
 
-            if not bank_config:
-                print(f"  Unknown file format: {csv_file}")
-                continue
-
-            # Infer year-month from the CSV content
-            year_month = infer_year_month_from_csv(input_path, bank_config)
-            if not year_month:
-                # Fallback to file modified time
-                modified = datetime.fromtimestamp(os.path.getmtime(input_path))
-                year_month = f"{modified.year:04d}-{modified.month:02d}"
-
-            if year_month not in all_files_by_month:
-                all_files_by_month[year_month] = []
-            all_files_by_month[year_month].append((input_path, bank_config))
-
-    # Process each month
-    for year_month in sorted(all_files_by_month.keys()):
-        print(f"Processing {year_month}...")
-        year, month = year_month.split("-")
-        output_month_dir = os.path.join(output_dir, year, month)
-        os.makedirs(output_month_dir, exist_ok=True)
-
-        all_transactions: list[dict] = []
-
-        for input_path, bank_config in all_files_by_month[year_month]:
-            csv_file = os.path.basename(input_path)
-            print(f"  Processing {csv_file} as {bank_config['name']}...")
-            transactions = convert_csv_file(
-                input_path, bank_config, categories, year_month
+            print(
+                f"Processing {csv_file} as {bank_config.name} ({year_month_hint or 'date-based'})..."
             )
-            all_transactions.extend(transactions)
+            input_path = os.path.join(bank_input_dir, csv_file)
+            transactions = convert_csv_file(
+                input_path=input_path,
+                bank_config=bank_config,
+                categories=categories,
+                default_category=default_category,
+                year_month=year_month_hint or "",
+            )
+            if not transactions:
+                continue
+            for transaction in transactions:
+                month_key = determine_month_from_transaction(
+                    transaction=transaction, fallback_year_month=year_month_hint
+                )
+                transactions_by_month.setdefault(month_key, []).append(transaction)
 
-        if all_transactions:
-            all_transactions.sort(key=lambda x: x["date"])
-            output_path = os.path.join(output_month_dir, f"unified_{year_month}.csv")
-            write_unified_csv(all_transactions, output_path, output_config)
-            print(f"  Output: {output_path} ({len(all_transactions)} transactions)")
-        else:
-            print(f"  No transactions found for {year_month}")
+    return transactions_by_month
+
+
+def determine_month_from_transaction(
+    *, transaction: Transaction, fallback_year_month: str | None
+) -> str:
+    date_str = transaction.get("date", "")
+    try:
+        date_obj = datetime.strptime(date_str, "%Y/%m/%d")
+        return date_obj.strftime("%Y-%m")
+    except Exception:
+        pass
+    if fallback_year_month:
+        return fallback_year_month
+    return "unknown"
 
 
 def main() -> None:
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    config = load_config(script_dir)
+
     input_dir = os.path.join(script_dir, "input")
     output_dir = os.path.join(script_dir, "output")
+    os.makedirs(output_dir, exist_ok=True)
 
-    config = load_config(script_dir)
-    convert_all(input_dir, output_dir, config)
+    banks_config = config.banks
+    categories = config.categories
+    default_category = next(
+        (category.account for category in categories if category.id == "default"),
+        "未分類",
+    )
+    output_config = config.output
+
+    transactions_by_month = gather_transactions_by_month(
+        input_dir=input_dir,
+        banks_config=banks_config,
+        categories=categories,
+        default_category=default_category,
+    )
+
+    if not transactions_by_month:
+        print("No transactions found in input directories.")
+        return
+
+    for year_month in sorted(transactions_by_month.keys()):
+        month_transactions = transactions_by_month[year_month]
+        if not month_transactions:
+            continue
+
+        month_transactions.sort(key=lambda x: x["date"])
+        year, month = year_month.split("-")
+        output_month_dir = os.path.join(output_dir, year, month)
+        os.makedirs(output_month_dir, exist_ok=True)
+        output_path = os.path.join(output_month_dir, f"unified_{year_month}.csv")
+
+        write_unified_csv(
+            transactions=month_transactions,
+            output_path=output_path,
+            output_config=output_config,
+        )
+        print(f"Output: {output_path} ({len(month_transactions)} transactions)")
+
     print("\nConversion completed!")
 
 
