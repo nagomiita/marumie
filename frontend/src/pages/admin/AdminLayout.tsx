@@ -1,16 +1,14 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { adminMenuItems } from "@/config/adminMenu";
+import Button from "@/components/common/Button";
 
 function LogoutButton() {
   const { signOut } = useAuth();
   return (
-    <button
-      type="button"
-      onClick={() => signOut()}
-      className="text-sm text-red-600 hover:text-red-800"
-    >
+    <Button onClick={() => signOut()} variant="danger" size="sm">
       ログアウト
-    </button>
+    </Button>
   );
 }
 
@@ -45,30 +43,15 @@ export default function AdminLayout() {
                 >
                   ダッシュボード
                 </a>
-                <a
-                  href="/admin/organizations"
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  組織管理
-                </a>
-                <a
-                  href="/admin/transactions"
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  トランザクション
-                </a>
-                <a
-                  href="/admin/users"
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  ユーザー管理
-                </a>
-                <a
-                  href="/admin/csv-upload"
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  CSVアップロード
-                </a>
+                {adminMenuItems.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    {item.title}
+                  </a>
+                ))}
               </div>
             </div>
             <div className="flex items-center">

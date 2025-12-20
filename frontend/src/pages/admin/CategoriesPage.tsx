@@ -13,6 +13,7 @@ import type {
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Modal from "@/components/common/Modal";
 import Form, { type FormField } from "@/components/common/Form";
+import Button from "@/components/common/Button";
 
 export default function CategoriesPage() {
   const {
@@ -266,20 +267,20 @@ export default function CategoriesPage() {
       label: "操作",
       render: (category) => (
         <div className="flex gap-2">
-          <button
-            type="button"
+          <Button
             onClick={() => handleEdit(category)}
-            className="text-blue-600 hover:text-blue-900"
+            variant="ghost"
+            size="sm"
           >
             編集
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={() => handleDelete(category.id)}
-            className="text-red-600 hover:text-red-900"
+            variant="danger"
+            size="sm"
           >
             削除
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -297,13 +298,9 @@ export default function CategoriesPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">カテゴリ管理</h1>
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        <Button onClick={() => setShowForm(true)} variant="primary">
           新規作成
-        </button>
+        </Button>
       </div>
 
       <Modal open={showForm} onClose={handleCancel}>

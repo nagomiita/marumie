@@ -1,6 +1,6 @@
-import type React from "react";
 import { useState } from "react";
 import Card from "./Card";
+import Form, { type FormField } from "./Form";
 
 export interface LoginCardProps {
   title: string;
@@ -9,16 +9,40 @@ export interface LoginCardProps {
   submittingText?: string;
 }
 
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
 export default function LoginCard({
   title,
   onSubmit,
   submitButtonText = "ログイン",
   submittingText = "ログイン中...",
 }: LoginCardProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const formFields: FormField<LoginFormData>[] = [
+    {
+      name: "email",
+      label: "メールアドレス",
+      type: "email",
+      required: true,
+      placeholder: "メールアドレス",
+    },
+    {
+      name: "password",
+      label: "パスワード",
+      type: "password",
+      required: true,
+      placeholder: "パスワード",
+    },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +50,7 @@ export default function LoginCard({
     setIsSubmitting(true);
 
     try {
-      await onSubmit(email, password);
+      await onSubmit(formData.email, formData.password);
     } catch (err) {
       setError(err instanceof Error ? err.message : "ログインに失敗しました");
     } finally {
@@ -41,63 +65,18 @@ export default function LoginCard({
           {title}
         </h2>
         <Card>
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  メールアドレス
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="メールアドレス"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  パスワード
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="パスワード"
-                />
-              </div>
+          {error && (
+            <div className="rounded-md bg-red-50 p-4 mb-4">
+              <p className="text-sm text-red-800">{error}</p>
             </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? submittingText : submitButtonText}
-              </button>
-            </div>
-          </form>
+          )}
+          <Form
+            fields={formFields}
+            formData={formData}
+            onChange={setFormData}
+            onSubmit={handleSubmit}
+            submitLabel={isSubmitting ? submittingText : submitButtonText}
+          />
         </Card>
       </div>
     </div>

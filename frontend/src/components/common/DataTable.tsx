@@ -1,4 +1,5 @@
 import { type ReactNode, useMemo, useState } from "react";
+import Selector from "./Selector";
 
 export interface Column<T> {
   key: string;
@@ -135,24 +136,25 @@ export default function DataTable<T extends Record<string, any>>({
                       )}
 
                       {col.filterable && col.filterType === "select" && (
-                        <select
+                        <Selector
                           value={filters[col.key] || "all"}
-                          onChange={(e) => {
+                          options={[
+                            { value: "all", label: "すべて" },
+                            ...(col.filterOptions?.map((opt) => ({
+                              value: opt,
+                              label: opt,
+                            })) || []),
+                          ]}
+                          onChange={(value) => {
                             setFilters({
                               ...filters,
-                              [col.key]: e.target.value,
+                              [col.key]: value,
                             });
                             handleFilterChange();
                           }}
-                          className="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
-                        >
-                          <option value="all">すべて</option>
-                          {col.filterOptions?.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
+                          selectClassName="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
+                          size="sm"
+                        />
                       )}
 
                       {col.filterable && col.filterType === "text" && (

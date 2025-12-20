@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Modal from "@/components/common/Modal";
 import Form, { type FormField } from "@/components/common/Form";
+import Button from "@/components/common/Button";
 import {
   useListUsersUsersGet,
   useUpdateUserRoleUsersUserIdRolePatch,
@@ -163,13 +164,13 @@ export default function UsersPage() {
       key: "actions",
       label: "操作",
       render: (user) => (
-        <button
-          type="button"
+        <Button
           onClick={() => handleDelete(user.id)}
-          className="text-red-600 hover:text-red-900"
+          variant="danger"
+          size="sm"
         >
           削除
-        </button>
+        </Button>
       ),
     },
   ];
@@ -178,13 +179,9 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">ユーザー管理</h1>
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
+        <Button onClick={() => setShowForm(true)} variant="primary">
           新規作成
-        </button>
+        </Button>
       </div>
 
       <Modal open={showForm} onClose={handleCancel}>

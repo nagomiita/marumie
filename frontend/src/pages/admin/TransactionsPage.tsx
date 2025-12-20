@@ -3,6 +3,8 @@ import { useListOrganizations } from "@/client/api/generated/organizations/organ
 import { useListTransactions } from "@/client/api/generated/transactions/transactions";
 import type { TransactionRead } from "@/client/api/generated/model";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import Selector, { type SelectorOption } from "@/components/common/Selector";
+import Button from "@/components/common/Button";
 
 export default function TransactionsPage() {
   const { data: organizationsData } = useListOrganizations();
@@ -63,6 +65,18 @@ export default function TransactionsPage() {
         ),
       ).sort(),
     [transactions],
+  );
+
+  // 組織セレクターのオプション
+  const organizationOptions: SelectorOption<string>[] = useMemo(
+    () =>
+      Array.isArray(organizationsData?.data)
+        ? organizationsData.data.map((org) => ({
+            value: org.id,
+            label: org.display_name,
+          }))
+        : [],
+    [organizationsData],
   );
 
   const columns: Column<TransactionRead>[] = [
@@ -145,13 +159,9 @@ export default function TransactionsPage() {
       label: "操作",
       className: "text-right",
       render: (tx) => (
-        <button
-          type="button"
-          onClick={() => handleDelete(tx.id)}
-          className="text-red-600 hover:text-red-900"
-        >
+        <Button onClick={() => handleDelete(tx.id)} variant="danger" size="sm">
           削除
-        </button>
+        </Button>
       ),
     },
   ];
@@ -169,25 +179,16 @@ export default function TransactionsPage() {
       </div>
 
       <div className="bg-white shadow rounded-lg p-4">
-        <label
-          htmlFor="org-filter"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          組織で絞り込み
-        </label>
-        <select
+        <Selector
           id="org-filter"
+          label="組織で絞り込み"
           value={selectedOrgId}
-          onChange={(e) => setSelectedOrgId(e.target.value)}
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        >
-          {Array.isArray(organizationsData?.data) &&
-            organizationsData.data.map((org) => (
-              <option key={org.id} value={org.id}>
-                {org.display_name}
-              </option>
-            ))}
-        </select>
+          options={organizationOptions}
+          onChange={setSelectedOrgId}
+          className="flex-col items-start gap-2"
+          labelClassName="text-sm font-medium text-gray-700"
+          selectClassName="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
       </div>
 
       <DataTable

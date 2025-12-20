@@ -1,3 +1,5 @@
+import Selector, { type SelectorOption } from "./common/Selector";
+
 interface YearMonthSelectorProps {
   years: number[];
   year: number;
@@ -13,7 +15,15 @@ export default function YearMonthSelector({
   onYearChange,
   onMonthChange,
 }: YearMonthSelectorProps) {
-  const months = [
+  const yearOptions: SelectorOption<number>[] = [
+    { value: 0, label: "全期間" },
+    ...years.map((y) => ({
+      value: y,
+      label: `${y}年度`,
+    })),
+  ];
+
+  const monthOptions: SelectorOption<number>[] = [
     { value: 0, label: "全期間" },
     ...Array.from({ length: 12 }, (_, i) => ({
       value: i + 1,
@@ -23,40 +33,22 @@ export default function YearMonthSelector({
 
   return (
     <div className="flex flex-wrap gap-2 md:gap-3 items-center">
-      <label htmlFor="year-select" className="text-xs md:text-sm font-semibold">
-        対象年度
-      </label>
-      <select
+      <Selector
         id="year-select"
+        label="対象年度"
         value={year}
-        onChange={(e) => onYearChange(Number(e.target.value))}
-        className="border rounded px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm"
-      >
-        <option value={0}>全期間</option>
-        {years.map((y) => (
-          <option key={y} value={y}>
-            {y}年度
-          </option>
-        ))}
-      </select>
-      <label
-        htmlFor="month-select"
-        className="text-xs md:text-sm font-semibold"
-      >
-        月
-      </label>
-      <select
+        options={yearOptions}
+        onChange={onYearChange}
+        size="md"
+      />
+      <Selector
         id="month-select"
+        label="月"
         value={month}
-        onChange={(e) => onMonthChange(Number(e.target.value))}
-        className="border rounded px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm"
-      >
-        {months.map((m) => (
-          <option key={m.value} value={m.value}>
-            {m.label}
-          </option>
-        ))}
-      </select>
+        options={monthOptions}
+        onChange={onMonthChange}
+        size="md"
+      />
     </div>
   );
 }

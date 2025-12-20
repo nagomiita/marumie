@@ -9,6 +9,7 @@ import type { OrganizationRead } from "@/client/api/generated/model";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Modal from "@/components/common/Modal";
 import Form, { type FormField } from "@/components/common/Form";
+import Button from "@/components/common/Button";
 
 interface OrganizationCreateForm {
   name: string;
@@ -171,13 +172,9 @@ export default function OrganizationsPage() {
       label: "操作",
       className: "text-right",
       render: (org) => (
-        <button
-          type="button"
-          onClick={() => handleDelete(org.id)}
-          className="text-red-600 hover:text-red-900"
-        >
+        <Button onClick={() => handleDelete(org.id)} variant="danger" size="sm">
           削除
-        </button>
+        </Button>
       ),
     },
   ];
@@ -190,13 +187,9 @@ export default function OrganizationsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">組織管理</h1>
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
+        <Button onClick={() => setShowForm(true)} variant="primary">
           新規作成
-        </button>
+        </Button>
       </div>
 
       <Modal open={showForm} onClose={handleCancel}>
