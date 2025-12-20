@@ -159,32 +159,9 @@ export default function TransactionsTable({
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-3 md:p-4 space-y-3 md:space-y-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <h3 className="text-base md:text-lg font-semibold">
-          取引一覧 ({filtered.length}件)
-        </h3>
-        <div className="flex gap-2 items-center text-xs md:text-sm">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-2 py-1 text-xs md:text-sm rounded border border-gray-300 disabled:opacity-50"
-          >
-            前へ
-          </button>
-          <span className="text-xs md:text-sm">
-            {page}/{totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-2 py-1 text-xs md:text-sm rounded border border-gray-300 disabled:opacity-50"
-          >
-            次へ
-          </button>
-        </div>
-      </div>
+      <h3 className="text-base md:text-lg font-semibold">
+        取引一覧 ({filtered.length}件)
+      </h3>
 
       {pageItems.length === 0 ? (
         <p className="text-gray-600">データが存在しません</p>
@@ -338,6 +315,30 @@ export default function TransactionsTable({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pageItems.length > 0 && (
+        <div className="flex gap-2 items-center justify-center text-xs md:text-sm pt-2">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-2 py-1 text-xs md:text-sm rounded border border-gray-300 disabled:opacity-50"
+          >
+            前へ
+          </button>
+          <span className="text-xs md:text-sm">
+            {page}/{totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-2 py-1 text-xs md:text-sm rounded border border-gray-300 disabled:opacity-50"
+          >
+            次へ
+          </button>
         </div>
       )}
     </div>

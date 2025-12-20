@@ -17,6 +17,7 @@ import YearMonthSelector from "@/components/YearMonthSelector";
 import CategoryPieChart from "@/components/CategoryPieChart";
 import ExpenseCalendar from "@/components/ExpenseCalendar";
 import SankeyDiagram from "@/components/SankeyDiagram";
+import PayeeRanking from "@/components/PayeeRanking";
 
 export default function OrganizationPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -228,6 +229,7 @@ export default function OrganizationPage() {
                 month={month}
               />
             )}
+            <PayeeRanking transactions={transactions} selectedMonth={month} />
             <TransactionsTable
               transactions={transactions}
               selectedMonth={month}
