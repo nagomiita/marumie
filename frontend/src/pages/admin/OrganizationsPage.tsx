@@ -4,7 +4,9 @@ import {
   useCreateOrganization,
   useDeleteOrganization,
 } from "@/client/api/generated/organizations/organizations";
-import type { OrganizationType } from "@/client/api/generated/model";
+import { EnumOrganizationType } from "@/client/api/generated/model";
+import type { OrganizationRead } from "@/client/api/generated/model";
+import DataTable, { type Column } from "@/components/common/DataTable";
 
 export default function OrganizationsPage() {
   const {
@@ -15,13 +17,23 @@ export default function OrganizationsPage() {
   const createMutation = useCreateOrganization();
   const deleteMutation = useDeleteOrganization();
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    display_name: string;
+    type: EnumOrganizationType;
+    slug: string;
+    description: string;
+  }>({
     name: "",
     display_name: "",
-    type: "household" as OrganizationType,
+    type: EnumOrganizationType.household,
     slug: "",
     description: "",
   });
+
+  const organizationList = Array.isArray(organizations?.data)
+    ? organizations.data
+    : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +46,7 @@ export default function OrganizationsPage() {
       setFormData({
         name: "",
         display_name: "",
-        type: "household" as OrganizationType,
+        type: EnumOrganizationType.household,
         slug: "",
         description: "",
       });
@@ -58,6 +70,59 @@ export default function OrganizationsPage() {
       alert("組織の削除に失敗しました");
     }
   };
+
+  const typeLabels: Record<string, string> = {
+    household: "家計簿",
+    business: "ビジネス",
+    nonprofit: "非営利",
+    political_organization: "政治団体",
+    other: "その他",
+  };
+
+  const columns: Column<OrganizationRead>[] = [
+    {
+      key: "display_name",
+      label: "表示名",
+      sortable: true,
+      filterable: true,
+      filterType: "text",
+      className: "font-medium",
+    },
+    {
+      key: "slug",
+      label: "スラッグ",
+      sortable: true,
+    },
+    {
+      key: "type",
+      label: "タイプ",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: Object.values(typeLabels),
+      render: (org) => typeLabels[org.type] || org.type,
+    },
+    {
+      key: "created_at",
+      label: "作成日",
+      sortable: true,
+      render: (org) => new Date(org.created_at).toLocaleDateString("ja-JP"),
+    },
+    {
+      key: "actions",
+      label: "操作",
+      className: "text-right",
+      render: (org) => (
+        <button
+          type="button"
+          onClick={() => handleDelete(org.id)}
+          className="text-red-600 hover:text-red-900"
+        >
+          削除
+        </button>
+      ),
+    },
+  ];
 
   if (loading) {
     return <div>読込中...</div>;
@@ -147,16 +212,19 @@ export default function OrganizationsPage() {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    type: e.target.value as OrganizationType,
+                    type: e.target
+                      .value as (typeof EnumOrganizationType)[keyof typeof EnumOrganizationType],
                   })
                 }
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value="household">家計簿</option>
-                <option value="business">ビジネス</option>
-                <option value="nonprofit">非営利</option>
-                <option value="political_organization">政治団体</option>
-                <option value="other">その他</option>
+                <option value={EnumOrganizationType.household}>家計簿</option>
+                <option value={EnumOrganizationType.business}>ビジネス</option>
+                <option value={EnumOrganizationType.nonprofit}>非営利</option>
+                <option value={EnumOrganizationType.political_organization}>
+                  政治団体
+                </option>
+                <option value={EnumOrganizationType.other}>その他</option>
               </select>
             </div>
             <div>
@@ -186,57 +254,12 @@ export default function OrganizationsPage() {
         </div>
       )}
 
-      <div className="bg-white shadow overflow-hidden rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                表示名
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                スラッグ
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                タイプ
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                作成日
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {Array.isArray(organizations?.data) &&
-              organizations.data.map((org) => (
-                <tr key={org.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {org.display_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {org.slug}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {org.type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(org.created_at).toLocaleDateString("ja-JP")}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(org.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      削除
-                    </button>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        data={organizationList}
+        columns={columns}
+        keyExtractor={(org) => org.id}
+        pageSize={20}
+      />
     </div>
   );
 }

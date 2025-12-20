@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useListOrganizations } from "@/client/api/generated/organizations/organizations";
 import { useListTransactions } from "@/client/api/generated/transactions/transactions";
+import type { TransactionRead } from "@/client/api/generated/model";
+import DataTable, { type Column } from "@/components/common/DataTable";
 
 export default function TransactionsPage() {
   const { data: organizationsData } = useListOrganizations();
@@ -43,6 +45,117 @@ export default function TransactionsPage() {
     return labels[type] || type;
   };
 
+  const transactions = Array.isArray(transactionsData?.data)
+    ? transactionsData.data
+    : [];
+
+  // カテゴリとサブカテゴリのユニーク値を抽出
+  const uniqueCategories = useMemo(
+    () => Array.from(new Set(transactions.map((tx) => tx.category))).sort(),
+    [transactions],
+  );
+
+  const uniqueSubcategories = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          transactions.map((tx) => tx.subcategory).filter((s) => s != null),
+        ),
+      ).sort(),
+    [transactions],
+  );
+
+  const columns: Column<TransactionRead>[] = [
+    {
+      key: "date",
+      label: "日付",
+      sortable: true,
+      className: "whitespace-nowrap",
+      render: (tx) => new Date(tx.date).toLocaleDateString("ja-JP"),
+    },
+    {
+      key: "type",
+      label: "区分",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: ["収入", "支出", "振替"],
+      className: "whitespace-nowrap",
+      render: (tx) => (
+        <span
+          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            tx.type === "income"
+              ? "bg-green-100 text-green-800"
+              : tx.type === "expense"
+                ? "bg-red-100 text-red-800"
+                : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {getTypeLabel(tx.type)}
+        </span>
+      ),
+    },
+    {
+      key: "category",
+      label: "カテゴリ",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: uniqueCategories,
+      className: "whitespace-nowrap",
+    },
+    {
+      key: "subcategory",
+      label: "サブカテゴリ",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: uniqueSubcategories,
+      className: "whitespace-nowrap",
+      render: (tx) => tx.subcategory || "-",
+    },
+    {
+      key: "amount",
+      label: "金額",
+      sortable: true,
+      className: "text-right whitespace-nowrap",
+      render: (tx) => formatAmount(Number(tx.amount)),
+    },
+    {
+      key: "payment_method",
+      label: "支払方法",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: Array.from(
+        new Set(transactions.map((tx) => tx.payment_method)),
+      ).sort(),
+      className: "whitespace-nowrap",
+    },
+    {
+      key: "description",
+      label: "摘要",
+      filterable: true,
+      filterType: "text",
+      className: "max-w-xs truncate",
+      render: (tx) => tx.description,
+    },
+    {
+      key: "actions",
+      label: "操作",
+      className: "text-right",
+      render: (tx) => (
+        <button
+          type="button"
+          onClick={() => handleDelete(tx.id)}
+          className="text-red-600 hover:text-red-900"
+        >
+          削除
+        </button>
+      ),
+    },
+  ];
+
   if (loading) {
     return <div>読込中...</div>;
   }
@@ -77,95 +190,12 @@ export default function TransactionsPage() {
         </select>
       </div>
 
-      <div className="bg-white shadow overflow-hidden rounded-lg">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <p className="text-sm text-gray-600">
-            {Array.isArray(transactionsData?.data)
-              ? transactionsData.data.length
-              : 0}
-            件のトランザクション
-          </p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  日付
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  区分
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  カテゴリ
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  サブカテゴリ
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  金額
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  支払方法
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  摘要
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {Array.isArray(transactionsData?.data) &&
-                transactionsData.data.map((tx) => (
-                  <tr key={tx.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(tx.date).toLocaleDateString("ja-JP")}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          tx.type === "income"
-                            ? "bg-green-100 text-green-800"
-                            : tx.type === "expense"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {getTypeLabel(tx.type)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {tx.category}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {tx.subcategory || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {formatAmount(Number(tx.amount))}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {tx.payment_method}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                      {tx.description}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(tx.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        削除
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        data={transactions}
+        columns={columns}
+        keyExtractor={(tx) => tx.id}
+        pageSize={50}
+      />
     </div>
   );
 }

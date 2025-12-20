@@ -6,7 +6,11 @@ import {
   useDeleteCategory,
 } from "@/client/api/generated/categories/categories";
 import { EnumCategoryType } from "@/client/api/generated/model";
-import type { CategoryCreate } from "@/client/api/generated/model";
+import type {
+  CategoryCreate,
+  CategoryRead,
+} from "@/client/api/generated/model";
+import DataTable, { type Column } from "@/components/common/DataTable";
 
 export default function CategoriesPage() {
   const {
@@ -76,7 +80,7 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleEdit = (category: (typeof categories)[0]) => {
+  const handleEdit = (category: CategoryRead) => {
     setEditingId(category.id);
     setFormData({
       id: category.id,
@@ -117,6 +121,109 @@ export default function CategoriesPage() {
       is_active: true,
     });
   };
+
+  const columns: Column<CategoryRead>[] = [
+    {
+      key: "id",
+      label: "ID",
+      sortable: true,
+      className: "font-mono",
+    },
+    {
+      key: "name",
+      label: "カテゴリ名",
+      sortable: true,
+      filterable: true,
+      filterType: "text",
+    },
+    {
+      key: "group",
+      label: "グループ",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: Array.from(new Set(categories.map((c) => c.group))).sort(),
+    },
+    {
+      key: "color",
+      label: "色",
+      render: (category) => (
+        <div className="flex items-center gap-2">
+          <div
+            className="w-6 h-6 rounded border border-gray-300"
+            style={{ backgroundColor: category.color }}
+          />
+          <span className="text-xs text-gray-600">{category.color}</span>
+        </div>
+      ),
+    },
+    {
+      key: "type",
+      label: "種別",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: ["収入", "支出"],
+      render: (category) => (
+        <span
+          className={`px-2 py-1 rounded text-xs ${
+            category.type === EnumCategoryType.income
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {category.type === EnumCategoryType.income ? "収入" : "支出"}
+        </span>
+      ),
+    },
+    {
+      key: "display_order",
+      label: "表示順",
+      sortable: true,
+      className: "text-center",
+    },
+    {
+      key: "is_active",
+      label: "状態",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: ["有効", "無効"],
+      render: (category) => (
+        <span
+          className={`px-2 py-1 rounded text-xs ${
+            category.is_active
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {category.is_active ? "有効" : "無効"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "操作",
+      render: (category) => (
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => handleEdit(category)}
+            className="text-blue-600 hover:text-blue-900"
+          >
+            編集
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDelete(category.id)}
+            className="text-red-600 hover:text-red-900"
+          >
+            削除
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   if (loading) {
     return (
@@ -330,107 +437,12 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                カテゴリ名
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                グループ
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                色
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                種別
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                表示順
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                状態
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {categories.map((category) => (
-              <tr key={category.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                  {category.id}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {category.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {category.group}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-6 h-6 rounded border border-gray-300"
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <span className="text-xs text-gray-600">
-                      {category.color}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${
-                      category.type === EnumCategoryType.income
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {category.type === EnumCategoryType.income
-                      ? "収入"
-                      : "支出"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {category.display_order}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${
-                      category.is_active
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {category.is_active ? "有効" : "無効"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    type="button"
-                    onClick={() => handleEdit(category)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
-                  >
-                    編集
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(category.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    削除
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        data={categories}
+        columns={columns}
+        keyExtractor={(category) => category.id}
+        pageSize={20}
+      />
     </div>
   );
 }

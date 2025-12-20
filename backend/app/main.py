@@ -9,6 +9,7 @@ from .api import (
     health,
     organizations,
     transactions,
+    users,
 )
 from .core.settings import get_settings
 
@@ -33,6 +34,7 @@ def get_app() -> FastAPI:
     app.include_router(organizations.router)
     app.include_router(transactions.router)
     app.include_router(csv_upload.router)
+    app.include_router(users.router)
     return app
 
 

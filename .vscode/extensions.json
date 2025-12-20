@@ -1,0 +1,14 @@
+{
+  // Workspace recommended extensions
+  // 推奨拡張機能リスト（このワークスペースで推奨されるVS Code拡張。インストール推奨）
+  "recommendations": [
+    // TypeScript/JS/JSON/Markdown用 高速フォーマッター
+    "biomejs.biome",
+    // Python用 高速フォーマッター
+    "charliermarsh.ruff",
+    // Pythonサポート
+    "ms-python.python",
+    // Dockerサポート
+    "ms-azuretools.vscode-docker"
+  ]
+}

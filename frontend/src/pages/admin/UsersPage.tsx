@@ -1,95 +1,46 @@
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  created_at: string;
-}
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import DataTable, { type Column } from "@/components/common/DataTable";
+import {
+  useListUsersUsersGet,
+  useUpdateUserRoleUsersUserIdRolePatch,
+  useDeleteUserUsersUserIdDelete,
+} from "@/client/api/generated/users/users";
+import type { UserRead } from "@/client/api/generated/model";
+import { EnumUserRole } from "@/client/api/generated/model";
 
 export default function UsersPage() {
-  const { supabase } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "viewer",
+    role: "user" as EnumUserRole,
   });
 
-  const loadUsers = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .order("created_at", { ascending: false });
+  // ユーザー一覧取得
+  const { data: usersResponse, isLoading } = useListUsersUsersGet();
+  const users = usersResponse?.data ?? [];
 
-      if (error) throw error;
-      setUsers(data || []);
-    } catch (error) {
-      console.error("Error loading users:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+  // ロール更新
+  const updateRoleMutation = useUpdateUserRoleUsersUserIdRolePatch();
 
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+  // ユーザー削除
+  const deleteUserMutation = useDeleteUserUsersUserIdDelete();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      // Supabaseの認証ユーザーを作成
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (authError) throw authError;
-
-      // データベースにユーザーレコードを作成
-      if (authData.user) {
-        const { error: dbError } = await supabase.from("users").insert([
-          {
-            id: authData.user.id,
-            email: formData.email,
-            role: formData.role,
-          },
-        ]);
-
-        if (dbError) throw dbError;
-      }
-
-      setShowForm(false);
-      setFormData({
-        email: "",
-        password: "",
-        role: "viewer",
-      });
-      loadUsers();
-      alert("ユーザーを作成しました");
-    } catch (error) {
-      console.error("Error creating user:", error);
-      alert("ユーザーの作成に失敗しました");
-    }
+    // TODO: バックエンドにユーザー作成APIを追加する必要があります
+    alert("ユーザー作成機能は未実装です");
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("本当に削除しますか？")) return;
+    if (!confirm("本当に削除しますか?")) return;
 
     try {
-      // データベースからユーザーを削除
-      const { error } = await supabase.from("users").delete().eq("id", id);
-
-      if (error) throw error;
-
-      // 注意: Supabase Authからユーザーを削除するには管理者APIが必要
-      // 本番環境では backend API経由で削除する必要があります
-      loadUsers();
-      alert("ユーザーを削除しました（認証情報は手動で削除してください）");
+      await deleteUserMutation.mutateAsync({ userId: id });
+      queryClient.invalidateQueries({ queryKey: ["listUsersUsersGet"] });
+      alert("ユーザーを削除しました");
     } catch (error) {
       console.error("Error deleting user:", error);
       alert("ユーザーの削除に失敗しました");
@@ -98,22 +49,67 @@ export default function UsersPage() {
 
   const handleRoleChange = async (id: string, newRole: string) => {
     try {
-      const { error } = await supabase
-        .from("users")
-        .update({ role: newRole })
-        .eq("id", id);
-
-      if (error) throw error;
-      loadUsers();
+      await updateRoleMutation.mutateAsync({
+        userId: id,
+        params: { role: newRole as EnumUserRole },
+      });
+      queryClient.invalidateQueries({ queryKey: ["listUsersUsersGet"] });
     } catch (error) {
       console.error("Error updating role:", error);
       alert("ロールの変更に失敗しました");
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div>読込中...</div>;
   }
+
+  const columns: Column<UserRead>[] = [
+    {
+      key: "email",
+      label: "メールアドレス",
+      sortable: true,
+      render: (user) => (
+        <span className="font-medium text-gray-900">{user.email}</span>
+      ),
+    },
+    {
+      key: "role",
+      label: "ロール",
+      filterable: true,
+      filterType: "select",
+      filterOptions: [EnumUserRole.user, EnumUserRole.admin],
+      render: (user) => (
+        <select
+          value={user.role}
+          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+          className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          <option value={EnumUserRole.user}>ユーザー</option>
+          <option value={EnumUserRole.admin}>管理者</option>
+        </select>
+      ),
+    },
+    {
+      key: "created_at",
+      label: "作成日",
+      sortable: true,
+      render: (user) => new Date(user.created_at).toLocaleDateString("ja-JP"),
+    },
+    {
+      key: "actions",
+      label: "操作",
+      render: (user) => (
+        <button
+          type="button"
+          onClick={() => handleDelete(user.id)}
+          className="text-red-600 hover:text-red-900"
+        >
+          削除
+        </button>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -185,13 +181,15 @@ export default function UsersPage() {
                 id="user-role"
                 value={formData.role}
                 onChange={(e) =>
-                  setFormData({ ...formData, role: e.target.value })
+                  setFormData({
+                    ...formData,
+                    role: e.target.value as EnumUserRole,
+                  })
                 }
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value="viewer">閲覧者</option>
-                <option value="editor">編集者</option>
-                <option value="admin">管理者</option>
+                <option value={EnumUserRole.user}>ユーザー</option>
+                <option value={EnumUserRole.admin}>管理者</option>
               </select>
             </div>
             <button
@@ -204,58 +202,11 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div className="bg-white shadow overflow-hidden rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                メールアドレス
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ロール
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                作成日
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {user.email}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                    className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  >
-                    <option value="viewer">閲覧者</option>
-                    <option value="editor">編集者</option>
-                    <option value="admin">管理者</option>
-                  </select>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(user.created_at).toLocaleDateString("ja-JP")}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(user.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    削除
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        data={users}
+        columns={columns}
+        keyExtractor={(user) => user.id}
+      />
     </div>
   );
 }
