@@ -98,3 +98,6 @@ logs/
 .claude
 .roo
 prompts
+
+# Seed data
+scripts/data/output

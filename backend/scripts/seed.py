@@ -126,19 +126,30 @@ async def seed_organizations():
             print("Organizations already seeded, skipping...")
             return
 
+        # Get organization config from environment
+        org_name = os.getenv("SEED_ORG_NAME", "team-hirano")
+        org_display_name = os.getenv("SEED_ORG_DISPLAY_NAME", "平野大輔")
+        org_slug = os.getenv("SEED_ORG_SLUG", "team-hirano")
+        org_type_str = os.getenv("SEED_ORG_TYPE", "household")
+        org_description = os.getenv("SEED_ORG_DESCRIPTION", "家系テスト")
+
+        # Convert type string to enum
+        org_type = EnumOrganizationType(org_type_str)
+
         orgs = [
             Organization(
-                name="team-hirano",
-                display_name="平野大輔",
-                slug="team-hirano",
-                type=EnumOrganizationType.POLITICAL_ORGANIZATION,
-                description="政治団体テスト",
+                name=org_name,
+                display_name=org_display_name,
+                slug=org_slug,
+                type=org_type,
+                description=org_description,
             ),
         ]
 
         session.add_all(orgs)
         await session.commit()
         print(f"✓ Created {len(orgs)} organizations")
+        print(f"  - {org_display_name} ({org_name})")
 
 
 async def main():
