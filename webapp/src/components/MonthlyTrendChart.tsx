@@ -30,7 +30,7 @@ export default function MonthlyTrendChart({ data }: MonthlyTrendChartProps) {
       </h3>
       <Chart
         type="line"
-        height={300}
+        height={400}
         series={[
           { name: "収入", type: "column", data: income },
           { name: "支出", type: "column", data: expense },

@@ -8,7 +8,6 @@ from .api import (
     health,
     organizations,
     personal_transactions,
-    political_organizations,
 )
 from .core.settings import get_settings
 
@@ -30,7 +29,6 @@ def get_app() -> FastAPI:
     )
     app.include_router(health.router)
     app.include_router(organizations.router)
-    app.include_router(political_organizations.router)
     app.include_router(personal_transactions.router)
     app.include_router(csv_upload.router)
     return app

@@ -30,12 +30,12 @@ export default function CategoryPieChart({
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       <Chart
         type="pie"
-        height={300}
+        height={400}
         series={amounts}
         options={{
           labels: categories,
           legend: {
-            position: "bottom",
+            position: "right",
             horizontalAlign: "center",
           },
           dataLabels: {

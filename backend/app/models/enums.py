@@ -3,14 +3,6 @@ from __future__ import annotations
 import enum
 
 
-class TransactionType(str, enum.Enum):
-    INCOME = "income"
-    EXPENSE = "expense"
-    NON_CASH_JOURNAL = "non_cash_journal"
-    OFFSET_INCOME = "offset_income"
-    OFFSET_EXPENSE = "offset_expense"
-
-
 class PersonalTransactionType(str, enum.Enum):
     INCOME = "income"
     EXPENSE = "expense"

@@ -7,22 +7,18 @@ from __future__ import annotations
 
 import asyncio
 import os
-from datetime import date, datetime
 
 from dotenv import load_dotenv
 from sqlalchemy import select
+from supabase import Client, create_client
 
 from app.core.db import SessionLocal
 from app.models.entities import (
     Organization,
     OrganizationType,
-    PoliticalOrganization,
-    Transaction,
-    TransactionType,
     User,
     UserRole,
 )
-from supabase import Client, create_client
 
 # Load environment variables
 load_dotenv()
@@ -105,7 +101,7 @@ async def seed_users():
             )
             session.add(user)
             await session.commit()
-            print(f"✅ Created database admin record")
+            print("✅ Created database admin record")
             print(f"   Admin: {ADMIN_EMAIL} / {ADMIN_PASSWORD}")
             print("   You can now log in to the admin panel")
 
@@ -138,102 +134,12 @@ async def seed_organizations():
         print(f"✓ Created {len(orgs)} organizations")
 
 
-async def seed_political_organizations():
-    """Seed political organizations"""
-    async with SessionLocal() as session:
-        # Check if already seeded
-        result = await session.execute(select(PoliticalOrganization).limit(1))
-        if result.scalars().first():
-            print("Political organizations already seeded, skipping...")
-            return
-
-        pol_orgs = [
-            PoliticalOrganization(
-                display_name="平野大輔後援会",
-                slug="team-hirano",
-                org_name="平野大輔",
-                description="政治組織サンプル",
-            ),
-        ]
-
-        session.add_all(pol_orgs)
-        await session.commit()
-        print(f"✓ Created {len(pol_orgs)} political organizations")
-
-
-async def seed_transactions():
-    """Seed sample transactions"""
-    async with SessionLocal() as session:
-        # Get political organization
-        result = await session.execute(
-            select(PoliticalOrganization).where(
-                PoliticalOrganization.slug == "team-hirano"
-            )
-        )
-        pol_org = result.scalars().first()
-        if not pol_org:
-            print("Political organization not found, skipping transactions...")
-            return
-
-        # Check if already seeded
-        result = await session.execute(
-            select(Transaction)
-            .where(Transaction.political_organization_id == pol_org.id)
-            .limit(1)
-        )
-        if result.scalars().first():
-            print("Transactions already seeded, skipping...")
-            return
-
-        transactions = [
-            Transaction(
-                political_organization_id=pol_org.id,
-                transaction_no="T2025-001",
-                transaction_date=date(2025, 4, 1),
-                financial_year=2025,
-                transaction_type=TransactionType.INCOME,
-                debit_account="現金",
-                debit_amount=100000,
-                credit_account="寄付金収入",
-                credit_amount=100000,
-                category_key="donation_income",
-                label="個人寄付",
-                hash="sample001",
-            ),
-            Transaction(
-                political_organization_id=pol_org.id,
-                transaction_no="T2025-002",
-                transaction_date=date(2025, 4, 15),
-                financial_year=2025,
-                transaction_type=TransactionType.EXPENSE,
-                debit_account="事務所費",
-                debit_amount=50000,
-                credit_account="現金",
-                credit_amount=50000,
-                category_key="office_expense",
-                label="家賃",
-                hash="sample002",
-            ),
-        ]
-
-        session.add_all(transactions)
-        await session.commit()
-        print(f"✓ Created {len(transactions)} transactions")
-
-
 async def main():
-    """Run all seed functions"""
-    print("Starting database seed...")
-
-    try:
-        await seed_users()
-        await seed_organizations()
-        await seed_political_organizations()
-        await seed_transactions()
-        print("\n✅ Database seeding completed successfully!")
-    except Exception as e:
-        print(f"\n❌ Error during seeding: {e}")
-        raise
+    """Main seeding function"""
+    print("Starting database seeding...")
+    await seed_users()
+    await seed_organizations()
+    print("Database seeding completed!")
 
 
 if __name__ == "__main__":
