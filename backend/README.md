@@ -58,8 +58,54 @@ backend/
 
 ```bash
 # 初期化後に最新まで適用
-alembic upgrade head
+uv run alembic upgrade head
 
 # スキーマ変更時の自動生成例
-alembic revision --autogenerate -m "describe change"
+uv run alembic revision --autogenerate -m "describe change"
+```
+
+## データベースのリセットと初期データ投入
+
+### 1. データベースを完全リセット
+
+```bash
+# スキーマを完全削除して再作成
+uv run python -m scripts.reset_db
+
+# マイグレーションを最新まで適用
+uv run alembic upgrade head
+```
+
+### 2. シードデータの投入
+
+```bash
+# 組織とカテゴリマスタを投入
+uv run python -m scripts.seed
+```
+
+環境変数でシードデータをカスタマイズできます。`.env`ファイルに以下を追加してください：
+
+```bash
+SEED_ORG_NAME=your_org_name
+SEED_ORG_DISPLAY_NAME=組織表示名
+SEED_ORG_TYPE=household
+```
+
+### 3. CSVデータのインポート（オプション）
+
+```bash
+# トランザクションデータをCSVからインポート
+uv run python -m scripts.import_csv
+```
+
+デフォルトでは `backend/scripts/data/output/unified_all.csv` を読み込みます。
+
+### ワンライナーで全実行
+
+```bash
+# リセット → マイグレーション → シード → CSVインポート
+uv run python -m scripts.reset_db && \
+uv run alembic upgrade head && \
+uv run python -m scripts.seed && \
+uv run python -m scripts.import_csv
 ```
