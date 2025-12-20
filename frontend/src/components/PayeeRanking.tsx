@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import Card from "@/components/common/Card";
 import type { TransactionRead } from "@/client/api/generated/model";
 
 interface PayeeRankingProps {
@@ -65,19 +66,15 @@ export default function PayeeRanking({
 
   if (payeeStats.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-3 md:p-4">
-        <h3 className="text-base md:text-lg font-semibold mb-3">
-          支払先ランキング
-        </h3>
+      <Card title="支払先ランキング">
         <p className="text-gray-600">データが存在しません</p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-3 md:p-4 space-y-3 md:space-y-4">
+    <Card title="支払先ランキング" className="space-y-3 md:space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-base md:text-lg font-semibold">支払先ランキング</h3>
         <span className="text-sm text-gray-600">
           合計: {totalExpense.toLocaleString("ja-JP")}円
         </span>
@@ -133,6 +130,6 @@ export default function PayeeRanking({
           上位{limit}件を表示しています
         </p>
       )}
-    </div>
+    </Card>
   );
 }

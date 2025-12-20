@@ -1,4 +1,5 @@
 import Chart from "react-apexcharts";
+import Card from "@/components/common/Card";
 
 export interface CategoryData {
   category: string;
@@ -17,9 +18,9 @@ export default function CategoryPieChart({
 }: CategoryPieChartProps) {
   if (!data.length) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6 text-center text-gray-600">
-        データが存在しません
-      </div>
+      <Card>
+        <div className="text-center text-gray-600">データが存在しません</div>
+      </Card>
     );
   }
 
@@ -28,7 +29,7 @@ export default function CategoryPieChart({
   const colors = data.map((d) => d.color || "#94A3B8");
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <Card>
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       <Chart
         type="pie"
@@ -52,6 +53,6 @@ export default function CategoryPieChart({
           colors: colors,
         }}
       />
-    </div>
+    </Card>
   );
 }

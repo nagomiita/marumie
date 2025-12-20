@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { TransactionRead } from "@/client/api/generated/model";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import Card from "@/components/common/Card";
 
 interface TransactionsTableProps {
   transactions: TransactionRead[];
@@ -103,12 +104,14 @@ export default function TransactionsTable({
   ];
 
   return (
-    <DataTable
-      data={filteredByMonth}
-      columns={columns}
-      keyExtractor={(tx) => tx.id}
-      pageSize={25}
-      title="取引一覧"
-    />
+    <Card>
+      <h2 className="text-lg font-bold mb-4">取引一覧</h2>
+      <DataTable
+        data={filteredByMonth}
+        columns={columns}
+        keyExtractor={(tx) => tx.id}
+        pageSize={25}
+      />
+    </Card>
   );
 }

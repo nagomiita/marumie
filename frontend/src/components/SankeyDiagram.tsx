@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useCallback } from "react";
+import Card from "@/components/common/Card";
 import { ResponsiveSankey } from "@nivo/sankey";
 import type { TransactionRead } from "@/client/api/generated/model";
 
@@ -204,17 +205,14 @@ export default function SankeyDiagram({ transactions }: SankeyDiagramProps) {
 
   if (sankeyData.nodes.length === 0 || sankeyData.links.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 text-center text-gray-600">
-        データが存在しません
-      </div>
+      <Card>
+        <div className="text-center text-gray-600">データが存在しません</div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-      <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
-        資金の流れ（サンキーダイアグラム）
-      </h3>
+    <Card title="資金の流れ（サンキーダイアグラム）">
       <div className="text-xs text-gray-600 mb-3">
         収入から支出へのお金の流れを可視化しています
       </div>
@@ -289,6 +287,6 @@ export default function SankeyDiagram({ transactions }: SankeyDiagramProps) {
           }}
         />
       </div>
-    </div>
+    </Card>
   );
 }

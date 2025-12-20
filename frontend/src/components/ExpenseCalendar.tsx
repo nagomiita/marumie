@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import Card from "@/components/common/Card";
 import type { TransactionRead } from "@/client/api/generated/model";
 
 interface ExpenseCalendarProps {
@@ -113,7 +114,7 @@ export default function ExpenseCalendar({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-3 md:p-6">
+    <Card>
       <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
         {year}年{month}月 支出カレンダー
       </h3>
@@ -296,6 +297,6 @@ export default function ExpenseCalendar({
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

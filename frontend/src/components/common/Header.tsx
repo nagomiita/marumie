@@ -1,6 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 
-export default function Header() {
+interface HeaderProps {
+  title?: string;
+}
+
+export default function Header({ title }: HeaderProps) {
   const location = useLocation();
   const isHome = location.pathname === "/";
 
@@ -9,7 +13,7 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 py-3">
         <div className="bg-white/90 backdrop-blur rounded-2xl px-4 py-3 shadow-sm flex items-center justify-between">
           <Link to="/" className="text-lg font-bold text-gray-900">
-            まる見え家計簿
+            {title}
           </Link>
           <nav className="flex gap-4 text-sm font-semibold text-gray-700">
             <Link
