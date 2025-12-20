@@ -6,9 +6,9 @@ import {
 } from "@/client/api/generated/organizations/organizations";
 import {
   useGetAvailableYears,
-  useListPersonalTransactions,
-} from "@/client/api/generated/personal-transactions/personal-transactions";
-import type { PersonalTransactionRead } from "@/client/api/generated/model";
+  useListTransactions,
+} from "@/client/api/generated/transactions/transactions";
+import type { TransactionRead } from "@/client/api/generated/model";
 import Layout from "@/components/Layout";
 import MonthlyTrendChart from "@/components/MonthlyTrendChart";
 import SummaryCards from "@/components/SummaryCards";
@@ -57,7 +57,7 @@ export default function OrganizationPage() {
     data: txData,
     isLoading: txLoading,
     error: txError,
-  } = useListPersonalTransactions(
+  } = useListTransactions(
     {
       organization_id:
         organization && "id" in organization ? organization.id : undefined,
@@ -94,13 +94,13 @@ export default function OrganizationPage() {
 
   const monthlyData = useMemo(() => {
     const bucket = new Map<string, { income: number; expense: number }>();
-    transactions.forEach((tx: PersonalTransactionRead) => {
+    transactions.forEach((tx: TransactionRead) => {
       const date = new Date(tx.date);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
       const current = bucket.get(key) || { income: 0, expense: 0 };
       const amount = Number(tx.amount);
       if (tx.type === "expense") {
-        current.expense += amount;
+        current.expense += Math.abs(amount);
       } else if (tx.type === "income") {
         current.income += amount;
       }
@@ -125,13 +125,10 @@ export default function OrganizationPage() {
 
   const totals = useMemo(() => {
     return transactions.reduce(
-      (
-        acc: { income: number; expense: number },
-        tx: PersonalTransactionRead,
-      ) => {
+      (acc: { income: number; expense: number }, tx: TransactionRead) => {
         const amount = Number(tx.amount);
         if (tx.type === "expense") {
-          acc.expense += amount;
+          acc.expense += Math.abs(amount);
         } else if (tx.type === "income") {
           acc.income += amount;
         }
@@ -143,11 +140,11 @@ export default function OrganizationPage() {
 
   const categoryData = useMemo(() => {
     const categoryMap = new Map<string, number>();
-    transactions.forEach((tx: PersonalTransactionRead) => {
+    transactions.forEach((tx: TransactionRead) => {
       if (tx.type === "expense") {
         const amount = Number(tx.amount);
         const current = categoryMap.get(tx.category) || 0;
-        categoryMap.set(tx.category, current + amount);
+        categoryMap.set(tx.category, current + Math.abs(amount));
       }
     });
     return Array.from(categoryMap.entries())

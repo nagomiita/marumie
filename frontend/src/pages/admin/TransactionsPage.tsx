@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
 import { useListOrganizations } from "@/client/api/generated/organizations/organizations";
-import { useListPersonalTransactions } from "@/client/api/generated/personal-transactions/personal-transactions";
+import { useListTransactions } from "@/client/api/generated/transactions/transactions";
 
 export default function TransactionsPage() {
   const { data: organizationsData } = useListOrganizations();
   const [selectedOrgId, setSelectedOrgId] = useState<string>("");
-  const { data: transactionsData, isLoading: loading } =
-    useListPersonalTransactions(
-      { organization_id: selectedOrgId || undefined },
-      { query: { enabled: !!selectedOrgId } },
-    );
+  const { data: transactionsData, isLoading: loading } = useListTransactions(
+    { organization_id: selectedOrgId || undefined },
+    { query: { enabled: !!selectedOrgId } },
+  );
 
   useEffect(() => {
     if (

@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import type { PersonalTransactionRead } from "@/client/api/generated/model";
+import type { TransactionRead } from "@/client/api/generated/model";
 
 interface TransactionsTableProps {
-  transactions: PersonalTransactionRead[];
+  transactions: TransactionRead[];
   selectedMonth?: number;
 }
 
@@ -277,7 +277,7 @@ export default function TransactionsTable({
               </tr>
             </thead>
             <tbody>
-              {pageItems.map((tx: PersonalTransactionRead) => {
+              {pageItems.map((tx: TransactionRead) => {
                 const date = new Date(tx.date);
                 const amount =
                   tx.type === "expense"

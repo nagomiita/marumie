@@ -2,10 +2,10 @@
 
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { ResponsiveSankey } from "@nivo/sankey";
-import type { PersonalTransactionRead } from "@/client/api/generated/model";
+import type { TransactionRead } from "@/client/api/generated/model";
 
 interface SankeyDiagramProps {
-  transactions: PersonalTransactionRead[];
+  transactions: TransactionRead[];
 }
 
 interface SankeyNode {
@@ -136,7 +136,7 @@ export default function SankeyDiagram({ transactions }: SankeyDiagramProps) {
         incomeByCategory.set(tx.category, current + amount);
       } else if (tx.type === "expense") {
         const current = expenseByCategory.get(tx.category) || 0;
-        expenseByCategory.set(tx.category, current + amount);
+        expenseByCategory.set(tx.category, current + Math.abs(amount));
       }
     });
 

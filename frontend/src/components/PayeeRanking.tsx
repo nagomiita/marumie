@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import type { PersonalTransactionRead } from "@/client/api/generated/model";
+import type { TransactionRead } from "@/client/api/generated/model";
 
 interface PayeeRankingProps {
-  transactions: PersonalTransactionRead[];
+  transactions: TransactionRead[];
   selectedMonth?: number;
   limit?: number;
 }
@@ -35,7 +35,7 @@ export default function PayeeRanking({
 
     for (const tx of expenses) {
       const payee = tx.description || "(摘要なし)";
-      const amount = Number(tx.amount);
+      const amount = Math.abs(Number(tx.amount));
 
       if (statsMap.has(payee)) {
         const stats = statsMap.get(payee)!;

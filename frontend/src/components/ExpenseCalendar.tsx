@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import type { PersonalTransactionRead } from "@/client/api/generated/model";
+import type { TransactionRead } from "@/client/api/generated/model";
 
 interface ExpenseCalendarProps {
-  transactions: PersonalTransactionRead[];
+  transactions: TransactionRead[];
   year: number;
   month: number;
 }
@@ -12,7 +12,7 @@ interface DayData {
   income: number;
   expense: number;
   isCurrentMonth: boolean;
-  transactions: PersonalTransactionRead[];
+  transactions: TransactionRead[];
 }
 
 export default function ExpenseCalendar({
@@ -79,7 +79,7 @@ export default function ExpenseCalendar({
         if (dayIndex < days.length && days[dayIndex].isCurrentMonth) {
           const amount = Number(tx.amount);
           if (tx.type === "expense") {
-            days[dayIndex].expense += amount;
+            days[dayIndex].expense += Math.abs(amount);
           } else if (tx.type === "income") {
             days[dayIndex].income += amount;
           }
@@ -222,7 +222,7 @@ export default function ExpenseCalendar({
               </h4>
               <div className="space-y-2 max-h-[500px] overflow-y-auto">
                 {selectedDay.transactions.map((tx) => {
-                  const amount = Number(tx.amount);
+                  const amount = Math.abs(Number(tx.amount));
                   return (
                     <div
                       key={tx.id}
