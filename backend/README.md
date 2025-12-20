@@ -93,6 +93,7 @@ SEED_ORG_TYPE=household
 ### 3. CSVデータのインポート（オプション）
 
 ```bash
+uv run python -m scripts.data.merge_config
 # フォーマット統合スクリプト
 uv run python -m scripts.data.convert_csv
 # トランザクションデータをCSVからインポート

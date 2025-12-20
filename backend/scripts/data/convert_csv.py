@@ -7,7 +7,6 @@ CSV変換スクリプト
 from __future__ import annotations
 
 import codecs
-import copy
 import csv
 import json
 import os
@@ -524,30 +523,9 @@ def write_unified_csv(
 
 
 def load_config(script_dir: str) -> AppConfig:
-    public_path = os.path.join(script_dir, "config.public.json")
-    private_path = os.path.join(script_dir, "config.private.json")
-
-    with open(public_path, encoding="utf-8") as f:
-        public = json.load(f)
-    if os.path.exists(private_path):
-        with open(private_path, encoding="utf-8") as f:
-            private = json.load(f)
-    else:
-        private = {}
-
-    # publicをベースにprivateで上書き（deep merge）
-    def deep_merge(a, b):
-        if not isinstance(b, dict):
-            return b
-        result = copy.deepcopy(a)
-        for k, v in b.items():
-            if k in result and isinstance(result[k], dict):
-                result[k] = deep_merge(result[k], v)
-            else:
-                result[k] = copy.deepcopy(v)
-        return result
-
-    merged = deep_merge(public, private)
+    config_path = os.path.join(script_dir, "config.json")
+    with open(config_path, encoding="utf-8") as f:
+        merged = json.load(f)
 
     banks = [
         BankConfig(

@@ -104,4 +104,5 @@ scripts/data/input
 scripts/data/output
 
 # Configuration files
+scripts/data/config.json
 scripts/data/config.private.json
