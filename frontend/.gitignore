@@ -38,9 +38,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# generated files
-src/client/api/generated
-
 # local
 .claude
 .roo
