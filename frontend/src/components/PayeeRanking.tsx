@@ -25,8 +25,10 @@ export default function PayeeRanking({
   transactions,
   categories = [],
   selectedMonth,
-  limit = 10,
+  limit: initialLimit = 10,
 }: PayeeRankingProps) {
+  const [limit, setLimit] = useState(initialLimit);
+
   // デフォルトで全カテゴリを選択（投資カテゴリのみ除外）
   const defaultSelectedCategories = useMemo(() => {
     return categories.map((cat) => cat.name);
@@ -170,6 +172,23 @@ export default function PayeeRanking({
         <span className="text-sm text-gray-600">
           合計: {totalExpense.toLocaleString("ja-JP")}円
         </span>
+        <div className="flex items-center gap-2">
+          <label htmlFor="limit-select" className="text-xs text-gray-600">
+            表示件数:
+          </label>
+          <select
+            id="limit-select"
+            value={limit}
+            onChange={(e) => setLimit(Number(e.target.value))}
+            className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-teal-400"
+          >
+            <option value={5}>5件</option>
+            <option value={10}>10件</option>
+            <option value={20}>20件</option>
+            <option value={50}>50件</option>
+            <option value={100}>100件</option>
+          </select>
+        </div>
       </div>
 
       <div className="space-y-2">

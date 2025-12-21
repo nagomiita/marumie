@@ -20,14 +20,14 @@ export default function InvestmentStackedBarChart({
   transactions,
   categories,
 }: InvestmentStackedBarChartProps) {
-  const chartData = useMemo(() => {
+  const { chartData, totalInvestment } = useMemo(() => {
     // 投資・貯蓄関連のカテゴリを抽出
     const investmentCategories = categories.filter((cat) =>
       ["投資", "貯金"].includes(cat.name),
     );
 
     if (investmentCategories.length === 0) {
-      return [];
+      return { chartData: [], totalInvestment: 0 };
     }
 
     // 月別の合計金額を集計
@@ -53,13 +53,15 @@ export default function InvestmentStackedBarChart({
     );
 
     let cumulative = 0;
-    return sortedMonths.map(([month, amount]) => {
+    const data = sortedMonths.map(([month, amount]) => {
       cumulative += amount;
       return {
         month,
         累積投資額: cumulative,
       };
     });
+
+    return { chartData: data, totalInvestment: cumulative };
   }, [transactions, categories]);
 
   if (chartData.length === 0) {
@@ -75,9 +77,17 @@ export default function InvestmentStackedBarChart({
 
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg shadow">
-      <h3 className="text-base md:text-lg font-semibold mb-4 text-gray-900">
-        投資・貯蓄の推移
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base md:text-lg font-semibold text-gray-900">
+          投資・貯蓄の推移
+        </h3>
+        <div className="text-right">
+          <div className="text-xs text-gray-600">累積投資額</div>
+          <div className="text-lg md:text-xl font-bold text-green-600">
+            ¥{totalInvestment.toLocaleString("ja-JP")}
+          </div>
+        </div>
+      </div>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />

@@ -106,6 +106,8 @@ uv run python -m scripts.import_csv
 
 ```bash
 # リセット → マイグレーション → シード → CSVインポート
+uv run python -m scripts.data.merge_config && \
+uv run python -m scripts.data.convert_csv && \
 uv run python -m scripts.reset_db && \
 uv run alembic upgrade head && \
 uv run python -m scripts.seed && \
