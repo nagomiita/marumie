@@ -10,53 +10,26 @@
 
 例: `docs/20250815_1430_ユーザー認証システム設計.md`
 
-## Next アプリケーションの実装ルール
+## フロントエンド実装ルール（Vite + React）
 
-- 動的に更新する必要がある画面（チャットなど）以外は、データ取得はなるべくサーバーコンポーネントに寄せる
-- client 側で動作する必然性（状態管理・ブラウザ API 利用・重い UI ライブラリ等）がない限り "use client" は利用しない
-- サーバーコンポーネントからのデータ取得は、原則 loaders などに切り出したサーバー処理を使い責務を分離する
-- サーバー側で動作することを期待する処理には import "server-only" を書き、誤ってクライアントから参照されないようにする
-- サーバーアクション（"use server"処理）は、データ更新やファイルアップロードなど副作用を伴う操作のためだけに使い、あわせて revalidatePath や revalidateTag などの再検証処理までを 1 セットで行う
-- クライアント側でのデータ取得は例外として、リアルタイム通信・高頻度ポーリング・ユーザー操作に即応する検索・オフライン最適化（React Query など）に限って許容する
+- ルーティングは `frontend/src/pages/` に寄せる
+- UI コンポーネントは `frontend/src/components/` に分離する
+- 共有状態やデータ取得は `frontend/src/contexts/` / `frontend/src/hooks/` に集約する
+- クライアント専用ユーティリティは `frontend/src/client/` に置く
+- 設定値は `frontend/src/config/` にまとめる
+- グローバルスタイルは `frontend/src/styles/` に置く
 
-## コード構成（webapp・admin 共通）
+## バックエンド実装ルール（FastAPI）
 
-以下のディレクトリ構成に従ってコードを配置する：
-
-- app
-- client
-- server
-- types
-
-### 各ディレクトリの責務
-
-- app
-  - App Router に基づくルーティング（URL構造に対応）
-  - API エンドポイント
-- client
-  - components
-    - Reactコンポーネント
-  - lib
-    - クライアントで動作するヘルパーなど
-- server
-  - lib
-    - データ加工・変換処理
-  - repositories
-    - データベースアクセス層
-  - usecases
-    - loaderやactionなどのエントリーポイントから呼び出されるトップレベル関数
-  - loaders
-    - サーバーサイドでのデータ取得処理
-  - actions
-    - サーバーアクション（"use server"）による副作用処理
-  - auth
-    - 認証関連処理
-- types
-  - 型定義
+- ルーターは `backend/app/api/` に配置する
+- SQLAlchemy モデルは `backend/app/models/` に配置する
+- Pydantic スキーマは `backend/app/schemas/` に配置する
+- 業務ロジックは `backend/app/services/` に集約する
+- 設定・依存関係は `backend/app/core/` に置く
 
 # GitHub操作ルール
 - ユーザーからPRを出して、と言われたときは、現在の作業のフィーチャーブランチを切りコミットを行ってからPRを出すようにする
 - developやmainへの直接pushは禁止です
-- Prismaのマイグレーションを含む差分は自動デプロイで環境を壊しうるので、ユーザーに許可を取ってから実行してください
+- Alembicのマイグレーションを含む差分は自動デプロイで環境を壊しうるので、ユーザーに許可を取ってから実行してください
 - ロジックにまつわる変更をしたあとのPushの前には、プロジェクトルートで　`npm run typecheck` と `npm run lint` を行ってからPushするようにしてください
 - PR作成時は `gh pr create` コマンドに `--base` オプションを付けず、デフォルトのベースブランチを使用してください

@@ -13,44 +13,34 @@
 ```
 marumie/
 ├── frontend/           # フロントエンド（Vite + React）
-│   ├── src/
-│   │   ├── api/      # FastAPI 用のクライアント
-│   │   ├── components/ # UI コンポーネント
-│   │   ├── pages/    # 画面コンポーネント
-│   │   └── styles/   # グローバルスタイル
-│   ├── tests/        # テストファイル
+│   ├── src/            # UI・ルーティング・APIクライアント
+│   ├── tests/          # フロントエンドのテスト
 │   └── package.json
-├── data/             # サンプルデータ
-│   ├── sampledata.csv
-│   └── test_current_liabilities.csv
-├── supabase/         # Supabaseローカル開発環境設定
-│   ├── config.toml
-│   └── templates/
-├── logs/             # ログファイル
-└── docs/             # 設計ドキュメント（その時点での設計メモなので必ずしも正確ではないです）
-    └── images/       # ドキュメント用画像
+├── backend/            # FastAPI + SQLAlchemy バックエンド
+│   ├── app/            # API・モデル・設定
+│   ├── alembic/        # DBマイグレーション
+│   └── scripts/        # データ準備・インポート
+├── supabase/           # Supabaseローカル開発環境設定
+├── docs/               # 設計ドキュメント
+└── package.json        # ワークスペーススクリプト
 ```
 
 ### 各ディレクトリの役割
 
 - **frontend/**: 一般ユーザー向けのフロントエンドアプリケーション（家計簿データの可視化）
-- **admin/**: 管理者向けの管理画面（データ登録・管理機能）
-- **shared/**: frontend と admin で共通して使用するモデル、型定義、ユーティリティ関数
-- **data/**: サンプルデータファイル
+- **backend/**: FastAPI/SQLAlchemy による API とデータ処理
 - **supabase/**: Supabase ローカル開発環境の設定ファイルとテンプレート
-- **prisma/**: データベーススキーマ定義、マイグレーションファイル、シードデータ
-- **logs/**: ログファイルやデバッグ用データ
 - **docs/**: プロジェクトの設計ドキュメント
 
 ## 技術スタック
 
 - **Frontend**: Vite, React 19, TypeScript
-- **Backend**: Prisma ORM, Supabase（FastAPI + SQLAlchemy への移行を開始）
+- **Backend**: FastAPI, SQLAlchemy, Alembic
 - **Styling**: Tailwind CSS v4
 - **Charts**: Recharts, ApexCharts, Nivo
 - **Database**: PostgreSQL (via Supabase)
-- **Development**: pnpm, Biome
-- **Testing**: Jest
+- **Development**: pnpm, uv, Biome
+- **Testing**: Vitest
 
 ## 画面イメージ
 
@@ -70,12 +60,12 @@ marumie/
 pnpm run dev:setup
 ```
 
-このコマンドで依存関係のインストール、データベースのリセット・マイグレーション・シードデータの投入を一括実行します。
+このコマンドで依存関係のインストール、バックエンド依存関係の同期、Supabase 起動、マイグレーション適用を一括実行します。
 
 2. **開発サーバーの起動**
 
 ```bash
-pnpm run dev  # frontend + 管理画面を同時起動（Supabase自動起動）
+pnpm run dev  # frontend + backend を同時起動（Supabase自動起動）
 ```
 
 ### よく使うコマンド
@@ -83,24 +73,23 @@ pnpm run dev  # frontend + 管理画面を同時起動（Supabase自動起動）
 #### 開発関連
 
 ```bash
-pnpm run dev           # frontend + 管理画面を同時起動（推奨）
-pnpm run dev:frontend    # frontendのみ起動
-pnpm run dev:admin     # 管理画面のみ起動
+pnpm run dev           # frontend + backend を同時起動（推奨）
+pnpm run dev:frontend  # frontendのみ起動
+pnpm run dev:backend   # backendのみ起動
 ```
 
 #### データベース管理
 
 ```bash
 # データを最初からやり直したい場合
-pnpm run db:reset      # データベース完全リセット（データ削除 + マイグレーション + シード）
+pnpm run db:reset      # DBリセット + マイグレーション + シード
 
 # 個別実行
-pnpm run db:migrate    # マイグレーション実行（スキーマ変更の適用）
-pnpm run db:seed       # シードデータ投入（サンプルデータの挿入）
-pnpm run db:studio     # Prisma Studio起動（データベースGUI）
+pnpm run db:migrate    # Alembicマイグレーション実行
+pnpm run db:seed       # シードデータ投入
 
 # マイグレーション作成（開発者向け）
-pnpm run db:migrate:create "migration_name"  # 新しいマイグレーションファイルを作成
+pnpm run db:migrate:create "migration_name"
 ```
 
 #### コード品質チェック
@@ -127,19 +116,15 @@ pnpm run clean         # 全てのnode_modulesとSupabaseを停止
 pnpm run fresh         # クリーンインストール + セットアップ
 ```
 
-### FastAPI backend (WIP)
+### FastAPI backend
 
 - ディレクトリ: `backend/`
-- 起動方法: `cd backend && uvicorn app.main:get_app --reload --factory`
+- 起動方法: `pnpm run dev:backend`（または `cd backend && uv run uvicorn app.main:get_app --reload --factory`）
 - 設定: `backend/.env.example` を `.env` にコピーして `DATABASE_URL` などを指定
-- Prisma スキーマを移植した SQLAlchemy モデルと Alembic の初期マイグレーションを含みます。スキーマを適用するには `cd backend && alembic upgrade head` を実行してください。
-- API 進捗: `/health` に加え、組織一覧 `/organizations`、政治団体のトランザクション・残高スナップショット `/political-organizations/{slug}/transactions` `/political-organizations/{slug}/balance-snapshots`、個人向け取引 `/personal-transactions` を SQLAlchemy ベースで参照できます。
+- マイグレーション適用: `pnpm run db:migrate`
+- API: `/health`、`/organizations`、`/political-organizations/{slug}/transactions`、`/political-organizations/{slug}/balance-snapshots`、`/personal-transactions`
 
 ## データベースのマイグレーション
-
-### 本番環境・開発環境
-
-- Vercel で行われる frontend の build 過程で自動的にマイグレーションが実行されます
 
 ### ローカル開発環境
 
@@ -151,23 +136,9 @@ pnpm run db:migrate
 
 ### ブラウザからの確認方法
 
-- **メインアプリ**: [https://marumie-kakeibo-hrn0327.netlify.app/o/team-mirai](https://marumie-kakeibo-hrn0327.netlify.app/o/team-mirai)
-- **管理画面**: [https://marumie-kakeibo-hrn0327-admin.netlify.app/users](https://marumie-kakeibo-hrn0327-admin.netlify.app/users)
-- **Supabase Studio**: [https://supabase.com/dashboard/org/wxvunoocumzfosnxunct](https://supabase.com/dashboard/org/wxvunoocumzfosnxunct)
-
-- **メインアプリ**: [http://localhost:3000](http://localhost:3000)
-- **管理画面**: [http://localhost:3001](http://localhost:3001)
+- **フロントエンド**: [http://localhost:5173](http://localhost:5173)
+- **バックエンド**: [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Supabase Studio**: [http://127.0.0.1:54323](http://127.0.0.1:54323)
-
-### モックデータの使用
-
-`frontend/.env.local` に以下を追加してモックデータを有効化：
-
-```
-USE_MOCK_DATA=true
-```
-
-設定後、トランザクションページのバックエンドがモックデータを返すようになります。
 
 ## サンプルデータ (まる見え家計簿用 CSV データの作成方法)
 
@@ -178,16 +149,17 @@ USE_MOCK_DATA=true
 #### ディレクトリ構成
 
 ```
-data/
+backend/scripts/data/
 ├── config.json          # 変換設定ファイル
-├── convert_csv.sh       # 変換スクリプト
-├── input/              # 変換元CSVファイルの配置先
-│   ├── 2025/           # 年ごとにディレクトリを作成
-│   │   ├── 01/         # 月ごとにディレクトリを作成
+├── config.public.json   # 共有可能な設定
+├── config.private.json  # 秘匿設定
+├── input/               # 変換元CSVファイルの配置先
+│   ├── 2025/            # 年ごとにディレクトリを作成
+│   │   ├── 01/          # 月ごとにディレクトリを作成
 │   │   ├── 02/
 │   │   └── ...
 │   └── ...
-└── output/             # 変換後CSVファイルの出力先
+└── output/              # 変換後CSVファイルの出力先
     ├── 2025/
     │   ├── 01/
     │   ├── 02/
@@ -199,18 +171,18 @@ data/
 
 1. **入力ファイルの配置**
 
-   `data/input/` 以下に年・月のディレクトリ（`YYYY/MM`形式）を作成し、各金融機関から取得した CSV ファイルを配置します。
+   `backend/scripts/data/input/` 以下に年・月のディレクトリ（`YYYY/MM`形式）を作成し、各金融機関から取得した CSV ファイルを配置します。
 
    ```bash
-   mkdir -p data/input/2025/01
-   # CSVファイルをdata/input/2025/01/にコピー
+   mkdir -p backend/scripts/data/input/2025/01
+   # CSVファイルを backend/scripts/data/input/2025/01/ にコピー
    ```
 
-   > `data/input/` 直下にCSVを置いただけでも、ファイル内の日付から自動で対象年月を推測し、`YYYY/MM` フォルダへ仕分けしてから変換します。従来の `YYYY-MM` 形式ディレクトリが残っている場合も、実行時に自動で `YYYY/MM` 構造へ整形されます。
+   > `backend/scripts/data/input/` 直下にCSVを置いただけでも、ファイル内の日付から自動で対象年月を推測し、`YYYY/MM` フォルダへ仕分けしてから変換します。従来の `YYYY-MM` 形式ディレクトリが残っている場合も、実行時に自動で `YYYY/MM` 構造へ整形されます。
 
 2. **設定ファイルの編集（必要に応じて）**
 
-   `data/config.json` で以下を設定できます：
+   `backend/scripts/data/config.json` で以下を設定できます：
 
    - 銀行・カードごとの列マッピング（日付、摘要、金額など）
    - ファイル名パターン（例: `UFJ_sample_*.csv`）
@@ -219,17 +191,15 @@ data/
 3. **変換スクリプトの実行**
 
    ```bash
-   cd data
-   bash convert_csv.sh       # シェルから実行
-   # または Python スクリプトを直接実行
-   python3 convert_csv.py
+   cd backend
+   uv run python -m scripts.data.convert_csv
    ```
 
-   変換された CSV ファイルは `data/output/YYYY/MM/unified_YYYY-MM.csv` に出力されます。
+   変換された CSV ファイルは `backend/scripts/data/output/YYYY/MM/unified_YYYY-MM.csv` に出力されます。
 
 4. **変換結果のアップロード**
 
-   管理画面（ http://localhost:3001 ）の「CSV アップロード」機能から、`data/output/` 内の統一 CSV ファイルをアップロードします。
+   バックエンドのインポートスクリプトで `backend/scripts/data/output/` 内の統一 CSV ファイルを取り込みます。
 
 #### サポートされている形式
 
@@ -237,7 +207,7 @@ data/
 
 - UFJ 銀行（`UFJ_sample_*.csv`）
 
-新しい金融機関を追加する場合は、`data/config.json` の `banks` セクションに設定を追加してください。
+新しい金融機関を追加する場合は、`backend/scripts/data/config.json` の `banks` セクションに設定を追加してください。
 
 ## ライセンス
 

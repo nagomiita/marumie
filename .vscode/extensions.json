@@ -8,7 +8,11 @@
     "charliermarsh.ruff",
     // Pythonサポート
     "ms-python.python",
+    //Pylanceサポート
+    "ms-python.vscode-pylance",
     // Dockerサポート
-    "ms-azuretools.vscode-docker"
+    "ms-azuretools.vscode-docker",
+    //DBdiagram.ioサポート
+    "dbdiagram.dbdiagramio-vscode-extension"
   ]
 }
