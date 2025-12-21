@@ -62,6 +62,9 @@ uv run alembic upgrade head
 
 # スキーマ変更時の自動生成例
 uv run alembic revision --autogenerate -m "describe change"
+
+# DBdiagram
+uv run python -m scripts.export_schema
 ```
 
 ## データベースのリセットと初期データ投入

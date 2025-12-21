@@ -1,0 +1,85 @@
+Enum category_type {
+  income
+  expense
+}
+
+Enum user_role {
+  admin
+  user
+}
+
+Enum organization_type {
+  household
+  business
+  nonprofit
+  political_organization
+  other
+}
+
+Enum transaction_type {
+  income
+  expense
+}
+
+Table categories [note: 'カテゴリマスタ'] {
+  id VARCHAR(100) [pk, not null, note: 'カテゴリID（主キー・一意識別子）']
+  name VARCHAR(255) [not null, note: 'カテゴリ名']
+  group VARCHAR(255) [not null, note: 'カテゴリグループ（大分類）']
+  color VARCHAR(20) [not null, note: '表示色（HEXコード）']
+  short_label VARCHAR(100) [not null, note: '短縮ラベル']
+  type category_type [not null, note: '種別（収入/支出）']
+  display_order INTEGER [not null, note: '表示順序']
+  is_active BOOLEAN [not null, default: `true`, note: '有効フラグ']
+  created_at TIMESTAMP [not null, default: `now()`]
+  updated_at TIMESTAMP [not null, default: `now()`]
+}
+
+Table users [note: 'ユーザー'] {
+  auth_id VARCHAR(255) [not null, unique, note: '認証ID']
+  email VARCHAR(255) [not null, unique, note: 'メールアドレス']
+  name VARCHAR(255) [not null, note: '表示名']
+  role user_role [not null, default: `user`, note: 'ユーザーロール']
+  id VARCHAR(36) [pk, not null]
+  created_at TIMESTAMP [not null, default: `now()`]
+  updated_at TIMESTAMP [not null, default: `now()`]
+}
+
+Table organizations [note: '組織'] {
+  name VARCHAR(255) [not null, note: '組織名']
+  display_name VARCHAR(255) [not null, note: '表示名']
+  description TEXT [note: '説明']
+  type organization_type [not null, note: '組織タイプ']
+  slug VARCHAR(255) [not null, unique, note: 'スラッグ']
+  user_id VARCHAR(36) [note: 'ユーザーID']
+  settings JSON [note: '設定']
+  id VARCHAR(36) [pk, not null]
+  created_at TIMESTAMP [not null, default: `now()`]
+  updated_at TIMESTAMP [not null, default: `now()`]
+  Indexes {
+    (user_id, type) [name: 'ix_organizations_user_id_type']
+  }
+}
+
+Table transactions [note: '取引'] {
+  date DATE [not null, note: '取引日']
+  category_id VARCHAR(100) [not null, note: 'カテゴリID']
+  subcategory VARCHAR(255) [note: 'サブカテゴリ']
+  amount NUMERIC(15, 2) [not null, note: '金額']
+  type transaction_type [not null, note: '取引種別']
+  payment_method VARCHAR(255) [not null, note: '支払い方法']
+  description TEXT [not null, note: '説明']
+  memo TEXT [note: 'メモ']
+  hash VARCHAR(255) [not null, note: 'ハッシュ値']
+  organization_id VARCHAR(36) [note: '組織ID']
+  id VARCHAR(36) [pk, not null]
+  created_at TIMESTAMP [not null, default: `now()`]
+  updated_at TIMESTAMP [not null, default: `now()`]
+  Indexes {
+    (category_id, type) [name: 'ix_transactions_category_type']
+    (organization_id) [name: 'ix_transactions_org_date']
+  }
+}
+
+Ref: organizations.user_id > users.id
+Ref: transactions.category_id > categories.id
+Ref: transactions.organization_id > organizations.id
