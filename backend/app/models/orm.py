@@ -90,6 +90,10 @@ class Transaction(Base, transactions.Transaction.Columns):
         "Organization",
         back_populates="transactions",
     )
+    category: Mapped[Category] = relationship(
+        "Category",
+        back_populates="transactions",
+    )
 
     # ハイブリッドプロパティ
     @hybrid_property
@@ -113,8 +117,11 @@ class Category(Base, categories.Category.Columns):
     __tablename__ = categories.Category.__tablename__
     __table_args__ = categories.Category.__table_args__
 
-    # 現時点では拡張なし
-    pass
+    # リレーションシップ
+    transactions: Mapped[list[Transaction]] = relationship(
+        "Transaction",
+        back_populates="category",
+    )
 
 
 # ---------------------------------------------------------------------------

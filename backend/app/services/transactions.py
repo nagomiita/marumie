@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy import distinct, extract, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ..models import Transaction
 from ..schemas import TransactionRead
@@ -32,7 +33,7 @@ class TransactionService:
         Returns:
             トランザクションのリスト
         """
-        stmt = select(Transaction)
+        stmt = select(Transaction).options(selectinload(Transaction.category))
         if organization_id is not None:
             stmt = stmt.where(Transaction.organization_id == organization_id)
         if year is not None:

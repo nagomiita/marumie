@@ -18,7 +18,7 @@ class Transaction(AbstractTableClass):
     __tablename__ = Path(__file__).stem
     __table_args__ = (
         Index("ix_transactions_org_date", "organization_id", text("date DESC")),
-        Index("ix_transactions_category_type", "category", "type"),
+        Index("ix_transactions_category_type", "category_id", "type"),
         {"schema": DB_SCHEMA, "comment": "取引"},
     )
 
@@ -26,8 +26,12 @@ class Transaction(AbstractTableClass):
         """カラム定義"""
 
         date: Mapped[date] = mapped_column(Date, nullable=False, comment="取引日")
-        category: Mapped[str] = mapped_column(
-            String(255), nullable=False, comment="カテゴリ"
+        category_id: Mapped[str] = mapped_column(
+            String(100),
+            ForeignKey(f"{DB_SCHEMA}.categories.id", ondelete="SET NULL"),
+            nullable=False,
+            name="category_id",
+            comment="カテゴリID",
         )
         subcategory: Mapped[str | None] = mapped_column(
             String(255), nullable=True, name="subcategory", comment="サブカテゴリ"

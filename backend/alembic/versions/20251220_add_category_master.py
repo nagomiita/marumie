@@ -35,44 +35,40 @@ def upgrade() -> None:
     op.create_index('ix_categories_name', 'categories', ['name'])
     op.create_index('ix_categories_display_order', 'categories', ['display_order'])
 
-    # 初期データ投入（TypeScriptのcategory-mapping.tsから変換）
+    # 初期データ投入（config.public.jsonと一致させる）
     categories_data = [
-        # 収入項目
-        ('salary', '給与', '収入', '#059669', '給与', 'income', 10),
-        ('bonus', '賞与', '収入', '#0891B2', '賞与', 'income', 20),
-        ('side-income', '副業', '収入', '#EA580C', '副業', 'income', 30),
-        ('investment-income', '投資収益', '収入', '#DC2626', '投資収益', 'income', 40),
-        ('extra-income', '臨時収入', '収入', '#65A30D', '臨時収入', 'income', 50),
-        ('misc-income', 'その他収入', '収入', '#D97706', 'その他収入', 'income', 60),
-        ('other-income', 'その他', '収入', '#6B7280', 'その他', 'income', 70),
-        
-        # 支出項目 - 固定費
-        ('rent', '家賃', '固定費', '#0369A1', '家賃', 'expense', 110),
-        ('mortgage', '住宅ローン', '固定費', '#1E40AF', '住宅ローン', 'expense', 120),
-        ('utilities', '光熱費', '固定費', '#126C81', '光熱費', 'expense', 130),
-        ('communication', '通信費', '固定費', '#6D28D9', '通信費', 'expense', 140),
-        ('insurance', '保険', '固定費', '#047857', '保険', 'expense', 150),
-        ('subscription', 'サブスク', '固定費', '#7C3AED', 'サブスク', 'expense', 160),
-        
-        # 支出項目 - 変動費
-        ('food', '食費', '変動費', '#DC2626', '食費', 'expense', 210),
-        ('dining', '外食', '変動費', '#EA580C', '外食', 'expense', 220),
-        ('daily-necessities', '日用品', '変動費', '#4D7C0F', '日用品', 'expense', 230),
-        ('transportation', '交通費', '変動費', '#0891B2', '交通費', 'expense', 240),
-        ('travel', '旅費', '変動費', '#0E7490', '旅費', 'expense', 250),
-        ('medical', '医療', '変動費', '#BE185D', '医療', 'expense', 260),
-        ('clothing', '衣服', '変動費', '#DB2777', '衣服', 'expense', 270),
-        ('beauty', '美容', '変動費', '#EC4899', '美容', 'expense', 280),
-        ('education', '教育', '変動費', '#3856B1', '教育', 'expense', 290),
-        ('entertainment', '娯楽', '変動費', '#C2410C', '娯楽', 'expense', 300),
-        ('social', '交際費', '変動費', '#A16207', '交際費', 'expense', 310),
-        
+        # 収入項目（明るい緑・青系）
+        ('salary', '給与収入', '収入', '#A7F3D0', '給与', 'income', 10),      # 明るいエメラルド
+        ('bonus', '賞与', '収入', '#BAE6FD', '賞与', 'income', 20),            # 明るいスカイブルー
+        ('misc_income', '雑収入', '収入', '#FDE68A', '雑収入', 'income', 60),  # 明るいイエロー
+
+        # 支出項目 - 固定費（青・紫系）
+        ('rent', '家賃', '固定費', '#BFDBFE', '家賃', 'expense', 110),              # ライトブルー（住まい）
+        ('utilities', '水道光熱費', '固定費', '#A5F3FC', '光熱費', 'expense', 130),  # シアン（水・電気）
+        ('communication', '通信費', '固定費', '#DDD6FE', '通信費', 'expense', 140),  # ラベンダー（通信）
+        ('insurance', '保険料', '固定費', '#D1FAE5', '保険', 'expense', 150),        # ミントグリーン（保護）
+        ('subscription', 'サブスクリプション', '固定費', '#E9D5FF', 'サブスク', 'expense', 160),  # 明るいパープル
+
+        # 支出項目 - 変動費（暖色系）
+        ('food', '食費', '変動費', '#FEE2E2', '食費', 'expense', 210),                    # 明るいレッド（食べ物）
+        ('dining', '外食費', '変動費', '#FED7AA', '外食', 'expense', 220),                # 明るいオレンジ（外食）
+        ('daily_necessities', '日用品', '変動費', '#D9F99D', '日用品', 'expense', 230),   # ライトグリーン（日用品）
+        ('transport', '交通費', '変動費', '#BAE6FD', '交通費', 'expense', 240),           # ライトブルー（移動）
+        ('travel', '旅費交通費', '変動費', '#A5F3FC', '旅費', 'expense', 250),            # アクアブルー（旅行）
+        ('medical', '医療費', '変動費', '#FBCFE8', '医療', 'expense', 260),               # ライトピンク（医療）
+        ('clothing', '衣服費', '変動費', '#F9A8D4', '衣服', 'expense', 270),              # ピンク（衣類）
+        ('beauty', '美容費', '変動費', '#F5D0FE', '美容', 'expense', 280),                # 明るいマゼンタ（美容）
+        ('education', '教育費', '変動費', '#BFDBFE', '教育', 'expense', 290),             # ブルー（教育）
+        ('entertainment', '娯楽費', '変動費', '#FED7AA', '娯楽', 'expense', 300),         # 明るいオレンジ（楽しみ）
+        ('social', '交際費', '変動費', '#FDE68A', '交際費', 'expense', 310),              # 明るいゴールド（社交）
+
         # 支出項目 - その他
-        ('credit-card', 'クレジットカード', '決済', '#059669', 'カード', 'expense', 410),
-        ('cash', '現金', '決済', '#0D9488', '現金', 'expense', 420),
-        ('savings', '貯金', '貯蓄・投資', '#65A30D', '貯金', 'expense', 510),
-        ('investment', '投資', '貯蓄・投資', '#65A30D', '投資', 'expense', 520),
-        ('other-expenses', 'その他', 'その他', '#334155', 'その他', 'expense', 910),
+        ('credit_card', 'クレジットカード', '決済', '#D1FAE5', 'カード', 'expense', 410),  # ミントグリーン
+        ('cash', '現金', '決済', '#A7F3D0', '現金', 'expense', 420),                       # エメラルド
+        ('investment', '投資', '貯蓄・投資', '#BEF264', '投資', 'expense', 510),           # ライムグリーン（成長）
+        ('savings', '貯金', '貯蓄・投資', '#A7F3D0', '貯金', 'expense', 520),              # エメラルド（貯蓄）
+        ('fees', 'その他の経費', 'その他', '#E2E8F0', 'その他', 'expense', 910),           # ライトグレー
+        ('default', 'その他の経費', 'その他', '#E2E8F0', 'その他', 'expense', 920),        # ライトグレー
     ]
 
     op.bulk_insert(

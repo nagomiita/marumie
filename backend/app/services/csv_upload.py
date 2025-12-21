@@ -6,7 +6,7 @@ import polars as pl
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Transaction
+from ..models.orm import Transaction
 
 
 class CSVUploadService:
@@ -35,7 +35,7 @@ class CSVUploadService:
         # 日本語ヘッダーから英語カラム名へのマッピング
         column_mapping = {
             "日付": "date",
-            "カテゴリ": "category",
+            "カテゴリ": "category_id",
             "サブカテゴリ": "subcategory",
             "金額": "amount",
             "収支区分": "type",
@@ -101,6 +101,15 @@ class CSVUploadService:
                     status_code=400,
                     detail=f"行 {', '.join(str(i + 2) for i in range(null_amounts.height))}: 金額が不正です",
                 )
+
+        # category_idのバリデーション（nullの場合はデフォルト値を設定）
+        if "category_id" in df.columns:
+            df = df.with_columns(
+                pl.col("category_id").fill_null("default").alias("category_id")
+            )
+        else:
+            # category_idが存在しない場合はデフォルト値を設定
+            df = df.with_columns(pl.lit("default").alias("category_id"))
 
         # Transactionには必須フィールドのデフォルト値を設定
         if "payment_method" not in df.columns:
