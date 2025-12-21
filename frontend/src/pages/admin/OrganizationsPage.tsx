@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
+  getListOrganizationsQueryKey,
   useListOrganizations,
   useCreateOrganization,
   useDeleteOrganization,
@@ -20,11 +22,8 @@ interface OrganizationCreateForm {
 }
 
 export default function OrganizationsPage() {
-  const {
-    data: organizations,
-    isLoading: loading,
-    refetch,
-  } = useListOrganizations();
+  const queryClient = useQueryClient();
+  const { data: organizations, isLoading: loading } = useListOrganizations();
   const createMutation = useCreateOrganization();
   const deleteMutation = useDeleteOrganization();
   const [showForm, setShowForm] = useState(false);
@@ -55,7 +54,9 @@ export default function OrganizationsPage() {
         slug: "",
         description: "",
       });
-      refetch();
+      await queryClient.invalidateQueries({
+        queryKey: getListOrganizationsQueryKey(),
+      });
     } catch (error) {
       console.error("Error creating organization:", error);
       alert("組織の作成に失敗しました");
@@ -69,7 +70,9 @@ export default function OrganizationsPage() {
       await deleteMutation.mutateAsync({
         organizationId: id,
       });
-      refetch();
+      await queryClient.invalidateQueries({
+        queryKey: getListOrganizationsQueryKey(),
+      });
     } catch (error) {
       console.error("Error deleting organization:", error);
       alert("組織の削除に失敗しました");

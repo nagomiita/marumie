@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
+  getListCategoriesQueryKey,
   useListCategories,
   useCreateCategory,
   useUpdateCategory,
@@ -16,11 +18,10 @@ import Form, { type FormField } from "@/components/common/Form";
 import Button from "@/components/common/Button";
 
 export default function CategoriesPage() {
-  const {
-    data: categoriesData,
-    isLoading: loading,
-    refetch,
-  } = useListCategories({ is_active: undefined });
+  const queryClient = useQueryClient();
+  const { data: categoriesData, isLoading: loading } = useListCategories({
+    is_active: undefined,
+  });
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
@@ -134,7 +135,9 @@ export default function CategoriesPage() {
         display_order: 0,
         is_active: true,
       });
-      refetch();
+      await queryClient.invalidateQueries({
+        queryKey: getListCategoriesQueryKey({ is_active: undefined }),
+      });
     } catch (error) {
       console.error("Error saving category:", error);
       alert("カテゴリの保存に失敗しました");
@@ -161,7 +164,9 @@ export default function CategoriesPage() {
 
     try {
       await deleteMutation.mutateAsync({ id });
-      refetch();
+      await queryClient.invalidateQueries({
+        queryKey: getListCategoriesQueryKey({ is_active: undefined }),
+      });
     } catch (error) {
       console.error("Error deleting category:", error);
       alert("カテゴリの削除に失敗しました");
