@@ -27,31 +27,28 @@ export default function PayeeRanking({
   selectedMonth,
   limit = 10,
 }: PayeeRankingProps) {
-  // デフォルトで「投資」カテゴリを除外
-  const defaultExcludedCategories = useMemo(() => {
-    const investmentCategory = categories.find(
-      (cat) => cat.id === "investment",
-    );
-    return investmentCategory ? [investmentCategory.id] : [];
+  // デフォルトで全カテゴリを選択（投資カテゴリのみ除外）
+  const defaultSelectedCategories = useMemo(() => {
+    return categories.map((cat) => cat.name);
   }, [categories]);
 
-  const [excludedCategories, setExcludedCategories] = useState<string[]>(
-    defaultExcludedCategories,
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    defaultSelectedCategories,
   );
 
-  // excludedCategoriesのデフォルト値が変わったら更新
+  // selectedCategoriesのデフォルト値が変わったら更新
   useMemo(() => {
-    setExcludedCategories(defaultExcludedCategories);
-  }, [defaultExcludedCategories]);
+    setSelectedCategories(defaultSelectedCategories);
+  }, [defaultSelectedCategories]);
 
   const payeeStats = useMemo(() => {
     // 支出のみをフィルタ
     let expenses = transactions.filter((tx) => tx.type === "expense");
 
-    // 除外カテゴリでフィルタ
-    if (excludedCategories.length > 0) {
-      expenses = expenses.filter(
-        (tx) => !excludedCategories.includes(tx.category),
+    // 選択されたカテゴリのみに絞り込み（カテゴリ名で比較）
+    if (selectedCategories.length > 0) {
+      expenses = expenses.filter((tx) =>
+        selectedCategories.includes(tx.category),
       );
     }
 
@@ -91,7 +88,7 @@ export default function PayeeRanking({
     return Array.from(statsMap.values())
       .sort((a, b) => b.totalAmount - a.totalAmount)
       .slice(0, limit);
-  }, [transactions, selectedMonth, limit, excludedCategories]);
+  }, [transactions, selectedMonth, limit, selectedCategories]);
 
   const totalExpense = useMemo(() => {
     return payeeStats.reduce((sum, stat) => sum + stat.totalAmount, 0);
@@ -99,11 +96,11 @@ export default function PayeeRanking({
 
   const [selected, setSelected] = useState<PayeeStats | null>(null);
 
-  const handleCategoryToggle = (categoryId: string) => {
-    setExcludedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId],
+  const handleCategoryToggle = (categoryName: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryName)
+        ? prev.filter((name) => name !== categoryName)
+        : [...prev, categoryName],
     );
   };
 
@@ -117,25 +114,25 @@ export default function PayeeRanking({
 
   return (
     <Card title="支払先ランキング" className="space-y-3 md:space-y-4">
-      {/* カテゴリ除外セレクター */}
+      {/* カテゴリ選択セレクター */}
       {categories.length > 0 && (
         <div className="border-b border-gray-200 pb-3">
           <div className="block text-sm font-medium text-gray-700 mb-2">
-            除外するカテゴリ
+            表示するカテゴリ
           </div>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <button
                 key={category.id}
                 type="button"
-                onClick={() => handleCategoryToggle(category.id)}
+                onClick={() => handleCategoryToggle(category.name)}
                 className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                  excludedCategories.includes(category.id)
-                    ? "bg-gray-200 border-gray-400 text-gray-700"
+                  selectedCategories.includes(category.name)
+                    ? "bg-teal-100 border-teal-400 text-teal-800"
                     : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
                 }`}
               >
-                {excludedCategories.includes(category.id) ? "✓ " : ""}
+                {selectedCategories.includes(category.name) ? "✓ " : ""}
                 {category.name}
               </button>
             ))}

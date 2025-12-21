@@ -19,6 +19,7 @@ import CategoryPieChart from "@/components/CategoryPieChart";
 import ExpenseCalendar from "@/components/ExpenseCalendar";
 import SankeyDiagram from "@/components/SankeyDiagram";
 import PayeeRanking from "@/components/PayeeRanking";
+import InvestmentStackedBarChart from "@/components/InvestmentStackedBarChart";
 
 export default function OrganizationPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -239,6 +240,10 @@ export default function OrganizationPage() {
               <MonthlyTrendChart data={monthlyData} />
               <CategoryPieChart data={categoryData} />
             </div>
+            <InvestmentStackedBarChart
+              transactions={transactions}
+              categories={categories}
+            />
             {financialYear !== 0 && month !== 0 && (
               <ExpenseCalendar
                 transactions={transactions}
