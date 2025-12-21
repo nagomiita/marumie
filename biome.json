@@ -7,11 +7,11 @@
       "admin/*.js",
       "admin/*.tsx",
       "admin/*.jsx",
-      "webapp/src/**/*",
-      "webapp/*.ts",
-      "webapp/*.js",
-      "webapp/*.tsx",
-      "webapp/*.jsx"
+      "frontend/src/**/*",
+      "frontend/*.ts",
+      "frontend/*.js",
+      "frontend/*.tsx",
+      "frontend/*.jsx"
     ],
     "ignoreUnknown": false
   },
