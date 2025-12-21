@@ -104,6 +104,14 @@ export default function PayeeRanking({
     );
   };
 
+  const handleClearAll = () => {
+    setSelectedCategories([]);
+  };
+
+  const handleSelectAll = () => {
+    setSelectedCategories(categories.map((cat) => cat.name));
+  };
+
   if (payeeStats.length === 0) {
     return (
       <Card title="支払先ランキング">
@@ -117,8 +125,26 @@ export default function PayeeRanking({
       {/* カテゴリ選択セレクター */}
       {categories.length > 0 && (
         <div className="border-b border-gray-200 pb-3">
-          <div className="block text-sm font-medium text-gray-700 mb-2">
-            表示するカテゴリ
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium text-gray-700">
+              表示するカテゴリ
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="px-2 py-1 text-xs text-teal-600 hover:text-teal-800 hover:underline"
+              >
+                全選択
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:underline"
+              >
+                全解除
+              </button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
