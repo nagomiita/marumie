@@ -108,6 +108,8 @@ export default function Form<T extends Record<string, any>>({
               value={String(fieldValue ?? "")}
               onValueChange={(value) => handleFieldChange(field.name, value)}
               disabled={field.disabled}
+              name={String(field.name)}
+              required={field.required}
             >
               <SelectTrigger
                 id={String(field.name)}
