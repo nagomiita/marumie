@@ -68,7 +68,7 @@ def upgrade() -> None:
         ('investment', '投資', '貯蓄・投資', '#BEF264', '投資', 'expense', 510),           # ライムグリーン（成長）
         ('savings', '貯金', '貯蓄・投資', '#A7F3D0', '貯金', 'expense', 520),              # エメラルド（貯蓄）
         ('fees', 'その他の経費', 'その他', '#E2E8F0', 'その他', 'expense', 910),           # ライトグレー
-        ('default', 'その他の経費', 'その他', '#E2E8F0', 'その他', 'expense', 920),        # ライトグレー
+        ('uncategorized', '未分類', 'その他', '#E2E8F0', '未分類', 'expense', 920),        # ライトグレー
     ]
 
     op.bulk_insert(

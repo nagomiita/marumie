@@ -114,14 +114,6 @@ export default function PayeeRanking({
     setSelectedCategories(categories.map((cat) => cat.name));
   };
 
-  if (payeeStats.length === 0) {
-    return (
-      <Card title="支払先ランキング">
-        <p className="text-gray-600">データが存在しません</p>
-      </Card>
-    );
-  }
-
   return (
     <Card title="支払先ランキング" className="space-y-3 md:space-y-4">
       {/* カテゴリ選択セレクター */}
@@ -168,75 +160,83 @@ export default function PayeeRanking({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">
-          合計: {totalExpense.toLocaleString("ja-JP")}円
-        </span>
-        <div className="flex items-center gap-2">
-          <label htmlFor="limit-select" className="text-xs text-gray-600">
-            表示件数:
-          </label>
-          <select
-            id="limit-select"
-            value={limit}
-            onChange={(e) => setLimit(Number(e.target.value))}
-            className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-teal-400"
-          >
-            <option value={5}>5件</option>
-            <option value={10}>10件</option>
-            <option value={20}>20件</option>
-            <option value={50}>50件</option>
-            <option value={100}>100件</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        {payeeStats.map((stat, index) => {
-          const percentage = (stat.totalAmount / totalExpense) * 100;
-
-          return (
-            <button
-              key={stat.payee}
-              className="w-full text-left border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
-              onClick={() => setSelected(stat)}
-              type="button"
+      {payeeStats.length > 0 && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">
+            合計: {totalExpense.toLocaleString("ja-JP")}円
+          </span>
+          <div className="flex items-center gap-2">
+            <label htmlFor="limit-select" className="text-xs text-gray-600">
+              表示件数:
+            </label>
+            <select
+              id="limit-select"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-teal-400"
             >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <span className="text-lg font-bold text-gray-400 shrink-0">
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm md:text-base truncate">
-                      {stat.payee}
+              <option value={5}>5件</option>
+              <option value={10}>10件</option>
+              <option value={20}>20件</option>
+              <option value={50}>50件</option>
+              <option value={100}>100件</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {payeeStats.length === 0 ? (
+        <p className="text-gray-600 text-center py-8">
+          選択されたカテゴリにデータが存在しません
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {payeeStats.map((stat, index) => {
+            const percentage = (stat.totalAmount / totalExpense) * 100;
+
+            return (
+              <button
+                key={stat.payee}
+                className="w-full text-left border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
+                onClick={() => setSelected(stat)}
+                type="button"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-lg font-bold text-gray-400 shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm md:text-base truncate">
+                        {stat.payee}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {stat.category} · {stat.count}件
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-sm md:text-base text-red-600">
+                      {stat.totalAmount.toLocaleString("ja-JP")}円
                     </p>
                     <p className="text-xs text-gray-500">
-                      {stat.category} · {stat.count}件
+                      {percentage.toFixed(1)}%
                     </p>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <p className="font-bold text-sm md:text-base text-red-600">
-                    {stat.totalAmount.toLocaleString("ja-JP")}円
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {percentage.toFixed(1)}%
-                  </p>
-                </div>
-              </div>
 
-              {/* プログレスバー */}
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-red-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                {/* プログレスバー */}
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-red-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {payeeStats.length >= limit && (
         <p className="text-xs text-gray-500 text-center">

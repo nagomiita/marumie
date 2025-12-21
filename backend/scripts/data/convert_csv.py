@@ -643,8 +643,8 @@ def main() -> None:
     banks_config = config.banks
     categories = config.categories
     default_category = next(
-        (category.id for category in categories if category.id == "default"),
-        "default",
+        (category.id for category in categories if category.id == "uncategorized"),
+        "uncategorized",
     )
     output_config = config.output
 
