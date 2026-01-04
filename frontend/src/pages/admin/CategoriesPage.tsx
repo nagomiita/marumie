@@ -14,8 +14,9 @@ import type {
 } from "@/client/api/generated/model";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Modal from "@/components/common/Modal";
-import Form, { type FormField } from "@/components/common/Form";
 import Button from "@/components/common/Button";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import CategoryForm from "@/components/admin/CategoryForm";
 
 export default function CategoriesPage() {
   const queryClient = useQueryClient();
@@ -42,64 +43,6 @@ export default function CategoriesPage() {
   const categories = Array.isArray(categoriesData?.data)
     ? categoriesData.data
     : [];
-
-  const formFields: FormField<CategoryCreate>[] = [
-    {
-      name: "id",
-      label: "ID（英数字）",
-      type: "text",
-      required: true,
-      disabled: !!editingId,
-      pattern: "[a-zA-Z0-9_]+",
-      title: "英数字とアンダースコアのみ使用できます",
-    },
-    {
-      name: "name",
-      label: "カテゴリ名（日本語）",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "group",
-      label: "グループ（大分類）",
-      type: "text",
-      required: true,
-      placeholder: "例: 固定費、変動費、収入",
-    },
-    {
-      name: "color",
-      label: "表示色",
-      type: "color",
-      required: true,
-    },
-    {
-      name: "short_label",
-      label: "短縮ラベル",
-      type: "text",
-      required: true,
-      maxLength: 10,
-    },
-    {
-      name: "type",
-      label: "種別",
-      type: "select",
-      required: true,
-      options: [
-        { value: EnumCategoryType.income, label: "収入" },
-        { value: EnumCategoryType.expense, label: "支出" },
-      ],
-    },
-    {
-      name: "display_order",
-      label: "表示順",
-      type: "number",
-    },
-    {
-      name: "is_active",
-      label: "有効",
-      type: "checkbox",
-    },
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -300,25 +243,23 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">カテゴリ管理</h1>
-        <Button onClick={() => setShowForm(true)} variant="primary">
-          新規作成
-        </Button>
-      </div>
-
+    <AdminPageLayout
+      title="カテゴリ管理"
+      action={{
+        label: "新規作成",
+        onClick: () => setShowForm(true),
+      }}
+    >
       <Modal open={showForm} onClose={handleCancel}>
         <h2 className="text-lg font-semibold mb-4">
           {editingId ? "カテゴリ編集" : "新規カテゴリ"}
         </h2>
-        <Form
-          fields={formFields}
+        <CategoryForm
           formData={formData}
           onChange={setFormData}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          submitLabel={editingId ? "更新" : "作成"}
+          isEditing={!!editingId}
         />
       </Modal>
 
@@ -328,6 +269,6 @@ export default function CategoriesPage() {
         keyExtractor={(category) => category.id}
         pageSize={20}
       />
-    </div>
+    </AdminPageLayout>
   );
 }

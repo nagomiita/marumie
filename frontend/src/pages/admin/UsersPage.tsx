@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Modal from "@/components/common/Modal";
-import Form, { type FormField } from "@/components/common/Form";
 import Button from "@/components/common/Button";
 import {
   useListUsersUsersGet,
@@ -11,13 +10,8 @@ import {
 } from "@/client/api/generated/users/users";
 import type { UserRead } from "@/client/api/generated/model";
 import { EnumUserRole } from "@/client/api/generated/model";
-
-interface UserCreateForm {
-  name: string;
-  email: string;
-  password: string;
-  role: EnumUserRole;
-}
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import UserForm, { type UserCreateForm } from "@/components/admin/UserForm";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
@@ -55,39 +49,6 @@ export default function UsersPage() {
       role: EnumUserRole.user,
     });
   };
-
-  const formFields: FormField<UserCreateForm>[] = [
-    {
-      name: "name",
-      label: "名前",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "email",
-      label: "メールアドレス",
-      type: "email",
-      required: true,
-    },
-    {
-      name: "password",
-      label: "パスワード",
-      type: "password",
-      required: true,
-      minLength: 6,
-      title: "6文字以上で入力してください",
-    },
-    {
-      name: "role",
-      label: "ロール",
-      type: "select",
-      required: true,
-      options: [
-        { value: EnumUserRole.user, label: "ユーザー" },
-        { value: EnumUserRole.admin, label: "管理者" },
-      ],
-    },
-  ];
 
   const handleDelete = async (id: string) => {
     if (!confirm("本当に削除しますか?")) return;
@@ -176,23 +137,20 @@ export default function UsersPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">ユーザー管理</h1>
-        <Button onClick={() => setShowForm(true)} variant="primary">
-          新規作成
-        </Button>
-      </div>
-
+    <AdminPageLayout
+      title="ユーザー管理"
+      action={{
+        label: "新規作成",
+        onClick: () => setShowForm(true),
+      }}
+    >
       <Modal open={showForm} onClose={handleCancel}>
         <h2 className="text-lg font-semibold mb-4">新規ユーザー</h2>
-        <Form
-          fields={formFields}
+        <UserForm
           formData={formData}
           onChange={setFormData}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          submitLabel="作成"
         />
       </Modal>
 
@@ -201,6 +159,6 @@ export default function UsersPage() {
         columns={columns}
         keyExtractor={(user) => user.id}
       />
-    </div>
+    </AdminPageLayout>
   );
 }
