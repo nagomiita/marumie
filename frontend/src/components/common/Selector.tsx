@@ -1,3 +1,12 @@
+import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 export interface SelectorOption<T = string | number> {
   value: T;
   label: string;
@@ -27,9 +36,9 @@ export default function Selector<T extends string | number = string | number>({
   size = "md",
 }: SelectorProps<T>) {
   const sizeClasses = {
-    sm: "px-2 py-1 text-xs",
-    md: "px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm",
-    lg: "px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base",
+    sm: "h-7 text-xs",
+    md: "h-9 text-xs md:text-sm",
+    lg: "h-11 text-sm md:text-base",
   };
 
   const labelSizeClasses = {
@@ -38,9 +47,7 @@ export default function Selector<T extends string | number = string | number>({
     lg: "text-sm md:text-base",
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newValue = e.target.value;
-    // 数値型の場合は数値に変換
+  const handleChange = (newValue: string) => {
     const convertedValue = (
       typeof value === "number" ? Number(newValue) : newValue
     ) as T;
@@ -48,27 +55,34 @@ export default function Selector<T extends string | number = string | number>({
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={cn("flex items-center gap-2", className)}>
       {label && (
         <label
           htmlFor={id}
-          className={`font-semibold ${labelSizeClasses[size]} ${labelClassName}`}
+          className={cn(
+            "font-semibold",
+            labelSizeClasses[size],
+            labelClassName,
+          )}
         >
           {label}
         </label>
       )}
-      <select
-        id={id}
-        value={String(value)}
-        onChange={handleChange}
-        className={`border rounded ${sizeClasses[size]} ${selectClassName}`}
-      >
-        {options.map((option) => (
-          <option key={String(option.value)} value={String(option.value)}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <Select value={String(value)} onValueChange={handleChange}>
+        <SelectTrigger
+          id={id}
+          className={cn(sizeClasses[size], selectClassName)}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={String(option.value)} value={String(option.value)}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

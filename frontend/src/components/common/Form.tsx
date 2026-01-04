@@ -1,5 +1,14 @@
 import type React from "react";
 import Button from "./Button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type FieldType =
   | "text"
@@ -95,20 +104,30 @@ export default function Form<T extends Record<string, any>>({
             >
               {field.label}
             </label>
-            <select
-              id={String(field.name)}
+            <Select
               value={String(fieldValue ?? "")}
-              onChange={(e) => handleFieldChange(field.name, e.target.value)}
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md ${field.className || ""}`}
-              required={field.required}
+              onValueChange={(value) => handleFieldChange(field.name, value)}
               disabled={field.disabled}
+              name={String(field.name)}
+              required={field.required}
             >
-              {field.options?.map((option) => (
-                <option key={String(option.value)} value={String(option.value)}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id={String(field.name)}
+                className={field.className}
+              >
+                <SelectValue placeholder="選択してください" />
+              </SelectTrigger>
+              <SelectContent>
+                {field.options?.map((option) => (
+                  <SelectItem
+                    key={String(option.value)}
+                    value={String(option.value)}
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         );
 
@@ -121,11 +140,11 @@ export default function Form<T extends Record<string, any>>({
             >
               {field.label}
             </label>
-            <textarea
+            <Textarea
               id={String(field.name)}
               value={String(fieldValue ?? "")}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md ${field.className || ""}`}
+              className={field.className}
               required={field.required}
               disabled={field.disabled}
               placeholder={field.placeholder}
@@ -144,14 +163,14 @@ export default function Form<T extends Record<string, any>>({
             >
               {field.label}
             </label>
-            <input
+            <Input
               type="number"
               id={String(field.name)}
               value={fieldValue ?? ""}
               onChange={(e) =>
                 handleFieldChange(field.name, Number(e.target.value))
               }
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md ${field.className || ""}`}
+              className={field.className}
               required={field.required}
               disabled={field.disabled}
               placeholder={field.placeholder}
@@ -171,12 +190,12 @@ export default function Form<T extends Record<string, any>>({
             >
               {field.label}
             </label>
-            <input
+            <Input
               type="color"
               id={String(field.name)}
               value={fieldValue || "#000000"}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
-              className={`w-full h-10 px-1 py-1 border border-gray-300 rounded-md ${field.className || ""}`}
+              className={`h-10 px-1 py-1 ${field.className || ""}`}
               required={field.required}
               disabled={field.disabled}
             />
@@ -192,12 +211,12 @@ export default function Form<T extends Record<string, any>>({
             >
               {field.label}
             </label>
-            <input
+            <Input
               type={field.type}
               id={String(field.name)}
               value={String(fieldValue ?? "")}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md ${field.className || ""}`}
+              className={field.className}
               required={field.required}
               disabled={field.disabled}
               placeholder={field.placeholder}

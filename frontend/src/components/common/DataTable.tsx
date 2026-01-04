@@ -1,4 +1,15 @@
 import { type ReactNode, useMemo, useState } from "react";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  type ColumnFiltersState,
+  type PaginationState,
+  type SortingState,
+  useReactTable,
+  filterFns,
+} from "@tanstack/react-table";
 import Selector from "./Selector";
 import Button from "./Button";
 
@@ -30,69 +41,60 @@ export default function DataTable<T extends Record<string, any>>({
   title,
   className = "",
 }: DataTableProps<T>) {
-  const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<Record<string, string>>({});
-  const [searchText, setSearchText] = useState("");
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize,
+  });
+  const tableColumns = useMemo(
+    () =>
+      columns.map((col) => ({
+        id: col.key,
+        accessorKey: col.key,
+        accessorFn: (row: T) => row[col.key],
+        header: col.label,
+        enableSorting: col.sortable ?? false,
+        enableColumnFilter: col.filterable ?? false,
+        filterFn:
+          col.filterType === "select"
+            ? filterFns.equalsString
+            : filterFns.includesString,
+        cell: ({ row }: { row: { original: T } }) =>
+          col.render ? col.render(row.original) : String(row.original[col.key]),
+        meta: {
+          className: col.className,
+          filterType: col.filterType,
+          filterOptions: col.filterOptions,
+        },
+      })),
+    [columns],
+  );
 
-  const handleSort = (columnKey: string) => {
-    if (sortColumn === columnKey) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortColumn(columnKey);
-      setSortDirection("desc");
-    }
-    setPage(1);
-  };
+  const table = useReactTable({
+    data,
+    columns: tableColumns,
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+      pagination,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    globalFilterFn: filterFns.includesString,
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
 
-  const filtered = useMemo(() => {
-    let result = data;
-
-    // フィルタ適用
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== "all") {
-        result = result.filter((item) => String(item[key]) === value);
-      }
-    });
-
-    // テキスト検索
-    if (searchText.trim()) {
-      const search = searchText.toLowerCase();
-      result = result.filter((item) =>
-        Object.values(item).some((val) =>
-          String(val).toLowerCase().includes(search),
-        ),
-      );
-    }
-
-    // ソート
-    if (sortColumn) {
-      result = [...result].sort((a, b) => {
-        const aVal = a[sortColumn];
-        const bVal = b[sortColumn];
-
-        let comparison = 0;
-        if (typeof aVal === "number" && typeof bVal === "number") {
-          comparison = aVal - bVal;
-        } else {
-          comparison = String(aVal).localeCompare(String(bVal));
-        }
-
-        return sortDirection === "asc" ? comparison : -comparison;
-      });
-    }
-
-    return result;
-  }, [data, filters, searchText, sortColumn, sortDirection]);
-
-  const start = (page - 1) * pageSize;
-  const pageItems = filtered.slice(start, start + pageSize);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-
-  const handleFilterChange = () => {
-    setPage(1);
-  };
+  const filteredCount = table.getFilteredRowModel().rows.length;
+  const pageRows = table.getRowModel().rows;
+  const totalPages = Math.max(1, table.getPageCount());
+  const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
     <div
@@ -100,95 +102,123 @@ export default function DataTable<T extends Record<string, any>>({
     >
       {title && (
         <h3 className="text-base md:text-lg font-semibold">
-          {title} ({filtered.length}件)
+          {title} ({filteredCount}件)
         </h3>
       )}
 
-      {pageItems.length === 0 ? (
+      {pageRows.length === 0 ? (
         <p className="text-gray-600">データが存在しません</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-gray-600 border-b">
-                {columns.map((col) => (
-                  <th
-                    key={col.key}
-                    className={`py-2 pr-4 ${col.className || ""}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {col.sortable ? (
-                        <button
-                          type="button"
-                          onClick={() => handleSort(col.key)}
-                          className="flex items-center gap-1 hover:text-gray-900 whitespace-nowrap"
-                        >
-                          {col.label}
-                          {sortColumn === col.key && (
-                            <span className="text-xs">
-                              {sortDirection === "asc" ? "↑" : "↓"}
+                {table.getHeaderGroups().map((headerGroup) =>
+                  headerGroup.headers.map((header) => {
+                    const meta = header.column.columnDef.meta as {
+                      className?: string;
+                      filterType?: Column<T>["filterType"];
+                      filterOptions?: string[];
+                    };
+                    const canSort = header.column.getCanSort();
+                    return (
+                      <th
+                        key={header.id}
+                        className={`py-2 pr-4 ${meta?.className || ""}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {canSort ? (
+                            <button
+                              type="button"
+                              onClick={header.column.getToggleSortingHandler()}
+                              className="flex items-center gap-1 hover:text-gray-900 whitespace-nowrap"
+                            >
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                              {header.column.getIsSorted() && (
+                                <span className="text-xs">
+                                  {header.column.getIsSorted() === "asc"
+                                    ? "↑"
+                                    : "↓"}
+                                </span>
+                              )}
+                            </button>
+                          ) : (
+                            <span className="text-gray-600 whitespace-nowrap">
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
                             </span>
                           )}
-                        </button>
-                      ) : (
-                        <span className="text-gray-600 whitespace-nowrap">
-                          {col.label}
-                        </span>
-                      )}
 
-                      {col.filterable && col.filterType === "select" && (
-                        <Selector
-                          value={filters[col.key] || "all"}
-                          options={[
-                            { value: "all", label: "すべて" },
-                            ...(col.filterOptions?.map((opt) => ({
-                              value: opt,
-                              label: opt,
-                            })) || []),
-                          ]}
-                          onChange={(value) => {
-                            setFilters({
-                              ...filters,
-                              [col.key]: value,
-                            });
-                            handleFilterChange();
-                          }}
-                          selectClassName="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
-                          size="sm"
-                        />
-                      )}
+                          {meta?.filterType === "select" && (
+                            <Selector
+                              value={
+                                (header.column.getFilterValue() as string) ||
+                                "all"
+                              }
+                              options={[
+                                { value: "all", label: "すべて" },
+                                ...(meta?.filterOptions?.map((opt) => ({
+                                  value: opt,
+                                  label: opt,
+                                })) || []),
+                              ]}
+                              onChange={(value) => {
+                                header.column.setFilterValue(
+                                  value === "all" ? "" : value,
+                                );
+                                table.setPageIndex(0);
+                              }}
+                              selectClassName="text-xs"
+                              size="sm"
+                            />
+                          )}
 
-                      {col.filterable && col.filterType === "text" && (
-                        <input
-                          type="text"
-                          value={searchText}
-                          onChange={(e) => {
-                            setSearchText(e.target.value);
-                            handleFilterChange();
-                          }}
-                          placeholder="検索..."
-                          className="px-2 py-1 text-xs border border-gray-300 rounded w-32"
-                        />
-                      )}
-                    </div>
-                  </th>
-                ))}
+                          {meta?.filterType === "text" && (
+                            <input
+                              type="text"
+                              value={globalFilter}
+                              onChange={(e) => {
+                                setGlobalFilter(e.target.value);
+                                table.setPageIndex(0);
+                              }}
+                              placeholder="検索..."
+                              className="px-2 py-1 text-xs border border-gray-300 rounded w-32"
+                            />
+                          )}
+                        </div>
+                      </th>
+                    );
+                  }),
+                )}
               </tr>
             </thead>
             <tbody>
-              {pageItems.map((item) => (
+              {pageRows.map((row) => (
                 <tr
-                  key={keyExtractor(item)}
+                  key={keyExtractor(row.original)}
                   className="border-b last:border-b-0"
                 >
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={`py-2 pr-4 ${col.className || ""}`}
-                    >
-                      {col.render ? col.render(item) : String(item[col.key])}
-                    </td>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta as {
+                      className?: string;
+                    };
+                    return (
+                      <td
+                        key={cell.id}
+                        className={`py-2 pr-4 ${meta?.className || ""}`}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
@@ -196,22 +226,22 @@ export default function DataTable<T extends Record<string, any>>({
         </div>
       )}
 
-      {pageItems.length > 0 && totalPages > 1 && (
+      {pageRows.length > 0 && totalPages > 1 && (
         <div className="flex gap-2 items-center justify-center text-xs md:text-sm pt-2">
           <Button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
             variant="secondary"
             size="sm"
           >
             前へ
           </Button>
           <span className="text-xs md:text-sm">
-            {page}/{totalPages}
+            {currentPage}/{totalPages}
           </span>
           <Button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
             variant="secondary"
             size="sm"
           >

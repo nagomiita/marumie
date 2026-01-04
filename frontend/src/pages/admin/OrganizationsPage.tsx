@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
+  getListOrganizationsQueryKey,
   useListOrganizations,
   useCreateOrganization,
   useDeleteOrganization,
@@ -8,23 +10,15 @@ import { EnumOrganizationType } from "@/client/api/generated/model";
 import type { OrganizationRead } from "@/client/api/generated/model";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Modal from "@/components/common/Modal";
-import Form, { type FormField } from "@/components/common/Form";
 import Button from "@/components/common/Button";
-
-interface OrganizationCreateForm {
-  name: string;
-  display_name: string;
-  type: EnumOrganizationType;
-  slug: string;
-  description: string;
-}
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import OrganizationForm, {
+  type OrganizationCreateForm,
+} from "@/components/admin/OrganizationForm";
 
 export default function OrganizationsPage() {
-  const {
-    data: organizations,
-    isLoading: loading,
-    refetch,
-  } = useListOrganizations();
+  const queryClient = useQueryClient();
+  const { data: organizations, isLoading: loading } = useListOrganizations();
   const createMutation = useCreateOrganization();
   const deleteMutation = useDeleteOrganization();
   const [showForm, setShowForm] = useState(false);
@@ -55,7 +49,9 @@ export default function OrganizationsPage() {
         slug: "",
         description: "",
       });
-      refetch();
+      await queryClient.invalidateQueries({
+        queryKey: getListOrganizationsQueryKey(),
+      });
     } catch (error) {
       console.error("Error creating organization:", error);
       alert("組織の作成に失敗しました");
@@ -69,7 +65,9 @@ export default function OrganizationsPage() {
       await deleteMutation.mutateAsync({
         organizationId: id,
       });
-      refetch();
+      await queryClient.invalidateQueries({
+        queryKey: getListOrganizationsQueryKey(),
+      });
     } catch (error) {
       console.error("Error deleting organization:", error);
       alert("組織の削除に失敗しました");
@@ -94,49 +92,6 @@ export default function OrganizationsPage() {
     political_organization: "政治団体",
     other: "その他",
   };
-
-  const formFields: FormField<OrganizationCreateForm>[] = [
-    {
-      name: "name",
-      label: "名前（内部ID）",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "display_name",
-      label: "表示名",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "slug",
-      label: "スラッグ",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "type",
-      label: "タイプ",
-      type: "select",
-      required: true,
-      options: [
-        { value: EnumOrganizationType.household, label: "家計簿" },
-        { value: EnumOrganizationType.business, label: "ビジネス" },
-        { value: EnumOrganizationType.nonprofit, label: "非営利" },
-        {
-          value: EnumOrganizationType.political_organization,
-          label: "政治団体",
-        },
-        { value: EnumOrganizationType.other, label: "その他" },
-      ],
-    },
-    {
-      name: "description",
-      label: "説明",
-      type: "textarea",
-      rows: 3,
-    },
-  ];
 
   const columns: Column<OrganizationRead>[] = [
     {
@@ -184,23 +139,20 @@ export default function OrganizationsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">組織管理</h1>
-        <Button onClick={() => setShowForm(true)} variant="primary">
-          新規作成
-        </Button>
-      </div>
-
+    <AdminPageLayout
+      title="組織管理"
+      action={{
+        label: "新規作成",
+        onClick: () => setShowForm(true),
+      }}
+    >
       <Modal open={showForm} onClose={handleCancel}>
         <h2 className="text-lg font-semibold mb-4">新規組織</h2>
-        <Form
-          fields={formFields}
+        <OrganizationForm
           formData={formData}
           onChange={setFormData}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          submitLabel="作成"
         />
       </Modal>
 
@@ -210,6 +162,6 @@ export default function OrganizationsPage() {
         keyExtractor={(org) => org.id}
         pageSize={20}
       />
-    </div>
+    </AdminPageLayout>
   );
 }

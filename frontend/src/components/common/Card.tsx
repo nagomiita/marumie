@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface CardProps {
   title?: string;
@@ -6,13 +7,21 @@ interface CardProps {
   children: ReactNode;
 }
 
-export default function Card({ title, className = "", children }: CardProps) {
+export default function CardComponent({
+  title,
+  className = "",
+  children,
+}: CardProps) {
   return (
-    <div className={`bg-white rounded-xl shadow-sm p-3 md:p-4 ${className}`}>
+    <Card className={className}>
       {title && (
-        <h3 className="text-base md:text-lg font-semibold mb-3">{title}</h3>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base md:text-lg">{title}</CardTitle>
+        </CardHeader>
       )}
-      {children}
-    </div>
+      <CardContent className={title ? "pt-0" : undefined}>
+        {children}
+      </CardContent>
+    </Card>
   );
 }
