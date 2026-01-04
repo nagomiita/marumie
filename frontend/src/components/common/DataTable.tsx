@@ -4,11 +4,11 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
   type ColumnFiltersState,
   type PaginationState,
   type SortingState,
   useReactTable,
+  filterFns,
 } from "@tanstack/react-table";
 import Selector from "./Selector";
 import Button from "./Button";
@@ -48,7 +48,6 @@ export default function DataTable<T extends Record<string, any>>({
     pageIndex: 0,
     pageSize,
   });
-
   const tableColumns = useMemo(
     () =>
       columns.map((col) => ({
@@ -59,7 +58,9 @@ export default function DataTable<T extends Record<string, any>>({
         enableSorting: col.sortable ?? false,
         enableColumnFilter: col.filterable ?? false,
         filterFn:
-          col.filterType === "select" ? "equalsString" : "includesString",
+          col.filterType === "select"
+            ? filterFns.equalsString
+            : filterFns.includesString,
         cell: ({ row }: { row: { original: T } }) =>
           col.render ? col.render(row.original) : String(row.original[col.key]),
         meta: {
@@ -85,10 +86,9 @@ export default function DataTable<T extends Record<string, any>>({
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    globalFilterFn: filterFns.includesString,
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    globalFilterFn: "includesString",
   });
 
   const filteredCount = table.getFilteredRowModel().rows.length;

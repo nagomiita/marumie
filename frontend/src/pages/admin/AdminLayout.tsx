@@ -1,19 +1,23 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { adminMenuItems } from "@/config/adminMenu";
-import Button from "@/components/common/Button";
-
-function LogoutButton() {
-  const { signOut } = useAuth();
-  return (
-    <Button onClick={() => signOut()} variant="danger" size="sm">
-      ログアウト
-    </Button>
-  );
-}
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Home, LayoutDashboard, LogOut } from "lucide-react";
 
 export default function AdminLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -27,49 +31,75 @@ export default function AdminLayout() {
     return <Navigate to="/admin/login" replace />;
   }
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <div className="flex-shrink-0">
-                <h1 className="text-xl font-bold text-gray-900">管理画面</h1>
-              </div>
-              <div className="flex space-x-4">
-                <a
-                  href="/admin"
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  ダッシュボード
-                </a>
-                {adminMenuItems.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    {item.title}
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <a
-                href="/"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                ホーム
-              </a>
-              <span className="text-sm text-gray-700">{user.email}</span>
-              <LogoutButton />
-            </div>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2 px-2 py-2">
+            <h1 className="text-lg font-bold">管理画面</h1>
           </div>
-        </div>
-      </nav>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <Outlet />
-      </main>
-    </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/admin")}>
+                <a href="/admin">
+                  <LayoutDashboard />
+                  <span>ダッシュボード</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            {adminMenuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
+                    <a href={item.href}>
+                      <Icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <a href="/">
+                  <Home />
+                  <span>ホーム</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <div className="px-2 py-2">
+                <p className="text-sm text-muted-foreground truncate">
+                  {user.email}
+                </p>
+              </div>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={() => signOut()}>
+                <LogOut />
+                <span>ログアウト</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger />
+        </header>
+        <main className="flex-1 p-6">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
